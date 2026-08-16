@@ -1,0 +1,6 @@
+class ApiKeys {
+  static const String tmdb = "Your tmdb Key here ";
+  static const String gemini = "Your gemini key here";
+  static const String supabaseUrl = "https://your-project.supabase.co";
+  static const String supabaseAnonKey = "your-anon-key-here";
+}
