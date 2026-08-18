@@ -1,5 +1,4 @@
 # Ignore API keys file
-./shared/api_keys.dart
+shared/lib/api_keys.dart
 .claude
 .idea
-shared/api_keys.dart
