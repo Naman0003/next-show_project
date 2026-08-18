@@ -1,4 +1,4 @@
-name: next_show_project
+name: user_app
 description: A new Flutter project.
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -30,9 +30,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http: ^1.1.0
+  dio: ^5.0.3
+  riverpod: ^2.5.0
   google_generative_ai: ^0.2.2  # <-- Gemini AI
   supabase_flutter: ^2.8.0
+  shared:
+    path: ../../shared
   core_models:
     path: ../../packages/core_models
   ui_kit:

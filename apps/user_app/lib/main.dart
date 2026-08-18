@@ -1,18 +1,18 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'models/event_model.dart';
-import 'services/event_repository.dart';
-import 'screens/ai_recommender.dart';
-import 'screens/event_detail_screen.dart';
-import 'api_keys.dart';
+import 'package:user_app/models/event_model.dart';
+import 'package:user_app/services/event_repository.dart';
+import 'package:user_app/screens/ai_recommender.dart';
+import 'package:user_app/screens/event_detail_screen.dart';
+import 'package:shared/api_keys.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(
     url: ApiKeys.supabaseUrl,
-    anonKey: ApiKeys.supabaseAnonKey,
+    publishableKey: ApiKeys.supabaseAnonKey,
   );
 
   runApp(const NextShowApp());
@@ -33,7 +33,8 @@ class NextShowApp extends StatelessWidget {
           backgroundColor: Colors.white,
           elevation: 0,
           iconTheme: IconThemeData(color: Colors.black87),
-          titleTextStyle: TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.bold),
+          titleTextStyle: TextStyle(
+              color: Colors.black87, fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
       home: const HomeScreen(),
@@ -116,8 +117,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
           final allEvents = snapshot.data ?? [];
           final filteredEvents = allEvents.where((event) {
-            final matchesCategory = selectedCategory == null || event.category == selectedCategory;
-            final matchesSearch = event.title.toLowerCase().contains(searchQuery.toLowerCase()) ||
+            final matchesCategory =
+                selectedCategory == null || event.category == selectedCategory;
+            final matchesSearch = event.title
+                    .toLowerCase()
+                    .contains(searchQuery.toLowerCase()) ||
                 event.genre.toLowerCase().contains(searchQuery.toLowerCase());
             return matchesCategory && matchesSearch;
           }).toList();
@@ -133,7 +137,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   decoration: InputDecoration(
                     hintText: "Search movies, comedy, music...",
                     hintStyle: const TextStyle(color: Colors.black54),
-                    prefixIcon: const Icon(Icons.search, color: Color(0xFF6366F1)),
+                    prefixIcon:
+                        const Icon(Icons.search, color: Color(0xFF6366F1)),
                     filled: true,
                     fillColor: Colors.white,
                     contentPadding: const EdgeInsets.symmetric(vertical: 0),
@@ -170,40 +175,42 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: filteredEvents.isEmpty
                     ? const Center(
-                  child: Text("No live events available right now",
-                      style: TextStyle(color: Colors.black54)),
-                )
+                        child: Text("No live events available right now",
+                            style: TextStyle(color: Colors.black54)),
+                      )
                     : ListView(
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                      child: Text(
-                        "Live Experience Listings",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16.0, vertical: 8.0),
+                            child: Text(
+                              "Live Experience Listings",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 290,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16.0),
+                              itemCount: filteredEvents.length,
+                              itemBuilder: (context, index) {
+                                final event = filteredEvents[index];
+                                return Container(
+                                  width: 150,
+                                  margin: const EdgeInsets.only(right: 14.0),
+                                  child: EventCard(event: event),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    SizedBox(
-                      height: 290,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        itemCount: filteredEvents.length,
-                        itemBuilder: (context, index) {
-                          final event = filteredEvents[index];
-                          return Container(
-                            width: 150,
-                            margin: const EdgeInsets.only(right: 14.0),
-                            child: EventCard(event: event),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
               ),
             ],
           );
@@ -217,7 +224,8 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const AiMovieRecommenderScreen()),
+            MaterialPageRoute(
+                builder: (context) => const AiMovieRecommenderScreen()),
           );
         },
       ),
@@ -265,7 +273,8 @@ class EventCard extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => EventDetailScreen(event: event)),
+          MaterialPageRoute(
+              builder: (context) => EventDetailScreen(event: event)),
         );
       },
       child: Column(
@@ -283,20 +292,26 @@ class EventCard extends StatelessWidget {
                     height: double.infinity,
                     errorBuilder: (context, error, stackTrace) => Container(
                       color: const Color(0xFFE2E8F0),
-                      child: const Icon(Icons.movie, size: 40, color: Color(0xFF6366F1)),
+                      child: const Icon(Icons.movie,
+                          size: 40, color: Color(0xFF6366F1)),
                     ),
                   ),
                   Positioned(
                     bottom: 8,
                     left: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 3),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.8),                        borderRadius: BorderRadius.circular(6),
+                        color: Colors.black.withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         event.imdbRating,
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFFFD166)),
+                        style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFFFD166)),
                       ),
                     ),
                   ),
@@ -305,10 +320,23 @@ class EventCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Text(event.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
-          Text(event.genre, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.black54, fontSize: 12)),
+          Text(event.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Colors.black87)),
+          Text(event.genre,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.black54, fontSize: 12)),
           const SizedBox(height: 4),
-          Text("€${event.price.toStringAsFixed(2)} onwards", style: const TextStyle(color: Color(0xFF059669), fontWeight: FontWeight.bold, fontSize: 12)),
+          Text("€${event.price.toStringAsFixed(2)} onwards",
+              style: const TextStyle(
+                  color: Color(0xFF059669),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12)),
         ],
       ),
     );

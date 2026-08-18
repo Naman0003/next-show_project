@@ -5,13 +5,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class BookingService {
   static Future<void> launchBookingUrl(
-      BuildContext context,
-      String rawBookingUrl, {
-        String? showtimeId,
-      }) async {
+    BuildContext context,
+    String rawBookingUrl, {
+    String? showtimeId,
+  }) async {
     if (rawBookingUrl.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No booking link available for this showtime.')),
+        const SnackBar(
+            content: Text('No booking link available for this showtime.')),
       );
       return;
     }

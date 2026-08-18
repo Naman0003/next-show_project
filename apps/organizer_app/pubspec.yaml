@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  shared:
+    path: ../../shared
   core_models:
     path: ../../packages/core_models
   ui_kit:
