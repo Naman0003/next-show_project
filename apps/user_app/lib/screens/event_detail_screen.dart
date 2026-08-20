@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import '../models/event_model.dart';
 import '../services/booking_service.dart';
 import '../api_keys.dart';
+import '../theme/app_theme.dart';
+import 'auth/login_screen.dart';
 
 class EventDetailScreen extends StatefulWidget {
   final Event event;
@@ -141,7 +143,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(widget.event.title)),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF6366F1)))
+          ? const Center(child: CircularProgressIndicator(color: AppColors.royalBlue))
           : SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,8 +155,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                 livePoster,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Container(
-                  color: const Color(0xFFE2E8F0),
-                  child: const Icon(Icons.movie, size: 60, color: Color(0xFF6366F1)),
+                  color: AppColors.border,
+                  child: const Icon(Icons.movie, size: 60, color: AppColors.royalBlue),
                 ),
               ),
             ),
@@ -171,19 +173,19 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(6)),
-                        child: Text(liveRating, style: const TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 12)),
+                        decoration: BoxDecoration(color: AppColors.iceBlue, borderRadius: BorderRadius.circular(6)),
+                        child: Text(liveRating, style: const TextStyle(color: AppColors.warning, fontWeight: FontWeight.bold, fontSize: 12)),
                       )
                     ],
                   ),
                   const SizedBox(height: 6),
                   Text(widget.event.genre, style: const TextStyle(color: Colors.black54, fontSize: 14)),
-                  const Divider(height: 32, color: Color(0xFFE2E8F0)),
+                  const Divider(height: 32, color: AppColors.border),
 
                   if (castList.isNotEmpty) ...[
                     const Text("Cast & Director", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
                     const SizedBox(height: 8),
-                    Text("Director: $liveDirector", style: const TextStyle(color: Color(0xFF059669), fontWeight: FontWeight.bold, fontSize: 13)),
+                    Text("Director: $liveDirector", style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 14),
 
                     SizedBox(
@@ -199,7 +201,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                               children: [
                                 CircleAvatar(
                                   radius: 28,
-                                  backgroundColor: const Color(0xFF6366F1),
+                                  backgroundColor: AppColors.royalBlue,
                                   child: ClipOval(
                                     child: Image.network(
                                       actor["imageUrl"] ?? "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
@@ -229,7 +231,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         },
                       ),
                     ),
-                    const Divider(height: 32, color: Color(0xFFE2E8F0)),
+                    const Divider(height: 32, color: AppColors.border),
                   ],
 
                   const Text("Synopsis", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
@@ -255,12 +257,12 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text("Lowest Price", style: TextStyle(color: Colors.black54, fontSize: 12)),
-                Text("€${widget.event.price.toStringAsFixed(2)}", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF059669))),
+                Text("€${widget.event.price.toStringAsFixed(2)}", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.success)),
               ],
             ),
             Container(
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFF6366F1), Color(0xFFFF6B9D)]),
+                gradient: const LinearGradient(colors: AppColors.brandGradient),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ElevatedButton(
@@ -307,7 +309,7 @@ class CinemaAggregatorScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: AppColors.border),
               boxShadow: [
                 BoxShadow(color: Colors.black.withOpacity(.04), blurRadius: 8, offset: const Offset(0, 2)),
               ],
@@ -317,14 +319,17 @@ class CinemaAggregatorScreen extends StatelessWidget {
               children: [
                 Text(cinema.cinemaName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87)),
                 const SizedBox(height: 4),
-                Text(cinema.distance, style: const TextStyle(fontSize: 12, color: Color(0xFF059669))),
+                Text(cinema.distance, style: const TextStyle(fontSize: 12, color: AppColors.success)),
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 10,
                   runSpacing: 10,
                   children: cinema.showtimes.map((st) {
                     return GestureDetector(
-                      onTap: () {
+                      onTap: () async {
+                        final signedIn = await ensureSignedIn(context);
+                        if (!context.mounted) return;
+                        if (!signedIn) return;
                         BookingService.launchBookingUrl(
                           context,
                           st.bookingUrl,
@@ -335,14 +340,14 @@ class CinemaAggregatorScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFF6366F1)),
-                          color: const Color(0xFFF8F9FA),
+                          border: Border.all(color: AppColors.royalBlue),
+                          color: AppColors.snowWhite,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(st.time, style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
-                            Text(st.format, style: const TextStyle(color: Color(0xFFFF6B9D), fontSize: 10)),
+                            Text(st.format, style: const TextStyle(color: AppColors.skyBlue, fontSize: 10)),
                             Text("€${st.price.toStringAsFixed(2)}", style: const TextStyle(color: Colors.black54, fontSize: 10)),
                           ],
                         ),

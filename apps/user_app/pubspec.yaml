@@ -33,6 +33,7 @@ dependencies:
   http: ^1.1.0
   google_generative_ai: ^0.2.2  # <-- Gemini AI
   supabase_flutter: ^2.8.0
+  speech_to_text: 6.6.2
   core_models:
     path: ../../packages/core_models
   ui_kit:
@@ -42,6 +43,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
+  google_fonts: 6.1.0
 
 dev_dependencies:
   flutter_test:

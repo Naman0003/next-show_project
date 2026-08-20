@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Next Show uses the microphone so you can search by voice.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Next Show uses speech recognition to turn what you say into a search.</string>
 </dict>
 </plist>
