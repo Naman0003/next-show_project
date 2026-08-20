@@ -1,6 +1,6 @@
 // lib/services/event_repository.dart
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/event_model.dart';
+import 'package:user_app/models/event_model.dart';
 
 class EventRepository {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -20,15 +20,21 @@ class EventRepository {
       final Map<String, EventBuilder> eventBuilders = {};
 
       for (final row in response) {
-        final String eventId = row['event_id']?.toString() ?? row['showtime_id']?.toString() ?? 'unknown';
-        final String venueName = row['venue_name']?.toString() ?? 'Berlin Venue';
+        final String eventId = row['event_id']?.toString() ??
+            row['showtime_id']?.toString() ??
+            'unknown';
+        final String venueName =
+            row['venue_name']?.toString() ?? 'Berlin Venue';
         final String address = row['venue_address']?.toString() ?? '';
 
-        final EventCategory category = _parseCategory(row['category']?.toString());
+        final EventCategory category =
+            _parseCategory(row['category']?.toString());
 
         DateTime startTime = DateTime.now();
         if (row['start_time'] != null) {
-          startTime = DateTime.tryParse(row['start_time'].toString())?.toLocal() ?? DateTime.now();
+          startTime =
+              DateTime.tryParse(row['start_time'].toString())?.toLocal() ??
+                  DateTime.now();
         }
 
         final String formattedTime =
@@ -44,7 +50,8 @@ class EventRepository {
           bookingUrl: row['booking_url']?.toString() ?? '',
         );
 
-        final String imageUrl = (row['image_url'] != null && row['image_url'].toString().trim().isNotEmpty)
+        final String imageUrl = (row['image_url'] != null &&
+                row['image_url'].toString().trim().isNotEmpty)
             ? row['image_url'].toString()
             : _defaultImage;
 

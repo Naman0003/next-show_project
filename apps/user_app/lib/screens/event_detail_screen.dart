@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../models/event_model.dart';
 import '../services/booking_service.dart';
-import '../api_keys.dart';
+import 'package:shared/api_keys.dart';
 import '../theme/app_theme.dart';
 import 'auth/login_screen.dart';
 

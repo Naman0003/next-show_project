@@ -1,4 +1,4 @@
-package com.example.next_show_project
+package com.nextshow.user_app
 
 import io.flutter.embedding.android.FlutterActivity
 

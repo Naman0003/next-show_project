@@ -1,7 +1,7 @@
 // lib/services/ai_recommendation_service.dart
 import 'dart:convert';
 import 'package:google_generative_ai/google_generative_ai.dart';
-import '../api_keys.dart';
+import 'package:shared/api_keys.dart';
 import '../models/event_model.dart';
 
 class AiPick {
