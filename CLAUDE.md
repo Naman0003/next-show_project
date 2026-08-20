@@ -52,3 +52,32 @@ The codebase consists of multiple applications (user_app, admin_app, organizer_a
 - **ui_kit**: Includes shared UI components.
 
 No specific Cursor rules or Copilot instructions found, as the relevant directories are absent.
+
+## Task Tracking — TODO.md
+
+All upcoming work, priorities, and status are tracked in **TODO.md** at the repository root.
+
+### Convention
+
+| Symbol | Meaning |
+|--------|---------|
+| `[ ]` | **PENDING** — Not started |
+| `[~]` | **IN PROGRESS** — Actively being worked on |
+| `[x]` | **COMPLETED** — Done and verified |
+| `[!]` | **BLOCKED** — Waiting on external dependency or decision |
+
+### Priority Levels
+
+- **P0** — Critical path (blocks everything else)
+- **P1** — High (core feature work)
+- **P2** — Medium (polish, enhancements)
+- **P3** — Nice to have (future phases)
+
+### How to Use
+
+1. **Before starting work**: Check TODO.md, pick a P0/P1 task, change `[ ]` → `[~]`
+2. **While working**: Keep TODO.md updated if scope changes
+3. **When done**: Change `[~]` → `[x]`, add brief verification note if useful
+4. **If blocked**: Change `[ ]` → `[!]`, note the blocker in the Notes column
+
+This ensures anyone opening the project (human or AI) can immediately see what's next, what's in flight, and what's done — without digging through git history or asking.
