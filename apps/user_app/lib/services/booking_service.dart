@@ -9,7 +9,8 @@ class BookingService {
     String rawBookingUrl, {
     String? showtimeId,
   }) async {
-    if (rawBookingUrl.trim().isEmpty) {
+    String cleanUrl = rawBookingUrl.trim();
+    if (cleanUrl.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('No booking link available for this showtime.')),
@@ -17,7 +18,11 @@ class BookingService {
       return;
     }
 
-    Uri uri = Uri.parse(rawBookingUrl);
+    if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+      cleanUrl = 'https://$cleanUrl';
+    }
+
+    Uri uri = Uri.parse(cleanUrl);
 
     // Append tracking parameter to the booking link
     uri = uri.replace(
@@ -36,12 +41,15 @@ class BookingService {
     }
 
     // 2. Open external browser or cinema app
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
+    try {
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched) {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open cinema booking link.')),
+          SnackBar(content: Text('Could not open cinema booking link: $cleanUrl')),
         );
       }
     }

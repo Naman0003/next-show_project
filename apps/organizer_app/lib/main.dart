@@ -1,125 +1,192 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared/api_keys.dart';
+import 'package:supabase_client/supabase_client.dart';
+import 'package:ui_kit/ui_kit.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/dashboard_screen.dart';
 
-void main() {
-  runApp(const MyApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: ApiKeys.supabaseUrl,
+    anonKey: ApiKeys.supabaseAnonKey,
+  );
+
+  // Initialize typed Supabase client
+  await NextShowSupabaseClient.initialize(
+    url: ApiKeys.supabaseUrl,
+    anonKey: ApiKeys.supabaseAnonKey,
+  );
+
+  runApp(const OrganizerApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class OrganizerApp extends StatelessWidget {
+  const OrganizerApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a blue toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      title: 'NextShow Organizer',
+      debugShowCheckedModeBanner: false,
+      theme: nsTheme,
+      home: const AuthGate(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class AuthGate extends StatefulWidget {
+  const AuthGate({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<AuthGate> createState() => _AuthGateState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _AuthGateState extends State<AuthGate> {
+  bool _isUpgrading = false;
+  String? _cachedUserId;
+  Future<bool>? _partnerRoleFuture;
 
-  void _incrementCounter() {
+  void _refreshRole(String userId) {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _partnerRoleFuture = _checkPartnerRole(userId);
     });
+  }
+
+  Future<void> _upgradeRoleToPartner(String userId) async {
+    setState(() => _isUpgrading = true);
+    try {
+      await NextShowSupabaseClient.client
+          .from('profiles')
+          .update({'role': 'partner'})
+          .eq('id', userId);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account upgraded to Partner! Welcome.')),
+        );
+        _refreshRole(userId);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to upgrade account: $e'), backgroundColor: NSColors.error),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUpgrading = false);
+    }
+  }
+
+  Future<bool> _checkPartnerRole(String userId) async {
+    try {
+      debugPrint('>>> [ROLE_CHECK] Checking role for userId: $userId');
+      final response = await NextShowSupabaseClient.client
+          .from('profiles')
+          .select('role')
+          .eq('id', userId)
+          .maybeSingle();
+
+      debugPrint('>>> [ROLE_CHECK] Supabase response: $response');
+      if (response == null) {
+        debugPrint('>>> [ROLE_CHECK] No profile found for userId: $userId');
+        return false;
+      }
+      final roleStr = response['role']?.toString().toLowerCase();
+      debugPrint('>>> [ROLE_CHECK] User role is: "$roleStr"');
+      final isPartner = roleStr == 'partner' || roleStr == 'admin';
+      debugPrint('>>> [ROLE_CHECK] isPartner result: $isPartner');
+      return isPartner;
+    } catch (e, st) {
+      debugPrint('>>> [ROLE_CHECK] Exception while checking role: $e');
+      debugPrint('>>> [ROLE_CHECK] StackTrace: $st');
+      return false;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    return StreamBuilder<AuthState>(
+      stream: NextShowSupabaseClient.onAuthStateChange,
+      builder: (context, snapshot) {
+        // Use existing session immediately — don't wait for stream to show something
+        final session = snapshot.data?.session ?? NextShowSupabaseClient.client.auth.currentSession;
+
+        if (session == null && snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(body: NSLoading(message: 'Loading...'));
+        }
+
+        if (session != null) {
+          final userId = session.user.id;
+          if (_cachedUserId != userId || _partnerRoleFuture == null) {
+            _cachedUserId = userId;
+            _partnerRoleFuture = _checkPartnerRole(userId);
+          }
+
+          // Check if user has partner/admin role
+          return FutureBuilder<bool>(
+            future: _partnerRoleFuture,
+            builder: (context, roleSnapshot) {
+              if (roleSnapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(body: NSLoading(message: 'Checking permissions...'));
+              }
+
+              if (roleSnapshot.data == true) {
+                return const DashboardScreen();
+              } else {
+                return Scaffold(
+                  body: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.lock_outline, size: 64, color: NSColors.textSecondary),
+                          const SizedBox(height: 16),
+                          Text('Partner Access Required', style: NSTextStyles.headlineSmall, textAlign: TextAlign.center),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Your account is currently set to standard User access. Upgrade to a Partner account to start managing venues and scheduling showtimes.',
+                            style: NSTextStyles.bodyMedium,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 24),
+                          NSPrimaryButton(
+                            label: 'Upgrade to Partner Account',
+                            isLoading: _isUpgrading,
+                            icon: Icons.verified_user,
+                            onPressed: () => _upgradeRoleToPartner(userId),
+                          ),
+                          const SizedBox(height: 12),
+                          NSSecondaryButton(
+                            label: 'Check Permission / Refresh',
+                            onPressed: () => _refreshRole(userId),
+                          ),
+                          const SizedBox(height: 12),
+                          TextButton(
+                            child: Text('Sign Out', style: NSTextStyles.bodyMedium.copyWith(color: NSColors.error)),
+                            onPressed: () {
+                              setState(() {
+                                _cachedUserId = null;
+                                _partnerRoleFuture = null;
+                              });
+                              NextShowSupabaseClient.signOut();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }
+            },
+          );
+        }
+
+        return const LoginScreen();
+      },
     );
   }
 }

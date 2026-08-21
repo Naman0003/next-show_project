@@ -50,9 +50,9 @@
 
 | Task | Status | Notes |
 |------|--------|-------|
-| `core_models`: Venue, Event, Showtime, User, Category enums | [ ] | Shared across all 3 apps |
-| `supabase_client`: Typed query helpers, Realtime subscriptions | [ ] | Initialize client, type-safe queries |
-| `ui_kit`: EventCard, CinemaCard, ShowtimeChip, CategoryFilter, NextShowButton | [ ] | Reusable, themed components |
+| `core_models`: Venue, Event, Showtime, User, Category enums | [x] | Shared across all 3 apps |
+| `supabase_client`: Typed query helpers, Realtime subscriptions | [x] | Initialize client, type-safe queries |
+| `ui_kit`: EventCard, CinemaCard, ShowtimeChip, CategoryFilter, NextShowButton | [x] | Reusable, themed components |
 
 ---
 
@@ -61,9 +61,9 @@
 | Task | Status | Notes |
 |------|--------|-------|
 | Define Admin App scope & screens | [ ] | Partner mgmt, content moderation, analytics, config |
-| Define Organizer App scope & screens | [ ] | Event creation, venue mgmt, showtime scheduling |
+| Define Organizer App scope & screens | [x] | Event creation, venue mgmt, showtime scheduling |
 | Scaffold Admin App with real structure | [ ] | Replace default Flutter counter demo |
-| Scaffold Organizer App with real structure | [ ] | Replace default Flutter counter demo |
+| Scaffold Organizer App with real structure | [x] | Full partner portal, venues, events, showtimes CRUD |
 
 ---
 
@@ -75,6 +75,8 @@
 | Monitoring/alerting for stale data | [ ] | Question O: trust = no outdated info |
 | CI/CD pipeline for all 3 apps | [ ] | Build, test, deploy |
 | Document API keys / secrets management | [ ] | Currently in `shared/api_keys.dart` |
+| Google Places API integration for venue address autocomplete | [ ] | P2 - Add to organizer_app venue form later |
+| S3/Cloud Storage bucket for venue/event images | [ ] | P1 - Supabase Storage or AWS S3 for photo uploads |
 
 ---
 

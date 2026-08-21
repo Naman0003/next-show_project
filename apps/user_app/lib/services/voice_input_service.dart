@@ -56,8 +56,10 @@ class VoiceInputService {
         }
       },
       onSoundLevelChange: (level) => onSoundLevelChange?.call(level),
-      pauseFor: const Duration(seconds: 2),
-      listenFor: const Duration(seconds: 30),
+      listenOptions: SpeechListenOptions(
+        pauseFor: const Duration(seconds: 2),
+        listenFor: const Duration(seconds: 30),
+      ),
     );
   }
 

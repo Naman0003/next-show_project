@@ -1,0 +1,269 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'core_models.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+_$ProfileImpl _$$ProfileImplFromJson(Map<String, dynamic> json) =>
+    _$ProfileImpl(
+      id: json['id'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      email: json['email'] as String,
+      fullName: json['fullName'] as String?,
+      role:
+          $enumDecodeNullable(_$UserRoleEnumMap, json['role']) ?? UserRole.user,
+      favoriteVenueIds: (json['favoriteVenueIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      preferredCategories: (json['preferredCategories'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+    );
+
+Map<String, dynamic> _$$ProfileImplToJson(_$ProfileImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
+      'email': instance.email,
+      'fullName': instance.fullName,
+      'role': _$UserRoleEnumMap[instance.role]!,
+      'favoriteVenueIds': instance.favoriteVenueIds,
+      'preferredCategories': instance.preferredCategories,
+    };
+
+const _$UserRoleEnumMap = {
+  UserRole.user: 'user',
+  UserRole.partner: 'partner',
+  UserRole.admin: 'admin',
+};
+
+_$VenueImpl _$$VenueImplFromJson(Map<String, dynamic> json) => _$VenueImpl(
+      id: json['id'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      ownerId: json['ownerId'] as String?,
+      name: json['name'] as String,
+      venueType: $enumDecode(_$VenueTypeEnumMap, json['venueType']),
+      address: json['address'] as String?,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      websiteUrl: json['websiteUrl'] as String?,
+      imageUrl: json['imageUrl'] as String?,
+      partnerNotes: json['partnerNotes'] as String?,
+      isActive: json['isActive'] as bool? ?? true,
+    );
+
+Map<String, dynamic> _$$VenueImplToJson(_$VenueImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
+      'ownerId': instance.ownerId,
+      'name': instance.name,
+      'venueType': _$VenueTypeEnumMap[instance.venueType]!,
+      'address': instance.address,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+      'websiteUrl': instance.websiteUrl,
+      'imageUrl': instance.imageUrl,
+      'partnerNotes': instance.partnerNotes,
+      'isActive': instance.isActive,
+    };
+
+const _$VenueTypeEnumMap = {
+  VenueType.cinema: 'cinema',
+  VenueType.club: 'club',
+  VenueType.theatre: 'theatre',
+};
+
+_$EventImpl _$$EventImplFromJson(Map<String, dynamic> json) => _$EventImpl(
+      id: json['id'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      category: $enumDecode(_$EventCategoryEnumMap, json['category']),
+      title: json['title'] as String,
+      description: json['description'] as String?,
+      imageUrl: json['imageUrl'] as String?,
+      durationMinutes: (json['durationMinutes'] as num?)?.toInt(),
+      externalIds: json['externalIds'] as Map<String, dynamic>? ?? const {},
+      metadata: json['metadata'] as Map<String, dynamic>? ?? const {},
+      status: $enumDecodeNullable(_$EventStatusEnumMap, json['status']) ??
+          EventStatus.published,
+    );
+
+Map<String, dynamic> _$$EventImplToJson(_$EventImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
+      'category': _$EventCategoryEnumMap[instance.category]!,
+      'title': instance.title,
+      'description': instance.description,
+      'imageUrl': instance.imageUrl,
+      'durationMinutes': instance.durationMinutes,
+      'externalIds': instance.externalIds,
+      'metadata': instance.metadata,
+      'status': _$EventStatusEnumMap[instance.status]!,
+    };
+
+const _$EventCategoryEnumMap = {
+  EventCategory.movie: 'movie',
+  EventCategory.comedy: 'comedy',
+  EventCategory.music: 'music',
+  EventCategory.theatre: 'theatre',
+};
+
+const _$EventStatusEnumMap = {
+  EventStatus.draft: 'draft',
+  EventStatus.published: 'published',
+  EventStatus.cancelled: 'cancelled',
+  EventStatus.archived: 'archived',
+};
+
+_$ShowtimeImpl _$$ShowtimeImplFromJson(Map<String, dynamic> json) =>
+    _$ShowtimeImpl(
+      id: json['id'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      venueId: json['venueId'] as String,
+      eventId: json['eventId'] as String,
+      startTime: DateTime.parse(json['startTime'] as String),
+      endTime: json['endTime'] == null
+          ? null
+          : DateTime.parse(json['endTime'] as String),
+      price: (json['price'] as num?)?.toDouble(),
+      capacity: (json['capacity'] as num?)?.toInt(),
+      ticketsSold: (json['ticketsSold'] as num?)?.toInt() ?? 0,
+      attributes: json['attributes'] as Map<String, dynamic>? ?? const {},
+      bookingUrl: json['bookingUrl'] as String,
+      imageUrl: json['imageUrl'] as String?,
+      status: $enumDecodeNullable(_$EventStatusEnumMap, json['status']) ??
+          EventStatus.published,
+    );
+
+Map<String, dynamic> _$$ShowtimeImplToJson(_$ShowtimeImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
+      'venueId': instance.venueId,
+      'eventId': instance.eventId,
+      'startTime': instance.startTime.toIso8601String(),
+      'endTime': instance.endTime?.toIso8601String(),
+      'price': instance.price,
+      'capacity': instance.capacity,
+      'ticketsSold': instance.ticketsSold,
+      'attributes': instance.attributes,
+      'bookingUrl': instance.bookingUrl,
+      'imageUrl': instance.imageUrl,
+      'status': _$EventStatusEnumMap[instance.status]!,
+    };
+
+_$OutboundClickImpl _$$OutboundClickImplFromJson(Map<String, dynamic> json) =>
+    _$OutboundClickImpl(
+      id: json['id'] as String,
+      clickedAt: DateTime.parse(json['clickedAt'] as String),
+      userId: json['userId'] as String?,
+      showtimeId: json['showtimeId'] as String?,
+    );
+
+Map<String, dynamic> _$$OutboundClickImplToJson(_$OutboundClickImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'clickedAt': instance.clickedAt.toIso8601String(),
+      'userId': instance.userId,
+      'showtimeId': instance.showtimeId,
+    };
+
+_$OrganizerInviteImpl _$$OrganizerInviteImplFromJson(
+        Map<String, dynamic> json) =>
+    _$OrganizerInviteImpl(
+      id: json['id'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      venueId: json['venueId'] as String,
+      invitedBy: json['invitedBy'] as String,
+      email: json['email'] as String,
+      role: json['role'] as String? ?? 'editor',
+      token: json['token'] as String,
+      acceptedAt: json['acceptedAt'] == null
+          ? null
+          : DateTime.parse(json['acceptedAt'] as String),
+      expiresAt: json['expiresAt'] == null
+          ? null
+          : DateTime.parse(json['expiresAt'] as String),
+    );
+
+Map<String, dynamic> _$$OrganizerInviteImplToJson(
+        _$OrganizerInviteImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'venueId': instance.venueId,
+      'invitedBy': instance.invitedBy,
+      'email': instance.email,
+      'role': instance.role,
+      'token': instance.token,
+      'acceptedAt': instance.acceptedAt?.toIso8601String(),
+      'expiresAt': instance.expiresAt?.toIso8601String(),
+    };
+
+_$ListingImpl _$$ListingImplFromJson(Map<String, dynamic> json) =>
+    _$ListingImpl(
+      showtimeId: json['showtimeId'] as String,
+      startTime: DateTime.parse(json['startTime'] as String),
+      endTime: json['endTime'] == null
+          ? null
+          : DateTime.parse(json['endTime'] as String),
+      price: (json['price'] as num?)?.toDouble(),
+      showtimeAttributes: json['showtimeAttributes'] as Map<String, dynamic>,
+      bookingUrl: json['bookingUrl'] as String,
+      showtimeImageUrl: json['showtimeImageUrl'] as String?,
+      eventId: json['eventId'] as String,
+      category: $enumDecode(_$EventCategoryEnumMap, json['category']),
+      eventTitle: json['eventTitle'] as String,
+      eventDescription: json['eventDescription'] as String?,
+      imageUrl: json['imageUrl'] as String?,
+      durationMinutes: (json['durationMinutes'] as num?)?.toInt(),
+      eventMetadata: json['eventMetadata'] as Map<String, dynamic>,
+      eventStatus:
+          $enumDecodeNullable(_$EventStatusEnumMap, json['eventStatus']),
+      venueId: json['venueId'] as String,
+      venueName: json['venueName'] as String,
+      venueType: $enumDecode(_$VenueTypeEnumMap, json['venueType']),
+      venueAddress: json['venueAddress'] as String?,
+      longitude: (json['longitude'] as num).toDouble(),
+      latitude: (json['latitude'] as num).toDouble(),
+      venueImageUrl: json['venueImageUrl'] as String?,
+    );
+
+Map<String, dynamic> _$$ListingImplToJson(_$ListingImpl instance) =>
+    <String, dynamic>{
+      'showtimeId': instance.showtimeId,
+      'startTime': instance.startTime.toIso8601String(),
+      'endTime': instance.endTime?.toIso8601String(),
+      'price': instance.price,
+      'showtimeAttributes': instance.showtimeAttributes,
+      'bookingUrl': instance.bookingUrl,
+      'showtimeImageUrl': instance.showtimeImageUrl,
+      'eventId': instance.eventId,
+      'category': _$EventCategoryEnumMap[instance.category]!,
+      'eventTitle': instance.eventTitle,
+      'eventDescription': instance.eventDescription,
+      'imageUrl': instance.imageUrl,
+      'durationMinutes': instance.durationMinutes,
+      'eventMetadata': instance.eventMetadata,
+      'eventStatus': _$EventStatusEnumMap[instance.eventStatus],
+      'venueId': instance.venueId,
+      'venueName': instance.venueName,
+      'venueType': _$VenueTypeEnumMap[instance.venueType]!,
+      'venueAddress': instance.venueAddress,
+      'longitude': instance.longitude,
+      'latitude': instance.latitude,
+      'venueImageUrl': instance.venueImageUrl,
+    };

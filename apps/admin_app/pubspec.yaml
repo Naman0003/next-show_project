@@ -33,11 +33,11 @@ dependencies:
   shared:
     path: ../../shared
   core_models:
-    path: ../../packages/core_models
+    path: ../../shared/core_models
   ui_kit:
-    path: ../../packages/ui_kit
+    path: ../../shared/ui_kit
   supabase_client:
-    path: ../../packages/supabase_client
+    path: ../../shared/supabase_client
 
 
   # The following adds the Cupertino Icons font to your application.
