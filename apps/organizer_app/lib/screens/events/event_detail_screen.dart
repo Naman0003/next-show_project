@@ -118,6 +118,22 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   const SizedBox(height: 6),
                   Text(event.description!, style: NSTextStyles.bodyMedium),
                 ],
+                const SizedBox(height: 20),
+
+                // Quick Action: Schedule Showtime
+                NSPrimaryButton(
+                  label: 'Schedule Showtime for this Event',
+                  icon: Icons.add_alarm,
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ShowtimeFormScreen(initialEventId: event.id),
+                      ),
+                    );
+                    _loadData();
+                  },
+                ),
                 const SizedBox(height: 28),
 
                 // Showtimes section

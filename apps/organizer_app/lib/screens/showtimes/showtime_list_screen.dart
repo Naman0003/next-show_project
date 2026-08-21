@@ -14,6 +14,7 @@ class ShowtimeListScreen extends StatefulWidget {
 
 class _ShowtimeListScreenState extends State<ShowtimeListScreen> {
   List<Venue> _venues = [];
+  Map<String, Event> _eventsMap = {};
   String? _selectedVenueId;
   bool _isLoadingVenues = true;
 
@@ -22,20 +23,28 @@ class _ShowtimeListScreenState extends State<ShowtimeListScreen> {
   @override
   void initState() {
     super.initState();
-    _loadVenues();
+    _loadVenuesAndEvents();
   }
 
-  Future<void> _loadVenues() async {
+  Future<void> _loadVenuesAndEvents() async {
     try {
       final venues = await OrganizerRepository.fetchMyVenues();
-      setState(() {
-        _venues = venues;
-        _selectedVenueId = venues.isNotEmpty ? venues.first.id : null;
-        _isLoadingVenues = false;
-      });
-      _loadShowtimes();
+      final events = await OrganizerRepository.fetchEvents();
+      final eventsMap = <String, Event>{
+        for (final e in events) e.id: e,
+      };
+
+      if (mounted) {
+        setState(() {
+          _venues = venues;
+          _eventsMap = eventsMap;
+          _selectedVenueId = venues.isNotEmpty ? venues.first.id : null;
+          _isLoadingVenues = false;
+        });
+        _loadShowtimes();
+      }
     } catch (_) {
-      setState(() => _isLoadingVenues = false);
+      if (mounted) setState(() => _isLoadingVenues = false);
     }
   }
 
@@ -65,7 +74,7 @@ class _ShowtimeListScreenState extends State<ShowtimeListScreen> {
                   builder: (_) => ShowtimeFormScreen(initialVenueId: _selectedVenueId),
                 ),
               );
-              _loadShowtimes();
+              _loadVenuesAndEvents();
             },
           ),
         ],
@@ -114,7 +123,7 @@ class _ShowtimeListScreenState extends State<ShowtimeListScreen> {
                     // Showtimes List
                     Expanded(
                       child: RefreshIndicator(
-                        onRefresh: () async => _loadShowtimes(),
+                        onRefresh: () async => _loadVenuesAndEvents(),
                         color: NSColors.royalBlue,
                         child: FutureBuilder<List<Showtime>>(
                           future: _showtimesFuture,
@@ -126,7 +135,7 @@ class _ShowtimeListScreenState extends State<ShowtimeListScreen> {
                             if (snapshot.hasError) {
                               return NSErrorState(
                                 message: 'Failed to load showtimes: ${snapshot.error}',
-                                onRetry: _loadShowtimes,
+                                onRetry: _loadVenuesAndEvents,
                               );
                             }
 
@@ -146,7 +155,7 @@ class _ShowtimeListScreenState extends State<ShowtimeListScreen> {
                                         builder: (_) => ShowtimeFormScreen(initialVenueId: _selectedVenueId),
                                       ),
                                     );
-                                    _loadShowtimes();
+                                    _loadVenuesAndEvents();
                                   },
                                 ),
                               );
@@ -158,39 +167,105 @@ class _ShowtimeListScreenState extends State<ShowtimeListScreen> {
                               separatorBuilder: (_, __) => const SizedBox(height: 12),
                               itemBuilder: (context, index) {
                                 final st = showtimes[index];
+                                final event = _eventsMap[st.eventId];
                                 final timeStr = '${st.startTime.day}/${st.startTime.month}/${st.startTime.year} at ${st.startTime.hour.toString().padLeft(2, '0')}:${st.startTime.minute.toString().padLeft(2, '0')}';
 
                                 return Card(
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(14),
                                     side: const BorderSide(color: NSColors.border),
                                   ),
-                                  child: ListTile(
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                    title: Text(timeStr, style: NSTextStyles.titleMedium),
-                                    subtitle: Padding(
-                                      padding: const EdgeInsets.only(top: 4),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text('Price: €${st.price?.toStringAsFixed(2) ?? 'TBD'}'),
-                                          if (st.attributes['format'] != null)
-                                            Text(
-                                              'Format: ${st.attributes['format']}',
-                                              style: NSTextStyles.bodySmall.copyWith(color: NSColors.skyBlue),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                    trailing: NSStatusBadge(status: st.status),
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(14),
                                     onTap: () async {
                                       await Navigator.push(
                                         context,
                                         MaterialPageRoute(builder: (_) => ShowtimeFormScreen(showtime: st)),
                                       );
-                                      _loadShowtimes();
+                                      _loadVenuesAndEvents();
                                     },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(12),
+                                      child: Row(
+                                        children: [
+                                          // Movie Poster Thumbnail
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(8),
+                                            child: Image.network(
+                                              event?.imageUrl ?? 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=200',
+                                              width: 54,
+                                              height: 76,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, __, ___) => Container(
+                                                width: 54,
+                                                height: 76,
+                                                color: NSColors.royalBlue.withOpacity(0.1),
+                                                child: const Icon(Icons.movie, color: NSColors.royalBlue, size: 28),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+
+                                          // Movie & Showtime Info
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  event?.title ?? 'Movie Event',
+                                                  style: NSTextStyles.titleMedium.copyWith(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                const SizedBox(height: 6),
+                                                Row(
+                                                  children: [
+                                                    const Icon(Icons.access_time, size: 14, color: NSColors.textSecondary),
+                                                    const SizedBox(width: 4),
+                                                    Expanded(
+                                                      child: Text(
+                                                        timeStr,
+                                                        style: NSTextStyles.bodySmall,
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 6),
+                                                Row(
+                                                  children: [
+                                                    Text(
+                                                      '€${st.price?.toStringAsFixed(2) ?? 'TBD'}',
+                                                      style: NSTextStyles.labelMedium.copyWith(
+                                                        color: NSColors.success,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    if (st.attributes['format'] != null && st.attributes['format'].toString().isNotEmpty) ...[
+                                                      Text(' • ', style: NSTextStyles.bodySmall),
+                                                      Expanded(
+                                                        child: Text(
+                                                          '${st.attributes['format']}',
+                                                          style: NSTextStyles.bodySmall.copyWith(color: NSColors.skyBlue),
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow.ellipsis,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          NSStatusBadge(status: st.status),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 );
                               },
@@ -211,7 +286,7 @@ class _ShowtimeListScreenState extends State<ShowtimeListScreen> {
               builder: (_) => ShowtimeFormScreen(initialVenueId: _selectedVenueId),
             ),
           );
-          _loadShowtimes();
+          _loadVenuesAndEvents();
         },
       ),
     );

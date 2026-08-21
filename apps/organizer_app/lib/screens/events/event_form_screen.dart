@@ -6,6 +6,7 @@ import 'package:core_models/core_models.dart';
 import 'package:ui_kit/ui_kit.dart';
 import '../../services/organizer_repository.dart';
 import '../../services/tmdb_service.dart';
+import '../showtimes/showtime_form_screen.dart';
 
 class EventFormScreen extends StatefulWidget {
   final Event? event;
@@ -109,7 +110,7 @@ class _EventFormScreenState extends State<EventFormScreen> {
       }
 
       if (widget.event == null) {
-        await OrganizerRepository.createEvent(
+        final createdEvent = await OrganizerRepository.createEvent(
           category: _selectedCategory,
           title: _titleController.text.trim(),
           description: _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
@@ -118,6 +119,16 @@ class _EventFormScreenState extends State<EventFormScreen> {
           externalIds: externalIds,
           status: _selectedStatus,
         );
+
+        if (mounted) {
+          Navigator.pop(context, true);
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ShowtimeFormScreen(initialEventId: createdEvent.id),
+            ),
+          );
+        }
       } else {
         await OrganizerRepository.updateEvent(
           id: widget.event!.id,
@@ -128,13 +139,13 @@ class _EventFormScreenState extends State<EventFormScreen> {
           externalIds: externalIds,
           status: _selectedStatus,
         );
-      }
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(widget.event == null ? 'Event created!' : 'Event updated!')),
-        );
-        Navigator.pop(context, true);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Event updated!')),
+          );
+          Navigator.pop(context, true);
+        }
       }
     } catch (e) {
       if (mounted) {
