@@ -1,8 +1,7 @@
 // lib/services/tmdb_service.dart
 import 'dart:convert';
-import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared/api_keys.dart';
 
 class TmdbMovieSearchResult {
@@ -49,11 +48,17 @@ class TmdbMovieSearchResult {
 }
 
 class TmdbService {
-  static const String _baseUrl = 'https://api.themoviedb.org/3';
-  static const Map<String, String> _headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) NextShowApp/1.0',
-    'Accept': 'application/json',
-  };
+  static final Dio _dio = Dio(
+    BaseOptions(
+      baseUrl: 'https://api.themoviedb.org/3',
+      connectTimeout: const Duration(seconds: 4),
+      receiveTimeout: const Duration(seconds: 4),
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) NextShowApp/1.0',
+        'Accept': 'application/json',
+      },
+    ),
+  );
 
   static final List<TmdbMovieSearchResult> _fallbackCatalog = [
     const TmdbMovieSearchResult(
@@ -130,31 +135,33 @@ class TmdbService {
     ),
   ];
 
-  /// Search TMDB for movies matching a query string with ISP fallback support
+  /// Search TMDB for movies matching a query string using Dio
   static Future<List<TmdbMovieSearchResult>> searchMovies(String query) async {
     final cleanQuery = query.trim();
     if (cleanQuery.isEmpty) return [];
 
     try {
-      final uri = Uri.parse(
-        '$_baseUrl/search/movie?api_key=${ApiKeys.tmdb}&query=${Uri.encodeComponent(cleanQuery)}&include_adult=false&language=en-US',
+      debugPrint('>>> [TMDB] Dio searching for "$cleanQuery"');
+      final response = await _dio.get(
+        '/search/movie',
+        queryParameters: {
+          'api_key': ApiKeys.tmdb,
+          'query': cleanQuery,
+          'include_adult': false,
+          'language': 'en-US',
+        },
       );
 
-      debugPrint('>>> [TMDB] Searching URL: $uri');
-      final response = await http.get(uri, headers: _headers).timeout(
-        const Duration(seconds: 4),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data is String ? jsonDecode(response.data as String) : response.data;
         final results = data['results'] as List? ?? [];
         if (results.isNotEmpty) {
-          debugPrint('>>> [TMDB] Live search returned ${results.length} movies for "$cleanQuery"');
-          return results.map((json) => TmdbMovieSearchResult.fromJson(json)).toList();
+          debugPrint('>>> [TMDB] Dio live search returned ${results.length} movies');
+          return results.map((json) => TmdbMovieSearchResult.fromJson(json as Map<String, dynamic>)).toList();
         }
       }
     } catch (e) {
-      debugPrint('>>> [TMDB] Live search unavailable ($e). Using curated catalog fallback.');
+      debugPrint('>>> [TMDB] Dio search exception ($e). Using curated catalog fallback.');
     }
 
     // Fallback search in local catalog if live API is blocked by ISP
@@ -165,19 +172,21 @@ class TmdbService {
       return matches;
     }
 
-    // If query didn't match fallback catalog, return fallback catalog list
     return _fallbackCatalog;
   }
 
-  /// Fetch movie details including runtime in minutes
+  /// Fetch movie details including runtime in minutes using Dio
   static Future<int?> fetchMovieRuntime(int tmdbId) async {
     try {
-      final uri = Uri.parse('$_baseUrl/movie/$tmdbId?api_key=${ApiKeys.tmdb}');
-      final response = await http.get(uri, headers: _headers).timeout(
-        const Duration(seconds: 4),
+      final response = await _dio.get(
+        '/movie/$tmdbId',
+        queryParameters: {
+          'api_key': ApiKeys.tmdb,
+        },
       );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data is String ? jsonDecode(response.data as String) : response.data;
         return data['runtime'] as int?;
       }
     } catch (_) {}
