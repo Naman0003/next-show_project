@@ -81,3 +81,26 @@ All upcoming work, priorities, and status are tracked in **TODO.md** at the repo
 4. **If blocked**: Change `[ ]` → `[!]`, note the blocker in the Notes column
 
 This ensures anyone opening the project (human or AI) can immediately see what's next, what's in flight, and what's done — without digging through git history or asking.
+
+## Recent Architecture Improvements & Features
+
+The following features and structural updates have been completed:
+
+### 1. Build System & Gradle Upgrades
+- Upgraded both apps to Gradle `8.13` and declarative AGP `8.11.1`.
+- Configured Java 17 toolchain compatibility and target configurations.
+- Added `-Xmx4G` memory optimizations and disabled obsolete Jetifier processing to speed up compilation.
+
+### 2. Database Schema & RLS Security Definer Fixes
+- Avoided PostgreSQL infinite RLS recursion (`42P17`) by routing profile lookups through `SECURITY DEFINER` SQL helper functions (`public.is_admin()`, `public.is_partner()`).
+- Added the `is_verified` boolean attribute to the `public.events` table and the `public.v_listings` view to audit partner-provided content.
+
+### 3. Clean Movie Search UX & Fallback Flow
+- Designed a clean, unbranded "Find a Movie" autocomplete search flow.
+- Core movie details (Title, Synopsis, Poster, Runtime, Director, Genres) are automatically fetched from external APIs and locked (read-only) for verified movies.
+- Added a fallback button ("Didn't find your movie? Add a custom movie.") that unlocks custom inputs, enforcing an external reference link (IMDb, Letterboxd) and saving with `is_verified: false` for admin moderation.
+
+### 4. Showtime Controls & Realtime Stream Ingestion
+- Streamlined showtime creation to only ask for performance parameters (hall, audio chips, formats, direct booking URL).
+- Replaced FutureBuilder in `ShowtimeListScreen` with a Supabase Realtime Stream subscription (`.stream(...)`), achieving instant visual updates for new/edited showtimes.
+- Assigned unique `heroTag` properties to FloatActionButtons to prevent duplicate hero transition exceptions on screen pushes.

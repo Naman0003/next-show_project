@@ -91,6 +91,11 @@
 | Quick Actions grid uniform tile sizes | [x] | `Add Venue`, `Create Event`, `New Showtime` equal-width tiles |
 | Showtime card shows movie title (not just time) | [x] | Prevents confusion when multiple movies share a schedule |
 | TMDB search box overflow in header row | [x] | Fixed with `overflow: TextOverflow.ellipsis` + smaller badge padding |
+| Clean Movie Search UX (unbranded TMDB) | [x] | Tap-to-search field, "Find a Movie" sheet, "Didn't find your movie? Add a custom movie" fallback |
+| Showtime list Realtime subscription | [x] | Replaced FutureBuilder with Supabase Realtime stream for instant list sync |
+| FAB Hero tag conflicts resolved | [x] | Assigned unique heroTags (`fab_new_venue`, `fab_new_showtime`, `fab_new_event`) to FABs |
+| Git untracked `.idea` folder | [x] | Cleared cached index and committed `.idea` directory |
+| Fix `setState()` called after `dispose()` in `ShowtimeFormScreen` | [x] | Add liveness checks (`mounted`) before updating dropdown data |
 
 ---
 

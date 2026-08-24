@@ -75,6 +75,7 @@ class _ShowtimeFormScreenState extends State<ShowtimeFormScreen> {
     try {
       final venues = await OrganizerRepository.fetchMyVenues();
       final events = await OrganizerRepository.fetchEvents();
+      if (!mounted) return;
       setState(() {
         _venues = venues;
         _events = events;
@@ -87,7 +88,9 @@ class _ShowtimeFormScreenState extends State<ShowtimeFormScreen> {
         _isLoadingDropdowns = false;
       });
     } catch (_) {
-      setState(() => _isLoadingDropdowns = false);
+      if (mounted) {
+        setState(() => _isLoadingDropdowns = false);
+      }
     }
   }
 
