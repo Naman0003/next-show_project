@@ -48,154 +48,80 @@ class TmdbMovieSearchResult {
 }
 
 class TmdbService {
-  static final Dio _dio = Dio(
-    BaseOptions(
-      baseUrl: 'https://api.themoviedb.org/3',
-      connectTimeout: const Duration(seconds: 4),
-      receiveTimeout: const Duration(seconds: 4),
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) NextShowApp/1.0',
-        'Accept': 'application/json',
-      },
-    ),
-  );
-
-  static final List<TmdbMovieSearchResult> _fallbackCatalog = [
-    const TmdbMovieSearchResult(
-      id: 693134,
-      title: 'Dune: Part Two',
-      overview: 'Follow the mythic journey of Paul Atreides as he unites with Chani and the Fremen while on a path of revenge against the conspirators who destroyed his family.',
-      posterPath: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500',
-      releaseDate: '2024-03-01',
-      voteAverage: 8.5,
-      runtime: 166,
-    ),
-    const TmdbMovieSearchResult(
-      id: 438631,
-      title: 'Dune',
-      overview: 'Paul Atreides, a brilliant and gifted young man born into a great destiny beyond his understanding, must travel to the most dangerous planet in the universe.',
-      posterPath: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=500',
-      releaseDate: '2021-09-15',
-      voteAverage: 7.9,
-      runtime: 155,
-    ),
-    const TmdbMovieSearchResult(
-      id: 27205,
-      title: 'Inception',
-      overview: 'Cobb, a skilled thief who steals valuable secrets from deep within the subconscious during the dream state, is offered a chance at redemption.',
-      posterPath: 'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=500',
-      releaseDate: '2010-07-15',
-      voteAverage: 8.4,
-      runtime: 148,
-    ),
-    const TmdbMovieSearchResult(
-      id: 872585,
-      title: 'Oppenheimer',
-      overview: 'The story of J. Robert Oppenheimer’s role in the development of the atomic bomb during World War II.',
-      posterPath: 'https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?w=500',
-      releaseDate: '2023-07-19',
-      voteAverage: 8.1,
-      runtime: 180,
-    ),
-    const TmdbMovieSearchResult(
-      id: 157336,
-      title: 'Interstellar',
-      overview: 'The adventures of a group of explorers who make use of a newly discovered wormhole to surpass the limitations on human space travel.',
-      posterPath: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500',
-      releaseDate: '2014-11-05',
-      voteAverage: 8.4,
-      runtime: 169,
-    ),
-    const TmdbMovieSearchResult(
-      id: 155,
-      title: 'The Dark Knight',
-      overview: 'Batman raises the stakes in his war on crime. With the help of Lt. Jim Gordon and District Attorney Harvey Dent, Batman sets out to dismantle remaining organizations.',
-      posterPath: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=500',
-      releaseDate: '2008-07-16',
-      voteAverage: 8.5,
-      runtime: 152,
-    ),
-    const TmdbMovieSearchResult(
-      id: 414906,
-      title: 'The Batman',
-      overview: 'In his second year of fighting crime, Batman uncovers corruption in Gotham City that connects to his own family while facing a serial killer known as the Riddler.',
-      posterPath: 'https://images.unsplash.com/photo-1531259683007-016a7b628fc3?w=500',
-      releaseDate: '2022-03-01',
-      voteAverage: 7.7,
-      runtime: 176,
-    ),
-    const TmdbMovieSearchResult(
-      id: 533535,
-      title: 'Deadpool & Wolverine',
-      overview: 'A weary Wolverine finds himself recovering from his injuries when he comes across the loudmouth Deadpool.',
-      posterPath: 'https://images.unsplash.com/photo-1568832359672-e36cf5d74f54?w=500',
-      releaseDate: '2024-07-24',
-      voteAverage: 7.7,
-      runtime: 128,
-    ),
+  static const List<String> _baseUrls = [
+    'https://api.themoviedb.org/3',
+    'https://api.tmdb.org/3',
   ];
 
-  /// Search TMDB for movies matching a query string using Dio
+  static Dio _createDio(String baseUrl) {
+    return Dio(
+      BaseOptions(
+        baseUrl: baseUrl,
+        connectTimeout: const Duration(seconds: 4),
+        receiveTimeout: const Duration(seconds: 4),
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+          'Accept': 'application/json',
+        },
+      ),
+    );
+  }
+
+  /// Search TMDB for movies matching a query string using Dio with host failover
   static Future<List<TmdbMovieSearchResult>> searchMovies(String query) async {
     final cleanQuery = query.trim();
     if (cleanQuery.isEmpty) return [];
 
-    try {
-      debugPrint('>>> [TMDB] Dio searching for "$cleanQuery"');
-      final response = await _dio.get(
-        '/search/movie',
-        queryParameters: {
-          'api_key': ApiKeys.tmdb,
-          'query': cleanQuery,
-          'include_adult': false,
-          'language': 'en-US',
-        },
-      );
+    for (final baseUrl in _baseUrls) {
+      try {
+        debugPrint('>>> [TMDB] Trying TMDB host: $baseUrl for "$cleanQuery"');
+        final dio = _createDio(baseUrl);
 
-      if (response.statusCode == 200 && response.data != null) {
-        final data = response.data is String ? jsonDecode(response.data as String) : response.data;
-        final results = data['results'] as List? ?? [];
-        if (results.isNotEmpty) {
-          debugPrint('>>> [TMDB] Dio live search returned ${results.length} movies');
-          return results.map((json) => TmdbMovieSearchResult.fromJson(json as Map<String, dynamic>)).toList();
+        final response = await dio.get(
+          '/search/movie',
+          queryParameters: {
+            'api_key': ApiKeys.tmdb,
+            'query': cleanQuery,
+            'include_adult': false,
+            'language': 'en-US',
+          },
+        );
+
+        if (response.statusCode == 200 && response.data != null) {
+          final data = response.data is String ? jsonDecode(response.data as String) : response.data;
+          final results = data['results'] as List? ?? [];
+          if (results.isNotEmpty) {
+            debugPrint('>>> [TMDB] Live search returned ${results.length} movies');
+            return results.map((json) => TmdbMovieSearchResult.fromJson(json as Map<String, dynamic>)).toList();
+          }
         }
+      } catch (e) {
+        debugPrint('>>> [TMDB] Host $baseUrl exception: $e');
       }
-    } catch (e) {
-      debugPrint('>>> [TMDB] Dio search exception ($e). Using curated catalog fallback.');
     }
 
-    // Fallback search in local catalog if live API is blocked by ISP
-    final queryLower = cleanQuery.toLowerCase();
-    final matches = _fallbackCatalog.where((m) => m.title.toLowerCase().contains(queryLower)).toList();
-
-    if (matches.isNotEmpty) {
-      return matches;
-    }
-
-    return _fallbackCatalog;
+    return [];
   }
 
-  /// Fetch movie details including runtime in minutes using Dio
+  /// Fetch movie details including runtime in minutes using Dio with host failover
   static Future<int?> fetchMovieRuntime(int tmdbId) async {
-    try {
-      final response = await _dio.get(
-        '/movie/$tmdbId',
-        queryParameters: {
-          'api_key': ApiKeys.tmdb,
-        },
-      );
+    for (final baseUrl in _baseUrls) {
+      try {
+        final dio = _createDio(baseUrl);
+        final response = await dio.get(
+          '/movie/$tmdbId',
+          queryParameters: {
+            'api_key': ApiKeys.tmdb,
+          },
+        );
 
-      if (response.statusCode == 200 && response.data != null) {
-        final data = response.data is String ? jsonDecode(response.data as String) : response.data;
-        return data['runtime'] as int?;
-      }
-    } catch (_) {}
+        if (response.statusCode == 200 && response.data != null) {
+          final data = response.data is String ? jsonDecode(response.data as String) : response.data;
+          return data['runtime'] as int?;
+        }
+      } catch (_) {}
+    }
 
-    // Fallback lookup
-    final match = _fallbackCatalog.firstWhere(
-      (m) => m.id == tmdbId,
-      orElse: () => const TmdbMovieSearchResult(id: 0, title: '', voteAverage: 0, runtime: 120),
-    );
-    return match.runtime ?? 120;
+    return null;
   }
 }

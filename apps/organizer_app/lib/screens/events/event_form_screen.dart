@@ -356,9 +356,21 @@ class _TmdbSearchBottomSheetState extends State<_TmdbSearchBottomSheet> {
 
   void _onSearchChanged(String text) {
     if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
-    if (text.trim().length < 2) return;
 
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+    final query = text.trim();
+    if (query.isEmpty) {
+      setState(() {
+        _results = [];
+        _hasSearched = false;
+        _isSearching = false;
+        _networkError = null;
+      });
+      return;
+    }
+
+    if (query.length < 2) return;
+
+    _debounceTimer = Timer(const Duration(milliseconds: 400), () {
       if (mounted) {
         _performSearch();
       }
