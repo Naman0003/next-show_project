@@ -4,6 +4,7 @@ import 'package:shared/api_keys.dart';
 import 'package:supabase_client/supabase_client.dart';
 import 'package:ui_kit/ui_kit.dart';
 import 'screens/auth/login_screen.dart';
+import 'screens/auth/profile_setup_screen.dart';
 import 'screens/dashboard_screen.dart';
 
 Future<void> main() async {
@@ -44,65 +45,81 @@ class AuthGate extends StatefulWidget {
   State<AuthGate> createState() => _AuthGateState();
 }
 
+enum PartnerVerificationState {
+  notPartner,
+  pending,
+  verified,
+}
+
+class _ProfileResult {
+  final PartnerVerificationState verificationState;
+  final bool needsProfileSetup;
+  const _ProfileResult(this.verificationState, {this.needsProfileSetup = false});
+}
+
 class _AuthGateState extends State<AuthGate> {
-  bool _isUpgrading = false;
   String? _cachedUserId;
-  Future<bool>? _partnerRoleFuture;
+  Future<_ProfileResult>? _partnerRoleFuture;
 
   void _refreshRole(String userId) {
     setState(() {
-      _partnerRoleFuture = _checkPartnerRole(userId);
+      _partnerRoleFuture = _checkProfile(userId);
     });
   }
 
   Future<void> _upgradeRoleToPartner(String userId) async {
-    setState(() => _isUpgrading = true);
-    try {
-      await NextShowSupabaseClient.client
-          .from('profiles')
-          .update({'role': 'partner'})
-          .eq('id', userId);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Account upgraded to Partner! Welcome.')),
-        );
-        _refreshRole(userId);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to upgrade account: $e'), backgroundColor: NSColors.error),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isUpgrading = false);
-    }
+    await NextShowSupabaseClient.client
+        .from('profiles')
+        .update({'role': 'partner'})
+        .eq('id', userId);
   }
 
-  Future<bool> _checkPartnerRole(String userId) async {
+  Future<_ProfileResult> _checkProfile(String userId) async {
     try {
-      debugPrint('>>> [ROLE_CHECK] Checking role for userId: $userId');
+      debugPrint('>>> [ROLE_CHECK] Checking profile for userId: $userId');
       final response = await NextShowSupabaseClient.client
           .from('profiles')
-          .select('role')
+          .select('role, is_verified, full_name')
           .eq('id', userId)
           .maybeSingle();
 
       debugPrint('>>> [ROLE_CHECK] Supabase response: $response');
       if (response == null) {
         debugPrint('>>> [ROLE_CHECK] No profile found for userId: $userId');
-        return false;
+        return const _ProfileResult(PartnerVerificationState.notPartner);
       }
+
       final roleStr = response['role']?.toString().toLowerCase();
-      debugPrint('>>> [ROLE_CHECK] User role is: "$roleStr"');
-      final isPartner = roleStr == 'partner' || roleStr == 'admin';
-      debugPrint('>>> [ROLE_CHECK] isPartner result: $isPartner');
-      return isPartner;
+      final isVerified = response['is_verified'] as bool? ?? false;
+      final fullName = response['full_name'] as String?;
+      final needsSetup = fullName == null || fullName.trim().isEmpty;
+      debugPrint('>>> [ROLE_CHECK] role="$roleStr", isVerified=$isVerified, fullName=$fullName');
+
+      // Auto-upgrade: anyone signing in on the organizer app is a partner by intent.
+      // If still 'user', silently upgrade to 'partner' (unverified) so they
+      // appear in the admin app's Pending queue immediately.
+      if (roleStr == 'user') {
+        debugPrint('>>> [ROLE_CHECK] Auto-upgrading role to partner...');
+        await _upgradeRoleToPartner(userId);
+        return _ProfileResult(PartnerVerificationState.pending, needsProfileSetup: needsSetup);
+      }
+
+      PartnerVerificationState state;
+      if (roleStr == 'admin') {
+        state = PartnerVerificationState.verified;
+      } else if (roleStr == 'partner') {
+        state = isVerified
+            ? PartnerVerificationState.verified
+            : PartnerVerificationState.pending;
+      } else {
+        state = PartnerVerificationState.notPartner;
+      }
+
+      return _ProfileResult(state, needsProfileSetup: needsSetup);
     } catch (e, st) {
-      debugPrint('>>> [ROLE_CHECK] Exception while checking role: $e');
+      debugPrint('>>> [ROLE_CHECK] Exception while checking profile: $e');
       debugPrint('>>> [ROLE_CHECK] StackTrace: $st');
-      return false;
+      return const _ProfileResult(PartnerVerificationState.notPartner);
     }
   }
 
@@ -122,20 +139,30 @@ class _AuthGateState extends State<AuthGate> {
           final userId = session.user.id;
           if (_cachedUserId != userId || _partnerRoleFuture == null) {
             _cachedUserId = userId;
-            _partnerRoleFuture = _checkPartnerRole(userId);
+            _partnerRoleFuture = _checkProfile(userId);
           }
 
-          // Check if user has partner/admin role
-          return FutureBuilder<bool>(
+          // Check if user has partner/admin role, verification status, and full_name
+          return FutureBuilder<_ProfileResult>(
             future: _partnerRoleFuture,
             builder: (context, roleSnapshot) {
               if (roleSnapshot.connectionState == ConnectionState.waiting) {
                 return const Scaffold(body: NSLoading(message: 'Checking permissions...'));
               }
 
-              if (roleSnapshot.data == true) {
+              final result = roleSnapshot.data ?? const _ProfileResult(PartnerVerificationState.notPartner);
+              final verificationState = result.verificationState;
+
+              // Always collect name first, regardless of partner status
+              if (result.needsProfileSetup) {
+                return ProfileSetupScreen(
+                  onComplete: () => _refreshRole(userId),
+                );
+              }
+
+              if (verificationState == PartnerVerificationState.verified) {
                 return const DashboardScreen();
-              } else {
+              } else if (verificationState == PartnerVerificationState.pending) {
                 return Scaffold(
                   body: Center(
                     child: Padding(
@@ -143,25 +170,35 @@ class _AuthGateState extends State<AuthGate> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.lock_outline, size: 64, color: NSColors.textSecondary),
-                          const SizedBox(height: 16),
-                          Text('Partner Access Required', style: NSTextStyles.headlineSmall, textAlign: TextAlign.center),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Your account is currently set to standard User access. Upgrade to a Partner account to start managing venues and scheduling showtimes.',
-                            style: NSTextStyles.bodyMedium,
-                            textAlign: TextAlign.center,
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: NSColors.warning.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.hourglass_empty_rounded,
+                              size: 64,
+                              color: NSColors.warning,
+                            ),
                           ),
                           const SizedBox(height: 24),
-                          NSPrimaryButton(
-                            label: 'Upgrade to Partner Account',
-                            isLoading: _isUpgrading,
-                            icon: Icons.verified_user,
-                            onPressed: () => _upgradeRoleToPartner(userId),
+                          Text(
+                            'Verification Pending',
+                            style: NSTextStyles.headlineSmall,
+                            textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 12),
-                          NSSecondaryButton(
-                            label: 'Check Permission / Refresh',
+                          Text(
+                            'Your partner registration is being reviewed by an administrator. '
+                            'You will be granted full portal access as soon as your account is verified.',
+                            style: NSTextStyles.bodyMedium.copyWith(color: NSColors.textSecondary),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 32),
+                          NSPrimaryButton(
+                            label: 'Refresh Status',
+                            icon: Icons.refresh_rounded,
                             onPressed: () => _refreshRole(userId),
                           ),
                           const SizedBox(height: 12),
@@ -179,6 +216,12 @@ class _AuthGateState extends State<AuthGate> {
                       ),
                     ),
                   ),
+                );
+              } else {
+                // Role is still being set up — show a brief loading screen.
+                // This should only flash for a moment during the very first login.
+                return const Scaffold(
+                  body: NSLoading(message: 'Setting up your partner account...'),
                 );
               }
             },

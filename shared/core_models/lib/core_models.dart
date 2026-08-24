@@ -66,6 +66,7 @@ class Profile with _$Profile {
     @Default(UserRole.user) UserRole role,
     @Default([]) List<String> favoriteVenueIds,
     @Default([]) List<String> preferredCategories,
+    @Default(false) bool isVerified,
   }) = _Profile;
 
   factory Profile.fromJson(Map<String, dynamic> json) => _$ProfileFromJson(json);

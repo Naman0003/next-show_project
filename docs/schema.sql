@@ -26,7 +26,8 @@ create or replace function public.is_partner()
 returns boolean as $$
   select exists (
     select 1 from public.profiles 
-    where id = auth.uid() and role in ('partner', 'admin')
+    where id = auth.uid() 
+      and (role = 'admin' or (role = 'partner' and is_verified = true))
   );
 $$ language sql security definer set search_path = public;
 
@@ -43,7 +44,8 @@ create table if not exists public.profiles (
     full_name text,
     role user_role default 'user'::user_role not null,
     favorite_venue_ids uuid[] default '{}'::uuid[],
-    preferred_categories text[] default '{}'::text[]
+    preferred_categories text[] default '{}'::text[],
+    is_verified boolean default false not null
 );
 
 -- 2. Venues
@@ -309,6 +311,40 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- 3. Profile update protection trigger function
+create or replace function public.check_profile_update()
+returns trigger as $$
+begin
+  -- If update is made directly in DB (auth.uid() is null) or by an admin, allow it
+  if auth.uid() is null or public.is_admin() then
+    return new;
+  end if;
+
+  -- Otherwise, enforce restrictions for standard clients:
+  -- 1. Enforce that is_verified can only be changed by admins
+  if (old.is_verified is distinct from new.is_verified) then
+    new.is_verified = old.is_verified;
+  end if;
+
+  -- 2. Enforce role changes
+  if (old.role is distinct from new.role) then
+    -- Allow standard users to upgrade themselves to partner (which starts as unverified)
+    if (old.role = 'user'::user_role and new.role = 'partner'::user_role) then
+      null; -- Allowed
+    else
+      new.role = old.role;
+    end if;
+  end if;
+
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+drop trigger if exists enforce_profile_update_restrictions on public.profiles;
+create trigger enforce_profile_update_restrictions
+  before update on public.profiles
+  for each row execute function public.check_profile_update();
+
 -- 3. Accept organizer invite RPC function
 create or replace function public.accept_organizer_invite(invite_token text)
 returns void as $$
@@ -334,3 +370,80 @@ begin
   update public.organizer_invites set accepted_at = now() where id = v_invite.id;
 end;
 $$ language plpgsql security definer set search_path = public;
+
+-- Create or replace trigger function to protect role and is_verified column updates
+CREATE OR REPLACE FUNCTION public.check_profile_update()
+RETURNS trigger AS $$
+BEGIN
+  -- If update is made directly in DB (auth.uid() is null) or by an admin, allow it
+  IF auth.uid() IS NULL OR public.is_admin() THEN
+    RETURN NEW;
+  END IF;
+
+  -- Otherwise, enforce restrictions for standard clients:
+  -- 1. Enforce that is_verified can only be changed by admins
+  IF (OLD.is_verified IS DISTINCT FROM NEW.is_verified) THEN
+    NEW.is_verified = OLD.is_verified;
+  END IF;
+
+  -- 2. Enforce role changes
+  IF (OLD.role IS DISTINCT FROM NEW.role) THEN
+    -- Allow standard users to upgrade themselves to partner (which starts as unverified)
+    IF (OLD.role = 'user'::user_role AND NEW.role = 'partner'::user_role) THEN
+      NULL; -- Allowed
+    ELSE
+      NEW.role = OLD.role;
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- 1. Add column
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_verified boolean DEFAULT false NOT NULL;
+
+-- 2. Mark existing partners as verified (to preserve access)
+UPDATE public.profiles SET is_verified = true WHERE role = 'partner';
+
+-- 3. Update is_partner() helper
+CREATE OR REPLACE FUNCTION public.is_partner()
+RETURNS boolean AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles 
+    WHERE id = auth.uid() 
+      AND (role = 'admin' OR (role = 'partner' AND is_verified = true))
+  );
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
+
+-- 4. Create profile update protection trigger function
+CREATE OR REPLACE FUNCTION public.check_profile_update()
+RETURNS trigger AS $$
+BEGIN
+  -- Enforce that is_verified can only be changed by admins
+  IF (OLD.is_verified IS DISTINCT FROM NEW.is_verified) THEN
+    IF NOT public.is_admin() THEN
+      NEW.is_verified = OLD.is_verified;
+    END IF;
+  END IF;
+
+  -- Enforce role changes
+  IF (OLD.role IS DISTINCT FROM NEW.role) THEN
+    -- Allow standard users to upgrade to partner (starts as unverified)
+    IF (OLD.role = 'user'::user_role AND NEW.role = 'partner'::user_role) THEN
+      NULL; -- Allowed
+    -- Otherwise, only admins can change roles
+    ELSIF NOT public.is_admin() THEN
+      NEW.role = OLD.role;
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- 5. Bind trigger
+DROP TRIGGER IF EXISTS enforce_profile_update_restrictions ON public.profiles;
+CREATE TRIGGER enforce_profile_update_restrictions
+  BEFORE UPDATE ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.check_profile_update();

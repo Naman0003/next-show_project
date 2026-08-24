@@ -28,6 +28,7 @@ mixin _$Profile {
   UserRole get role => throw _privateConstructorUsedError;
   List<String> get favoriteVenueIds => throw _privateConstructorUsedError;
   List<String> get preferredCategories => throw _privateConstructorUsedError;
+  bool get isVerified => throw _privateConstructorUsedError;
 
   /// Serializes this Profile to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -51,7 +52,8 @@ abstract class $ProfileCopyWith<$Res> {
       String? fullName,
       UserRole role,
       List<String> favoriteVenueIds,
-      List<String> preferredCategories});
+      List<String> preferredCategories,
+      bool isVerified});
 }
 
 /// @nodoc
@@ -77,6 +79,7 @@ class _$ProfileCopyWithImpl<$Res, $Val extends Profile>
     Object? role = null,
     Object? favoriteVenueIds = null,
     Object? preferredCategories = null,
+    Object? isVerified = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -111,6 +114,10 @@ class _$ProfileCopyWithImpl<$Res, $Val extends Profile>
           ? _value.preferredCategories
           : preferredCategories // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      isVerified: null == isVerified
+          ? _value.isVerified
+          : isVerified // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -130,7 +137,8 @@ abstract class _$$ProfileImplCopyWith<$Res> implements $ProfileCopyWith<$Res> {
       String? fullName,
       UserRole role,
       List<String> favoriteVenueIds,
-      List<String> preferredCategories});
+      List<String> preferredCategories,
+      bool isVerified});
 }
 
 /// @nodoc
@@ -154,6 +162,7 @@ class __$$ProfileImplCopyWithImpl<$Res>
     Object? role = null,
     Object? favoriteVenueIds = null,
     Object? preferredCategories = null,
+    Object? isVerified = null,
   }) {
     return _then(_$ProfileImpl(
       id: null == id
@@ -188,6 +197,10 @@ class __$$ProfileImplCopyWithImpl<$Res>
           ? _value._preferredCategories
           : preferredCategories // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      isVerified: null == isVerified
+          ? _value.isVerified
+          : isVerified // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -203,7 +216,8 @@ class _$ProfileImpl implements _Profile {
       this.fullName,
       this.role = UserRole.user,
       final List<String> favoriteVenueIds = const [],
-      final List<String> preferredCategories = const []})
+      final List<String> preferredCategories = const [],
+      this.isVerified = false})
       : _favoriteVenueIds = favoriteVenueIds,
         _preferredCategories = preferredCategories;
 
@@ -244,8 +258,12 @@ class _$ProfileImpl implements _Profile {
   }
 
   @override
+  @JsonKey()
+  final bool isVerified;
+
+  @override
   String toString() {
-    return 'Profile(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, email: $email, fullName: $fullName, role: $role, favoriteVenueIds: $favoriteVenueIds, preferredCategories: $preferredCategories)';
+    return 'Profile(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, email: $email, fullName: $fullName, role: $role, favoriteVenueIds: $favoriteVenueIds, preferredCategories: $preferredCategories, isVerified: $isVerified)';
   }
 
   @override
@@ -265,7 +283,9 @@ class _$ProfileImpl implements _Profile {
             const DeepCollectionEquality()
                 .equals(other._favoriteVenueIds, _favoriteVenueIds) &&
             const DeepCollectionEquality()
-                .equals(other._preferredCategories, _preferredCategories));
+                .equals(other._preferredCategories, _preferredCategories) &&
+            (identical(other.isVerified, isVerified) ||
+                other.isVerified == isVerified));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -279,7 +299,8 @@ class _$ProfileImpl implements _Profile {
       fullName,
       role,
       const DeepCollectionEquality().hash(_favoriteVenueIds),
-      const DeepCollectionEquality().hash(_preferredCategories));
+      const DeepCollectionEquality().hash(_preferredCategories),
+      isVerified);
 
   /// Create a copy of Profile
   /// with the given fields replaced by the non-null parameter values.
@@ -306,7 +327,8 @@ abstract class _Profile implements Profile {
       final String? fullName,
       final UserRole role,
       final List<String> favoriteVenueIds,
-      final List<String> preferredCategories}) = _$ProfileImpl;
+      final List<String> preferredCategories,
+      final bool isVerified}) = _$ProfileImpl;
 
   factory _Profile.fromJson(Map<String, dynamic> json) = _$ProfileImpl.fromJson;
 
@@ -326,6 +348,8 @@ abstract class _Profile implements Profile {
   List<String> get favoriteVenueIds;
   @override
   List<String> get preferredCategories;
+  @override
+  bool get isVerified;
 
   /// Create a copy of Profile
   /// with the given fields replaced by the non-null parameter values.
