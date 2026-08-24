@@ -166,6 +166,7 @@ class _EventListScreenState extends State<EventListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_new_event',
         backgroundColor: NSColors.royalBlue,
         child: const Icon(Icons.add, color: Colors.white),
         onPressed: () async {

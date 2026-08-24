@@ -35,11 +35,15 @@ class _ShowtimeFormScreenState extends State<ShowtimeFormScreen> {
   late TextEditingController _priceController;
   late TextEditingController _capacityController;
   late TextEditingController _bookingUrlController;
-  late TextEditingController _languageFormatController;
-  late TextEditingController _imageController;
+  late TextEditingController _screenNameController;
 
+  String _selectedAudioSubtitle = 'OmU';
+  String _selectedFormat = '2D';
   EventStatus _selectedStatus = EventStatus.published;
   bool _isSaving = false;
+
+  final List<String> _audioSubtitleOptions = ['OmU', 'OmeU', 'DF', 'OV', 'Original'];
+  final List<String> _formatOptions = ['2D', '3D', 'IMAX 2D', 'IMAX 3D', '35mm', '70mm', '4K'];
 
   @override
   void initState() {
@@ -53,15 +57,16 @@ class _ShowtimeFormScreenState extends State<ShowtimeFormScreen> {
       _startTime = st.startTime;
       _endTime = st.endTime;
       _selectedStatus = st.status;
+      _selectedAudioSubtitle = st.attributes['audio_subtitle']?.toString() ?? 'OmU';
+      _selectedFormat = st.attributes['format']?.toString() ?? '2D';
     }
 
     _priceController = TextEditingController(text: st?.price?.toString() ?? '12.50');
     _capacityController = TextEditingController(text: st?.capacity?.toString() ?? '120');
     _bookingUrlController = TextEditingController(text: st?.bookingUrl ?? '');
-    _languageFormatController = TextEditingController(
-      text: st?.attributes['format']?.toString() ?? 'OmU (German Subs)',
+    _screenNameController = TextEditingController(
+      text: st?.attributes['screen_name']?.toString() ?? 'Hall 1',
     );
-    _imageController = TextEditingController(text: st?.imageUrl ?? '');
 
     _loadDropdowns();
   }
@@ -91,8 +96,7 @@ class _ShowtimeFormScreenState extends State<ShowtimeFormScreen> {
     _priceController.dispose();
     _capacityController.dispose();
     _bookingUrlController.dispose();
-    _languageFormatController.dispose();
-    _imageController.dispose();
+    _screenNameController.dispose();
     super.dispose();
   }
 
@@ -140,9 +144,12 @@ class _ShowtimeFormScreenState extends State<ShowtimeFormScreen> {
     try {
       final price = double.tryParse(_priceController.text.trim());
       final capacity = int.tryParse(_capacityController.text.trim());
-      final format = _languageFormatController.text.trim();
+      final screenName = _screenNameController.text.trim();
+
       final attributes = <String, dynamic>{
-        if (format.isNotEmpty) 'format': format,
+        'screen_name': screenName.isEmpty ? 'Hall 1' : screenName,
+        'audio_subtitle': _selectedAudioSubtitle,
+        'format': _selectedFormat,
       };
 
       if (widget.showtime == null) {
@@ -155,7 +162,6 @@ class _ShowtimeFormScreenState extends State<ShowtimeFormScreen> {
           capacity: capacity,
           attributes: attributes,
           bookingUrl: _bookingUrlController.text.trim(),
-          imageUrl: _imageController.text.trim().isEmpty ? null : _imageController.text.trim(),
           status: _selectedStatus,
         );
       } else {
@@ -167,7 +173,6 @@ class _ShowtimeFormScreenState extends State<ShowtimeFormScreen> {
           capacity: capacity,
           attributes: attributes,
           bookingUrl: _bookingUrlController.text.trim(),
-          imageUrl: _imageController.text.trim().isEmpty ? null : _imageController.text.trim(),
           status: _selectedStatus,
         );
       }
@@ -206,7 +211,7 @@ class _ShowtimeFormScreenState extends State<ShowtimeFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Showtime Details', style: NSTextStyles.titleLarge),
+                    Text('Performance Location & Movie', style: NSTextStyles.titleLarge),
                     const SizedBox(height: 16),
 
                     // Venue Selector
@@ -230,17 +235,35 @@ class _ShowtimeFormScreenState extends State<ShowtimeFormScreen> {
                     DropdownButtonFormField<String>(
                       value: _selectedEventId,
                       decoration: const InputDecoration(
-                        labelText: 'Event *',
+                        labelText: 'Movie / Event Entity *',
                         prefixIcon: Icon(Icons.movie),
                       ),
                       items: _events.map((e) {
                         return DropdownMenuItem(
                           value: e.id,
-                          child: Text(e.title, overflow: TextOverflow.ellipsis),
+                          child: Row(
+                            children: [
+                              Text(e.title, overflow: TextOverflow.ellipsis),
+                              if (!e.isVerified) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: NSColors.skyBlue.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: const Text('Indie', style: TextStyle(fontSize: 10, color: NSColors.skyBlue)),
+                                ),
+                              ],
+                            ],
+                          ),
                         );
                       }).toList(),
                       onChanged: isEditing ? null : (val) => setState(() => _selectedEventId = val),
                     ),
+                    const SizedBox(height: 24),
+
+                    Text('Screening Time & Hall Parameters', style: NSTextStyles.titleLarge),
                     const SizedBox(height: 16),
 
                     // Date & Time pickers
@@ -250,7 +273,7 @@ class _ShowtimeFormScreenState extends State<ShowtimeFormScreen> {
                         side: const BorderSide(color: NSColors.border),
                       ),
                       leading: const Icon(Icons.access_time, color: NSColors.royalBlue),
-                      title: const Text('Start Time *'),
+                      title: const Text('Screening Date & Start Time *'),
                       subtitle: Text(
                         '${_startTime.day}/${_startTime.month}/${_startTime.year} at ${_startTime.hour.toString().padLeft(2, '0')}:${_startTime.minute.toString().padLeft(2, '0')}',
                         style: NSTextStyles.titleSmall,
@@ -276,6 +299,59 @@ class _ShowtimeFormScreenState extends State<ShowtimeFormScreen> {
                       trailing: const Icon(Icons.calendar_today, size: 20),
                       onTap: () => _pickDateTime(isStart: false),
                     ),
+                    const SizedBox(height: 16),
+
+                    // Hall / Screen Name
+                    TextFormField(
+                      controller: _screenNameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Screen / Hall Name *',
+                        hintText: 'e.g. Hall 1, Kino 3, Auditorium A',
+                        prefixIcon: Icon(Icons.meeting_room),
+                      ),
+                      validator: (val) => (val == null || val.trim().isEmpty) ? 'Screen/Hall name is required' : null,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Audio / Subtitle Tag Selector
+                    Text('Audio / Subtitle Tag *', style: NSTextStyles.titleMedium),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: _audioSubtitleOptions.map((tag) {
+                        final isSelected = _selectedAudioSubtitle == tag;
+                        return ChoiceChip(
+                          label: Text(tag),
+                          selected: isSelected,
+                          selectedColor: NSColors.royalBlue.withOpacity(0.2),
+                          onSelected: (selected) {
+                            if (selected) setState(() => _selectedAudioSubtitle = tag);
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Format Selector
+                    Text('Screening Format *', style: NSTextStyles.titleMedium),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: _formatOptions.map((fmt) {
+                        final isSelected = _selectedFormat == fmt;
+                        return ChoiceChip(
+                          label: Text(fmt),
+                          selected: isSelected,
+                          selectedColor: NSColors.skyBlue.withOpacity(0.2),
+                          onSelected: (selected) {
+                            if (selected) setState(() => _selectedFormat = fmt);
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 24),
+
+                    Text('Pricing & Booking', style: NSTextStyles.titleLarge),
                     const SizedBox(height: 16),
 
                     Row(
@@ -307,42 +383,19 @@ class _ShowtimeFormScreenState extends State<ShowtimeFormScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    TextFormField(
-                      controller: _languageFormatController,
-                      decoration: const InputDecoration(
-                        labelText: 'Language / Screening Format',
-                        hintText: 'e.g. OmU, OV, 3D, IMAX',
-                        prefixIcon: Icon(Icons.subtitles),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
+                    // Direct Booking URL
                     TextFormField(
                       controller: _bookingUrlController,
                       keyboardType: TextInputType.url,
                       decoration: const InputDecoration(
                         labelText: 'Direct Booking URL *',
-                        hintText: 'https://cinema.com/tickets/123?ref=nextshow',
+                        hintText: 'https://kino-berlin.de/booking/showtime/12345',
                         prefixIcon: Icon(Icons.link),
                       ),
-                      validator: (val) => (val == null || val.trim().isEmpty) ? 'Booking URL is required' : null,
-                    ),
-                    const SizedBox(height: 16),
-
-                    DropdownButtonFormField<EventStatus>(
-                      value: _selectedStatus,
-                      decoration: const InputDecoration(
-                        labelText: 'Status',
-                        prefixIcon: Icon(Icons.flag),
-                      ),
-                      items: EventStatus.values.map((st) {
-                        return DropdownMenuItem(
-                          value: st,
-                          child: Text(st.name[0].toUpperCase() + st.name.substring(1)),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val != null) setState(() => _selectedStatus = val);
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) return 'Direct booking URL is required';
+                        if (!val.startsWith('http')) return 'Enter a valid URL starting with http:// or https://';
+                        return null;
                       },
                     ),
                     const SizedBox(height: 24),

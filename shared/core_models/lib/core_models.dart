@@ -111,6 +111,7 @@ class Event with _$Event {
     // Static metadata (genres, directors, release year, etc.)
     @Default({}) Map<String, dynamic> metadata,
     @Default(EventStatus.published) EventStatus status,
+    @Default(true) bool isVerified,
   }) = _Event;
 
   factory Event.fromJson(Map<String, dynamic> json) => _$EventFromJson(json);

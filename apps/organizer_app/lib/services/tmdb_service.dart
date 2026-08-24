@@ -47,6 +47,28 @@ class TmdbMovieSearchResult {
   }
 }
 
+class TmdbMovieDetails {
+  final int id;
+  final String title;
+  final String? overview;
+  final String? posterUrl;
+  final int? runtime;
+  final String? director;
+  final List<String> genres;
+  final String? releaseYear;
+
+  const TmdbMovieDetails({
+    required this.id,
+    required this.title,
+    this.overview,
+    this.posterUrl,
+    this.runtime,
+    this.director,
+    this.genres = const [],
+    this.releaseYear,
+  });
+}
+
 class TmdbService {
   static const List<String> _baseUrls = [
     'https://api.themoviedb.org/3',
@@ -103,8 +125,8 @@ class TmdbService {
     return [];
   }
 
-  /// Fetch movie details including runtime in minutes using Dio with host failover
-  static Future<int?> fetchMovieRuntime(int tmdbId) async {
+  /// Fetch full movie details including runtime, director, and genres
+  static Future<TmdbMovieDetails?> fetchMovieDetails(int tmdbId) async {
     for (final baseUrl in _baseUrls) {
       try {
         final dio = _createDio(baseUrl);
@@ -112,16 +134,63 @@ class TmdbService {
           '/movie/$tmdbId',
           queryParameters: {
             'api_key': ApiKeys.tmdb,
+            'append_to_response': 'credits',
           },
         );
 
         if (response.statusCode == 200 && response.data != null) {
           final data = response.data is String ? jsonDecode(response.data as String) : response.data;
-          return data['runtime'] as int?;
+
+          final runtime = data['runtime'] as int?;
+          final overview = data['overview'] as String?;
+          final title = data['title'] as String? ?? 'Untitled';
+          final posterPath = data['poster_path'] as String?;
+          final posterUrl = posterPath != null && posterPath.isNotEmpty
+              ? 'https://image.tmdb.org/t/p/w500$posterPath'
+              : null;
+          final releaseDate = data['release_date'] as String?;
+          final releaseYear = releaseDate != null && releaseDate.length >= 4 ? releaseDate.substring(0, 4) : null;
+
+          final genresList = (data['genres'] as List? ?? [])
+              .map((g) => g['name'] as String? ?? '')
+              .where((g) => g.isNotEmpty)
+              .toList();
+
+          String? director;
+          final credits = data['credits'] as Map<String, dynamic>?;
+          if (credits != null) {
+            final crew = credits['crew'] as List? ?? [];
+            final dirObj = crew.firstWhere(
+              (c) => c['job'] == 'Director',
+              orElse: () => null,
+            );
+            if (dirObj != null) {
+              director = dirObj['name'] as String?;
+            }
+          }
+
+          return TmdbMovieDetails(
+            id: tmdbId,
+            title: title,
+            overview: overview,
+            posterUrl: posterUrl,
+            runtime: runtime,
+            director: director,
+            genres: genresList,
+            releaseYear: releaseYear,
+          );
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('>>> [TMDB] fetchMovieDetails exception ($e)');
+      }
     }
 
     return null;
+  }
+
+  /// Backward-compatible runtime fetcher
+  static Future<int?> fetchMovieRuntime(int tmdbId) async {
+    final details = await fetchMovieDetails(tmdbId);
+    return details?.runtime;
   }
 }

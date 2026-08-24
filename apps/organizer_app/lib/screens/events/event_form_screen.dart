@@ -1,6 +1,5 @@
 // lib/screens/events/event_form_screen.dart
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:core_models/core_models.dart';
 import 'package:ui_kit/ui_kit.dart';
@@ -25,11 +24,16 @@ class _EventFormScreenState extends State<EventFormScreen> {
   late TextEditingController _imageController;
   late TextEditingController _durationController;
   late TextEditingController _tmdbIdController;
+  late TextEditingController _directorController;
+  late TextEditingController _genresController;
+  late TextEditingController _refUrlController;
 
   EventCategory _selectedCategory = EventCategory.movie;
   EventStatus _selectedStatus = EventStatus.published;
   bool _isSaving = false;
-  TmdbMovieSearchResult? _selectedTmdbMovie;
+  bool _isCustomIndieMovie = false;
+  bool _isLockedFromTmdb = false;
+  TmdbMovieDetails? _selectedTmdbDetails;
 
   @override
   void initState() {
@@ -40,10 +44,17 @@ class _EventFormScreenState extends State<EventFormScreen> {
     _imageController = TextEditingController(text: e?.imageUrl ?? '');
     _durationController = TextEditingController(text: e?.durationMinutes?.toString() ?? '');
     _tmdbIdController = TextEditingController(text: e?.externalIds['tmdb_id']?.toString() ?? '');
+    _directorController = TextEditingController(text: e?.metadata['director']?.toString() ?? '');
+    _genresController = TextEditingController(
+      text: (e?.metadata['genres'] as List?)?.join(', ') ?? '',
+    );
+    _refUrlController = TextEditingController(text: e?.metadata['external_ref_url']?.toString() ?? '');
 
     if (e != null) {
       _selectedCategory = e.category;
       _selectedStatus = e.status;
+      _isCustomIndieMovie = !e.isVerified;
+      _isLockedFromTmdb = e.isVerified && e.externalIds['tmdb_id'] != null;
     }
   }
 
@@ -54,6 +65,9 @@ class _EventFormScreenState extends State<EventFormScreen> {
     _imageController.dispose();
     _durationController.dispose();
     _tmdbIdController.dispose();
+    _directorController.dispose();
+    _genresController.dispose();
+    _refUrlController.dispose();
     super.dispose();
   }
 
@@ -67,30 +81,46 @@ class _EventFormScreenState extends State<EventFormScreen> {
       ),
       builder: (context) => _TmdbSearchBottomSheet(
         initialQuery: _titleController.text.trim(),
+        onCustomMovieSelected: () {
+          Navigator.pop(context);
+          setState(() {
+            _isCustomIndieMovie = true;
+            _isLockedFromTmdb = false;
+            _selectedTmdbDetails = null;
+            _tmdbIdController.clear();
+          });
+        },
       ),
     );
 
     if (selectedMovie != null && mounted) {
-      setState(() => _selectedTmdbMovie = selectedMovie);
-      _titleController.text = selectedMovie.title;
-      _descriptionController.text = selectedMovie.overview ?? '';
-      _tmdbIdController.text = selectedMovie.id.toString();
-      if (selectedMovie.fullPosterUrl != null) {
-        _imageController.text = selectedMovie.fullPosterUrl!;
-      }
-
-      // Fetch runtime
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Fetching TMDB movie details...')),
+        const SnackBar(content: Text('Fetching TMDB metadata...')),
       );
-      final runtime = await TmdbService.fetchMovieRuntime(selectedMovie.id);
-      if (runtime != null && mounted) {
-        _durationController.text = runtime.toString();
-      }
+
+      final details = await TmdbService.fetchMovieDetails(selectedMovie.id);
 
       if (mounted) {
+        setState(() {
+          _isCustomIndieMovie = false;
+          _isLockedFromTmdb = true;
+          _selectedTmdbDetails = details;
+
+          _titleController.text = selectedMovie.title;
+          _descriptionController.text = details?.overview ?? selectedMovie.overview ?? '';
+          _tmdbIdController.text = selectedMovie.id.toString();
+          if (details?.posterUrl != null || selectedMovie.fullPosterUrl != null) {
+            _imageController.text = details?.posterUrl ?? selectedMovie.fullPosterUrl!;
+          }
+          if (details?.runtime != null) {
+            _durationController.text = details!.runtime.toString();
+          }
+          _directorController.text = details?.director ?? '';
+          _genresController.text = details?.genres.join(', ') ?? '';
+        });
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Selected "${selectedMovie.title}" from TMDB!')),
+          SnackBar(content: Text('Locked metadata for "${selectedMovie.title}" (TMDB ID: ${selectedMovie.id})')),
         );
       }
     }
@@ -98,6 +128,16 @@ class _EventFormScreenState extends State<EventFormScreen> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (!_isLockedFromTmdb && !_isCustomIndieMovie && _selectedCategory == EventCategory.movie) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please search and select a movie from TMDB or tap "Add Custom Movie".'),
+          backgroundColor: NSColors.error,
+        ),
+      );
+      return;
+    }
 
     setState(() => _isSaving = true);
 
@@ -109,6 +149,21 @@ class _EventFormScreenState extends State<EventFormScreen> {
         externalIds['tmdb_id'] = tmdbId;
       }
 
+      final metadata = <String, dynamic>{
+        'director': _directorController.text.trim(),
+        'genres': _genresController.text
+            .split(',')
+            .map((g) => g.trim())
+            .where((g) => g.isNotEmpty)
+            .toList(),
+        if (_refUrlController.text.trim().isNotEmpty)
+          'external_ref_url': _refUrlController.text.trim(),
+        if (_selectedTmdbDetails?.releaseYear != null)
+          'release_year': _selectedTmdbDetails!.releaseYear,
+      };
+
+      final isVerified = !_isCustomIndieMovie;
+
       if (widget.event == null) {
         final createdEvent = await OrganizerRepository.createEvent(
           category: _selectedCategory,
@@ -117,7 +172,9 @@ class _EventFormScreenState extends State<EventFormScreen> {
           imageUrl: _imageController.text.trim().isEmpty ? null : _imageController.text.trim(),
           durationMinutes: duration,
           externalIds: externalIds,
+          metadata: metadata,
           status: _selectedStatus,
+          isVerified: isVerified,
         );
 
         if (mounted) {
@@ -137,7 +194,9 @@ class _EventFormScreenState extends State<EventFormScreen> {
           imageUrl: _imageController.text.trim().isEmpty ? null : _imageController.text.trim(),
           durationMinutes: duration,
           externalIds: externalIds,
+          metadata: metadata,
           status: _selectedStatus,
+          isVerified: isVerified,
         );
 
         if (mounted) {
@@ -213,66 +272,189 @@ class _EventFormScreenState extends State<EventFormScreen> {
               ),
               const SizedBox(height: 24),
 
-              // TMDB Search Banner for Movies
+              // Movie Search Section
               if (isMovie) ...[
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: NSColors.royalBlue.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: NSColors.royalBlue.withOpacity(0.2)),
+                if (_isLockedFromTmdb) ...[
+                  // Selected movie card
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: NSColors.success.withOpacity(0.07),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: NSColors.success.withOpacity(0.4)),
+                    ),
+                    child: Row(
+                      children: [
+                        if (_imageController.text.isNotEmpty)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              _imageController.text,
+                              width: 44,
+                              height: 62,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Icon(Icons.movie, size: 44, color: NSColors.success),
+                            ),
+                          )
+                        else
+                          const Icon(Icons.check_circle, color: NSColors.success, size: 36),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _titleController.text,
+                                style: NSTextStyles.titleMedium.copyWith(fontWeight: FontWeight.bold),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (_directorController.text.isNotEmpty)
+                                Text(
+                                  'Dir. ${_directorController.text}',
+                                  style: NSTextStyles.bodySmall.copyWith(color: NSColors.textSecondary),
+                                ),
+                            ],
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: _openTmdbMovieSearch,
+                          child: const Text('Change'),
+                        ),
+                      ],
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                ] else if (_isCustomIndieMovie) ...[
+                  // Custom movie indicator
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: NSColors.skyBlue.withOpacity(0.07),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: NSColors.skyBlue.withOpacity(0.4)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.edit_note, color: NSColors.skyBlue, size: 22),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Custom movie — fill in the details below',
+                            style: NSTextStyles.bodySmall.copyWith(color: NSColors.skyBlue),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => setState(() {
+                            _isCustomIndieMovie = false;
+                            _isLockedFromTmdb = false;
+                          }),
+                          child: const Text('Cancel'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else ...[
+                  // Search field (not yet selected)
+                  InkWell(
+                    onTap: _openTmdbMovieSearch,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: NSColors.snowWhite,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: NSColors.border),
+                      ),
+                      child: Row(
                         children: [
-                          const Icon(Icons.movie_filter, color: NSColors.royalBlue),
-                          const SizedBox(width: 8),
-                          Text('TMDB Movie Database', style: NSTextStyles.titleMedium),
+                          const Icon(Icons.search, color: NSColors.textSecondary, size: 22),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Search for a movie...',
+                              style: NSTextStyles.bodyMedium.copyWith(color: NSColors.textSecondary),
+                            ),
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Search TMDB to auto-fill official title, synopsis, poster, and runtime.',
-                        style: NSTextStyles.bodySmall,
-                      ),
-                      const SizedBox(height: 12),
-                      NSPrimaryButton(
-                        label: _selectedTmdbMovie != null
-                            ? 'Change TMDB Movie Selection'
-                            : 'Search & Pick TMDB Movie',
-                        icon: Icons.search,
-                        onPressed: _openTmdbMovieSearch,
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 24),
+                ],
+                const SizedBox(height: 20),
               ],
 
               Text('Event Details', style: NSTextStyles.titleLarge),
               const SizedBox(height: 16),
 
+              // Title
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(
+                enabled: _isLockedFromTmdb ? false : _isCustomIndieMovie,
+                decoration: InputDecoration(
                   labelText: 'Event Title *',
-                  hintText: 'e.g. Dune: Part Two',
-                  prefixIcon: Icon(Icons.title),
+                  hintText: _isLockedFromTmdb || _isCustomIndieMovie
+                      ? 'e.g. Dune: Part Two'
+                      : 'Search for a movie above first',
+                  prefixIcon: const Icon(Icons.title),
+                  suffixIcon: _isLockedFromTmdb
+                      ? const Icon(Icons.lock, size: 18, color: NSColors.textSecondary)
+                      : !_isCustomIndieMovie
+                          ? const Icon(Icons.block, size: 18, color: NSColors.textSecondary)
+                          : null,
                 ),
                 validator: (val) => (val == null || val.trim().isEmpty) ? 'Title is required' : null,
               ),
               const SizedBox(height: 16),
 
+              // Synopsis / Description
               TextFormField(
                 controller: _descriptionController,
+                enabled: _isLockedFromTmdb ? false : _isCustomIndieMovie,
                 maxLines: 4,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  hintText: 'Overview, synopsis, or event details...',
-                  prefixIcon: Icon(Icons.description),
+                decoration: InputDecoration(
+                  labelText: 'Synopsis / Description *',
+                  hintText: _isLockedFromTmdb || _isCustomIndieMovie
+                      ? 'Overview, synopsis, or event details...'
+                      : 'Search for a movie above first',
+                  prefixIcon: const Icon(Icons.description),
+                  suffixIcon: _isLockedFromTmdb
+                      ? const Icon(Icons.lock, size: 18, color: NSColors.textSecondary)
+                      : !_isCustomIndieMovie
+                          ? const Icon(Icons.block, size: 18, color: NSColors.textSecondary)
+                          : null,
                 ),
+                validator: (val) {
+                  if (_isCustomIndieMovie && (val == null || val.trim().isEmpty)) {
+                    return 'Synopsis is mandatory for custom indie movies';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Poster URL
+              TextFormField(
+                controller: _imageController,
+                enabled: _isLockedFromTmdb ? false : _isCustomIndieMovie,
+                keyboardType: TextInputType.url,
+                decoration: InputDecoration(
+                  labelText: 'Poster Image URL *',
+                  hintText: _isLockedFromTmdb || _isCustomIndieMovie
+                      ? 'https://...'
+                      : 'Search for a movie above first',
+                  prefixIcon: const Icon(Icons.image),
+                  suffixIcon: _isLockedFromTmdb
+                      ? const Icon(Icons.lock, size: 18, color: NSColors.textSecondary)
+                      : !_isCustomIndieMovie
+                          ? const Icon(Icons.block, size: 18, color: NSColors.textSecondary)
+                          : null,
+                ),
+                validator: (val) {
+                  if (_isCustomIndieMovie && (val == null || val.trim().isEmpty)) {
+                    return 'Poster URL is mandatory for custom indie movies';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
 
@@ -281,22 +463,40 @@ class _EventFormScreenState extends State<EventFormScreen> {
                   Expanded(
                     child: TextFormField(
                       controller: _durationController,
+                      enabled: _isLockedFromTmdb ? false : _isCustomIndieMovie,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Duration (minutes)',
-                        hintText: '166',
-                        prefixIcon: Icon(Icons.timer),
+                      decoration: InputDecoration(
+                        labelText: 'Duration (min) *',
+                        hintText: _isLockedFromTmdb || _isCustomIndieMovie ? '166' : '—',
+                        prefixIcon: const Icon(Icons.timer),
+                        suffixIcon: _isLockedFromTmdb
+                            ? const Icon(Icons.lock, size: 18, color: NSColors.textSecondary)
+                            : !_isCustomIndieMovie
+                                ? const Icon(Icons.block, size: 18, color: NSColors.textSecondary)
+                                : null,
                       ),
+                      validator: (val) {
+                        if (_isCustomIndieMovie && (val == null || val.trim().isEmpty)) {
+                          return 'Runtime is required';
+                        }
+                        return null;
+                      },
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: TextFormField(
-                      controller: _tmdbIdController,
-                      decoration: const InputDecoration(
-                        labelText: 'TMDB ID',
-                        hintText: '693134',
-                        prefixIcon: Icon(Icons.link),
+                      controller: _directorController,
+                      enabled: _isLockedFromTmdb ? false : _isCustomIndieMovie,
+                      decoration: InputDecoration(
+                        labelText: 'Director',
+                        hintText: _isLockedFromTmdb || _isCustomIndieMovie ? 'Denis Villeneuve' : '—',
+                        prefixIcon: const Icon(Icons.person),
+                        suffixIcon: _isLockedFromTmdb
+                            ? const Icon(Icons.lock, size: 18, color: NSColors.textSecondary)
+                            : !_isCustomIndieMovie
+                                ? const Icon(Icons.block, size: 18, color: NSColors.textSecondary)
+                                : null,
                       ),
                     ),
                   ),
@@ -305,14 +505,51 @@ class _EventFormScreenState extends State<EventFormScreen> {
               const SizedBox(height: 16),
 
               TextFormField(
-                controller: _imageController,
-                keyboardType: TextInputType.url,
-                decoration: const InputDecoration(
-                  labelText: 'Poster Image URL',
-                  hintText: 'https://image.tmdb.org/...',
-                  prefixIcon: Icon(Icons.image),
+                controller: _genresController,
+                enabled: _isLockedFromTmdb ? false : _isCustomIndieMovie,
+                decoration: InputDecoration(
+                  labelText: 'Genres (comma-separated)',
+                  hintText: _isLockedFromTmdb || _isCustomIndieMovie ? 'Sci-Fi, Adventure, Action' : '—',
+                  prefixIcon: const Icon(Icons.label),
+                  suffixIcon: _isLockedFromTmdb
+                      ? const Icon(Icons.lock, size: 18, color: NSColors.textSecondary)
+                      : !_isCustomIndieMovie
+                          ? const Icon(Icons.block, size: 18, color: NSColors.textSecondary)
+                          : null,
                 ),
               ),
+              const SizedBox(height: 16),
+
+              // Mandatory External Reference Link for Custom Movies
+              if (_isCustomIndieMovie) ...[
+                TextFormField(
+                  controller: _refUrlController,
+                  keyboardType: TextInputType.url,
+                  decoration: const InputDecoration(
+                    labelText: 'External Reference Link *',
+                    hintText: 'Letterboxd, IMDb, or Festival Program URL',
+                    prefixIcon: Icon(Icons.link),
+                  ),
+                  validator: (val) {
+                    if (_isCustomIndieMovie && (val == null || val.trim().isEmpty)) {
+                      return 'Please paste a reference link (Letterboxd, IMDb, or Festival program)';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              if (_tmdbIdController.text.isNotEmpty)
+                TextFormField(
+                  controller: _tmdbIdController,
+                  enabled: false,
+                  decoration: const InputDecoration(
+                    labelText: 'TMDB ID',
+                    prefixIcon: Icon(Icons.fingerprint),
+                    suffixIcon: Icon(Icons.lock, size: 18, color: NSColors.textSecondary),
+                  ),
+                ),
               const SizedBox(height: 24),
 
               NSPrimaryButton(
@@ -330,8 +567,12 @@ class _EventFormScreenState extends State<EventFormScreen> {
 
 class _TmdbSearchBottomSheet extends StatefulWidget {
   final String initialQuery;
+  final VoidCallback onCustomMovieSelected;
 
-  const _TmdbSearchBottomSheet({this.initialQuery = ''});
+  const _TmdbSearchBottomSheet({
+    this.initialQuery = '',
+    required this.onCustomMovieSelected,
+  });
 
   @override
   State<_TmdbSearchBottomSheet> createState() => _TmdbSearchBottomSheetState();
@@ -424,7 +665,7 @@ class _TmdbSearchBottomSheetState extends State<_TmdbSearchBottomSheet> {
       ),
       child: Container(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.75,
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -433,7 +674,7 @@ class _TmdbSearchBottomSheetState extends State<_TmdbSearchBottomSheet> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Search TMDB Movies', style: NSTextStyles.titleLarge),
+                Text('Find a Movie', style: NSTextStyles.titleLarge),
                 IconButton(
                   icon: const Icon(Icons.close),
                   onPressed: () => Navigator.pop(context),
@@ -446,7 +687,7 @@ class _TmdbSearchBottomSheetState extends State<_TmdbSearchBottomSheet> {
               autofocus: true,
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
-                hintText: 'Type 2+ letters (e.g. Dune, Inception)',
+                hintText: 'Search by title (e.g. Dune, Inception)',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.arrow_forward),
@@ -456,12 +697,12 @@ class _TmdbSearchBottomSheetState extends State<_TmdbSearchBottomSheet> {
               onChanged: _onSearchChanged,
               onSubmitted: (_) => _performSearch(),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
             if (_isSearching)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 32),
-                child: NSLoading(message: 'Searching TMDB database...'),
+                child: NSLoading(message: 'Searching...'),
               )
             else if (_networkError != null)
               Padding(
@@ -473,14 +714,19 @@ class _TmdbSearchBottomSheetState extends State<_TmdbSearchBottomSheet> {
               )
             else if (_hasSearched && _results.isEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 32),
+                padding: const EdgeInsets.symmetric(vertical: 24),
                 child: NSEmptyState(
                   icon: Icons.movie_outlined,
-                  title: 'No Movies Found',
-                  subtitle: 'Try typing 2 or more characters (e.g. "Dune").',
+                  title: 'No Results Found',
+                  subtitle: 'Can\'t find your movie? Add it manually.',
+                  action: NSPrimaryButton(
+                    label: 'Add a custom movie',
+                    icon: Icons.add,
+                    onPressed: widget.onCustomMovieSelected,
+                  ),
                 ),
               )
-            else
+            else ...[
               Expanded(
                 child: ListView.separated(
                   itemCount: _results.length,
@@ -519,7 +765,7 @@ class _TmdbSearchBottomSheetState extends State<_TmdbSearchBottomSheet> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (movie.releaseYear.isNotEmpty)
-                            Text('Released: ${movie.releaseYear}', style: NSTextStyles.labelSmall),
+                            Text(movie.releaseYear, style: NSTextStyles.labelSmall),
                           if (movie.overview != null && movie.overview!.isNotEmpty)
                             Text(
                               movie.overview!,
@@ -534,6 +780,14 @@ class _TmdbSearchBottomSheetState extends State<_TmdbSearchBottomSheet> {
                   },
                 ),
               ),
+              // Bottom custom movie fallback
+              const SizedBox(height: 12),
+              TextButton.icon(
+                onPressed: widget.onCustomMovieSelected,
+                icon: const Icon(Icons.add_circle_outline, size: 18),
+                label: const Text("Didn't find your movie? Add a custom movie."),
+              ),
+            ],
           ],
         ),
       ),

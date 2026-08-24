@@ -95,6 +95,7 @@ _$EventImpl _$$EventImplFromJson(Map<String, dynamic> json) => _$EventImpl(
       metadata: json['metadata'] as Map<String, dynamic>? ?? const {},
       status: $enumDecodeNullable(_$EventStatusEnumMap, json['status']) ??
           EventStatus.published,
+      isVerified: json['isVerified'] as bool? ?? true,
     );
 
 Map<String, dynamic> _$$EventImplToJson(_$EventImpl instance) =>
@@ -110,6 +111,7 @@ Map<String, dynamic> _$$EventImplToJson(_$EventImpl instance) =>
       'externalIds': instance.externalIds,
       'metadata': instance.metadata,
       'status': _$EventStatusEnumMap[instance.status]!,
+      'isVerified': instance.isVerified,
     };
 
 const _$EventCategoryEnumMap = {

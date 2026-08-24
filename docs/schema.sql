@@ -74,7 +74,8 @@ create table if not exists public.events (
     duration_minutes integer,
     external_ids jsonb default '{}'::jsonb,
     metadata jsonb default '{}'::jsonb,
-    status event_status default 'published'::event_status not null
+    status event_status default 'published'::event_status not null,
+    is_verified boolean default true not null
 );
 
 -- Prevent duplicate movies by enforcing unique TMDB IDs
@@ -149,6 +150,7 @@ select
   e.image_url,
   e.duration_minutes,
   e.metadata as event_metadata,
+  e.is_verified as event_is_verified,
   v.id as venue_id,
   v.name as venue_name,
   v.venue_type,

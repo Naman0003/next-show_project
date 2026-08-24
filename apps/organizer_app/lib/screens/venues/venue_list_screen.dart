@@ -109,6 +109,7 @@ class _VenueListScreenState extends State<VenueListScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_new_venue',
         backgroundColor: NSColors.royalBlue,
         child: const Icon(Icons.add, color: Colors.white),
         onPressed: () async {

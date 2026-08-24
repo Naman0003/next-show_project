@@ -154,6 +154,7 @@ class OrganizerRepository {
     Map<String, dynamic>? externalIds,
     Map<String, dynamic>? metadata,
     EventStatus? status,
+    bool? isVerified,
   }) {
     return NextShowSupabaseClient.createEvent(
       category: category,
@@ -164,6 +165,7 @@ class OrganizerRepository {
       externalIds: externalIds,
       metadata: metadata,
       status: status,
+      isVerified: isVerified,
     );
   }
 
@@ -177,6 +179,7 @@ class OrganizerRepository {
     Map<String, dynamic>? externalIds,
     Map<String, dynamic>? metadata,
     EventStatus? status,
+    bool? isVerified,
   }) {
     return NextShowSupabaseClient.updateEvent(
       id: id,
@@ -187,6 +190,7 @@ class OrganizerRepository {
       externalIds: externalIds,
       metadata: metadata,
       status: status,
+      isVerified: isVerified,
     );
   }
 

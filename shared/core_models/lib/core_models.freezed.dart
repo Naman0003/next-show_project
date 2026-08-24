@@ -769,6 +769,7 @@ mixin _$Event {
       throw _privateConstructorUsedError; // Static metadata (genres, directors, release year, etc.)
   Map<String, dynamic> get metadata => throw _privateConstructorUsedError;
   EventStatus get status => throw _privateConstructorUsedError;
+  bool get isVerified => throw _privateConstructorUsedError;
 
   /// Serializes this Event to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -795,7 +796,8 @@ abstract class $EventCopyWith<$Res> {
       int? durationMinutes,
       Map<String, dynamic> externalIds,
       Map<String, dynamic> metadata,
-      EventStatus status});
+      EventStatus status,
+      bool isVerified});
 }
 
 /// @nodoc
@@ -824,6 +826,7 @@ class _$EventCopyWithImpl<$Res, $Val extends Event>
     Object? externalIds = null,
     Object? metadata = null,
     Object? status = null,
+    Object? isVerified = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -870,6 +873,10 @@ class _$EventCopyWithImpl<$Res, $Val extends Event>
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
               as EventStatus,
+      isVerified: null == isVerified
+          ? _value.isVerified
+          : isVerified // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -892,7 +899,8 @@ abstract class _$$EventImplCopyWith<$Res> implements $EventCopyWith<$Res> {
       int? durationMinutes,
       Map<String, dynamic> externalIds,
       Map<String, dynamic> metadata,
-      EventStatus status});
+      EventStatus status,
+      bool isVerified});
 }
 
 /// @nodoc
@@ -919,6 +927,7 @@ class __$$EventImplCopyWithImpl<$Res>
     Object? externalIds = null,
     Object? metadata = null,
     Object? status = null,
+    Object? isVerified = null,
   }) {
     return _then(_$EventImpl(
       id: null == id
@@ -965,6 +974,10 @@ class __$$EventImplCopyWithImpl<$Res>
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
               as EventStatus,
+      isVerified: null == isVerified
+          ? _value.isVerified
+          : isVerified // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -983,7 +996,8 @@ class _$EventImpl implements _Event {
       this.durationMinutes,
       final Map<String, dynamic> externalIds = const {},
       final Map<String, dynamic> metadata = const {},
-      this.status = EventStatus.published})
+      this.status = EventStatus.published,
+      this.isVerified = true})
       : _externalIds = externalIds,
         _metadata = metadata;
 
@@ -1031,10 +1045,13 @@ class _$EventImpl implements _Event {
   @override
   @JsonKey()
   final EventStatus status;
+  @override
+  @JsonKey()
+  final bool isVerified;
 
   @override
   String toString() {
-    return 'Event(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, category: $category, title: $title, description: $description, imageUrl: $imageUrl, durationMinutes: $durationMinutes, externalIds: $externalIds, metadata: $metadata, status: $status)';
+    return 'Event(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, category: $category, title: $title, description: $description, imageUrl: $imageUrl, durationMinutes: $durationMinutes, externalIds: $externalIds, metadata: $metadata, status: $status, isVerified: $isVerified)';
   }
 
   @override
@@ -1059,7 +1076,9 @@ class _$EventImpl implements _Event {
             const DeepCollectionEquality()
                 .equals(other._externalIds, _externalIds) &&
             const DeepCollectionEquality().equals(other._metadata, _metadata) &&
-            (identical(other.status, status) || other.status == status));
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.isVerified, isVerified) ||
+                other.isVerified == isVerified));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1076,7 +1095,8 @@ class _$EventImpl implements _Event {
       durationMinutes,
       const DeepCollectionEquality().hash(_externalIds),
       const DeepCollectionEquality().hash(_metadata),
-      status);
+      status,
+      isVerified);
 
   /// Create a copy of Event
   /// with the given fields replaced by the non-null parameter values.
@@ -1106,7 +1126,8 @@ abstract class _Event implements Event {
       final int? durationMinutes,
       final Map<String, dynamic> externalIds,
       final Map<String, dynamic> metadata,
-      final EventStatus status}) = _$EventImpl;
+      final EventStatus status,
+      final bool isVerified}) = _$EventImpl;
 
   factory _Event.fromJson(Map<String, dynamic> json) = _$EventImpl.fromJson;
 
@@ -1133,6 +1154,8 @@ abstract class _Event implements Event {
   Map<String, dynamic> get metadata;
   @override
   EventStatus get status;
+  @override
+  bool get isVerified;
 
   /// Create a copy of Event
   /// with the given fields replaced by the non-null parameter values.

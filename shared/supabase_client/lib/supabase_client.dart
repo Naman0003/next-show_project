@@ -205,6 +205,7 @@ class NextShowSupabaseClient {
     Map<String, dynamic>? externalIds,
     Map<String, dynamic>? metadata,
     EventStatus? status,
+    bool? isVerified,
   }) async {
     final response = await client.from('events').insert({
       'category': category.name,
@@ -215,6 +216,7 @@ class NextShowSupabaseClient {
       'external_ids': externalIds ?? {},
       'metadata': metadata ?? {},
       'status': status?.name ?? 'published',
+      'is_verified': isVerified ?? true,
     }).select().single();
 
     return _eventFromJson(response);
@@ -230,6 +232,7 @@ class NextShowSupabaseClient {
     Map<String, dynamic>? externalIds,
     Map<String, dynamic>? metadata,
     EventStatus? status,
+    bool? isVerified,
   }) async {
     final updates = <String, dynamic>{};
     if (title != null) updates['title'] = title;
@@ -239,6 +242,7 @@ class NextShowSupabaseClient {
     if (externalIds != null) updates['external_ids'] = externalIds;
     if (metadata != null) updates['metadata'] = metadata;
     if (status != null) updates['status'] = status.name;
+    if (isVerified != null) updates['is_verified'] = isVerified;
 
     final response = await client
         .from('events')
@@ -576,6 +580,7 @@ class NextShowSupabaseClient {
         (e) => e.name == json['status'],
         orElse: () => EventStatus.published,
       ),
+      isVerified: json['is_verified'] as bool? ?? true,
     );
   }
 
