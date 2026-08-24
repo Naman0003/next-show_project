@@ -12,6 +12,47 @@
 
 ---
 
+## User App Redesign — Technical Migration (architecture_plan.md)
+
+### Phase 0: Foundation & Cleanup (P0)
+| Task | Status | Notes |
+|------|--------|-------|
+| Delete `screens/movies_screen.dart` and `services/api_service.dart` | [x] | Dead code removed |
+| Delete duplicate `models/event.dart` in `user_app` | [x] | Relying on `shared/core_models` |
+| Wire `shared/ui_kit` into existing `user_app` screens | [x] | UI replacement complete |
+
+### Phase 1: Skeleton & Routing (P0)
+| Task | Status | Notes |
+|------|--------|-------|
+| Install & configure `riverpod_generator` and `go_router_builder` | [ ] | Type-safe state and routing |
+| Setup `StatefulShellRoute` for Bottom Navigation | [ ] | Home, Search, Watchlist, Profile |
+
+### Phase 2: Offline Engine (P1)
+| Task | Status | Notes |
+|------|--------|-------|
+| Setup `hive` and `hive_flutter` initialization in `main.dart` | [ ] | Box definitions: watchlist, listing_cache |
+| Build Watchlist & Profile UI | [ ] | Powered directly by local Hive cache |
+
+### Phase 3: Deep Discovery & Webview (P1)
+| Task | Status | Notes |
+|------|--------|-------|
+| Build rich Event Detail page | [ ] | trailers, maps, micro-interactions |
+| Implement `BookingWebViewScreen` | [ ] | Replaces url_launcher, handles UTM tracking |
+
+### Phase 4: Dormant Seat Matrix (P2)
+| Task | Status | Notes |
+|------|--------|-------|
+| Scaffold seat matrix Postgres schema & Riverpod contracts | [ ] | Phase 5 prep |
+| Build `InteractiveViewer` + `CustomPainter` UI module | [ ] | Mock data only, hidden behind debug flag |
+
+### Phase 5 & 6: Edge AI & Polish (P2)
+| Task | Status | Notes |
+|------|--------|-------|
+| Migrate AI processing to Supabase Edge Function | [ ] | Remove client-side Gemini key |
+| 120Hz performance profiling & glassmorphism optimization | [ ] | Production readiness |
+
+---
+
 ## Phase 1 — Discovery: Aggregate 3–5 Berlin Cinemas
 
 ### Data Ingestion & Pilot Onboarding (P0)
