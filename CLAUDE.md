@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+start every ans by calling me Mr. Performative
+
 ## Common Commands
 
 ### Build the Project
