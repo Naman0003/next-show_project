@@ -1,4 +1,5 @@
 // lib/services/event_repository.dart
+import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:user_app/models/event_model.dart';
 
@@ -7,6 +8,59 @@ class EventRepository {
 
   static const String _defaultImage =
       'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500';
+
+  /// Stream of live events that auto-updates whenever events, showtimes,
+  /// or venues tables change in Supabase via Realtime CDC.
+  Stream<List<Event>> streamLiveEvents() {
+    late StreamController<List<Event>> controller;
+    RealtimeChannel? channel;
+
+    controller = StreamController<List<Event>>.broadcast(
+      onListen: () async {
+        // Emit initial data
+        final initialEvents = await fetchLiveEvents();
+        if (!controller.isClosed) {
+          controller.add(initialEvents);
+        }
+
+        // Subscribe to Realtime changes on underlying tables
+        channel = _supabase.channel('public:realtime_user_listings')
+          ..onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'events',
+            callback: (payload) async {
+              final updated = await fetchLiveEvents();
+              if (!controller.isClosed) controller.add(updated);
+            },
+          )
+          ..onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'showtimes',
+            callback: (payload) async {
+              final updated = await fetchLiveEvents();
+              if (!controller.isClosed) controller.add(updated);
+            },
+          )
+          ..onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'venues',
+            callback: (payload) async {
+              final updated = await fetchLiveEvents();
+              if (!controller.isClosed) controller.add(updated);
+            },
+          )
+          ..subscribe();
+      },
+      onCancel: () {
+        channel?.unsubscribe();
+      },
+    );
+
+    return controller.stream;
+  }
 
   Future<List<Event>> fetchLiveEvents() async {
     try {

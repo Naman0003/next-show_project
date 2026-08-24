@@ -18,17 +18,17 @@ class _BrowseScreenState extends State<BrowseScreen> {
   final EventRepository _eventRepository = EventRepository();
   EventCategory? selectedCategory;
   String searchQuery = "";
-  late Future<List<Event>> _eventsFuture;
+  late Stream<List<Event>> _eventsStream;
 
   @override
   void initState() {
     super.initState();
-    _eventsFuture = _eventRepository.fetchLiveEvents();
+    _eventsStream = _eventRepository.streamLiveEvents();
   }
 
   void _refreshEvents() {
     setState(() {
-      _eventsFuture = _eventRepository.fetchLiveEvents();
+      _eventsStream = _eventRepository.streamLiveEvents();
     });
   }
 
@@ -60,10 +60,10 @@ class _BrowseScreenState extends State<BrowseScreen> {
           const AccountMenuButton(),
         ],
       ),
-      body: FutureBuilder<List<Event>>(
-        future: _eventsFuture,
+      body: StreamBuilder<List<Event>>(
+        stream: _eventsStream,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
             return const Center(
               child: CircularProgressIndicator(color: AppColors.royalBlue),
             );
