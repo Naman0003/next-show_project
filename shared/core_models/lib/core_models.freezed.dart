@@ -29,12 +29,8 @@ mixin _$Profile {
   List<String> get favoriteVenueIds => throw _privateConstructorUsedError;
   List<String> get preferredCategories => throw _privateConstructorUsedError;
 
-  /// Serializes this Profile to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Profile
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ProfileCopyWith<Profile> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -64,8 +60,6 @@ class _$ProfileCopyWithImpl<$Res, $Val extends Profile>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Profile
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -141,8 +135,6 @@ class __$$ProfileImplCopyWithImpl<$Res>
       _$ProfileImpl _value, $Res Function(_$ProfileImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Profile
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -268,7 +260,7 @@ class _$ProfileImpl implements _Profile {
                 .equals(other._preferredCategories, _preferredCategories));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -281,9 +273,7 @@ class _$ProfileImpl implements _Profile {
       const DeepCollectionEquality().hash(_favoriteVenueIds),
       const DeepCollectionEquality().hash(_preferredCategories));
 
-  /// Create a copy of Profile
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ProfileImplCopyWith<_$ProfileImpl> get copyWith =>
@@ -326,11 +316,8 @@ abstract class _Profile implements Profile {
   List<String> get favoriteVenueIds;
   @override
   List<String> get preferredCategories;
-
-  /// Create a copy of Profile
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ProfileImplCopyWith<_$ProfileImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -356,12 +343,8 @@ mixin _$Venue {
   String? get partnerNotes => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
 
-  /// Serializes this Venue to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Venue
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $VenueCopyWith<Venue> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -396,8 +379,6 @@ class _$VenueCopyWithImpl<$Res, $Val extends Venue>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Venue
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -503,8 +484,6 @@ class __$$VenueImplCopyWithImpl<$Res>
       _$VenueImpl _value, $Res Function(_$VenueImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Venue
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -663,7 +642,7 @@ class _$VenueImpl implements _Venue {
                 other.isActive == isActive));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -681,9 +660,7 @@ class _$VenueImpl implements _Venue {
       partnerNotes,
       isActive);
 
-  /// Create a copy of Venue
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$VenueImplCopyWith<_$VenueImpl> get copyWith =>
@@ -728,8 +705,8 @@ abstract class _Venue implements Venue {
   @override
   VenueType get venueType;
   @override
-  String? get address; // PostGIS point as lat/lng
-  @override
+  String? get address;
+  @override // PostGIS point as lat/lng
   double? get latitude;
   @override
   double? get longitude;
@@ -741,11 +718,8 @@ abstract class _Venue implements Venue {
   String? get partnerNotes;
   @override
   bool get isActive;
-
-  /// Create a copy of Venue
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$VenueImplCopyWith<_$VenueImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -770,12 +744,8 @@ mixin _$Event {
   Map<String, dynamic> get metadata => throw _privateConstructorUsedError;
   EventStatus get status => throw _privateConstructorUsedError;
 
-  /// Serializes this Event to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Event
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $EventCopyWith<Event> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -808,8 +778,6 @@ class _$EventCopyWithImpl<$Res, $Val extends Event>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Event
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -903,8 +871,6 @@ class __$$EventImplCopyWithImpl<$Res>
       _$EventImpl _value, $Res Function(_$EventImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Event
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1062,7 +1028,7 @@ class _$EventImpl implements _Event {
             (identical(other.status, status) || other.status == status));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -1078,9 +1044,7 @@ class _$EventImpl implements _Event {
       const DeepCollectionEquality().hash(_metadata),
       status);
 
-  /// Create a copy of Event
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$EventImplCopyWith<_$EventImpl> get copyWith =>
@@ -1125,19 +1089,15 @@ abstract class _Event implements Event {
   @override
   String? get imageUrl;
   @override
-  int? get durationMinutes; // External IDs (TMDB, Spotify, Eventbrite, etc.)
-  @override
-  Map<String, dynamic>
-      get externalIds; // Static metadata (genres, directors, release year, etc.)
-  @override
+  int? get durationMinutes;
+  @override // External IDs (TMDB, Spotify, Eventbrite, etc.)
+  Map<String, dynamic> get externalIds;
+  @override // Static metadata (genres, directors, release year, etc.)
   Map<String, dynamic> get metadata;
   @override
   EventStatus get status;
-
-  /// Create a copy of Event
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$EventImplCopyWith<_$EventImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -1164,12 +1124,8 @@ mixin _$Showtime {
   String? get imageUrl => throw _privateConstructorUsedError;
   EventStatus get status => throw _privateConstructorUsedError;
 
-  /// Serializes this Showtime to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Showtime
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ShowtimeCopyWith<Showtime> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -1206,8 +1162,6 @@ class _$ShowtimeCopyWithImpl<$Res, $Val extends Showtime>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Showtime
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1320,8 +1274,6 @@ class __$$ShowtimeImplCopyWithImpl<$Res>
       _$ShowtimeImpl _value, $Res Function(_$ShowtimeImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Showtime
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1498,7 +1450,7 @@ class _$ShowtimeImpl implements _Showtime {
             (identical(other.status, status) || other.status == status));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -1517,9 +1469,7 @@ class _$ShowtimeImpl implements _Showtime {
       imageUrl,
       status);
 
-  /// Create a copy of Showtime
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ShowtimeImplCopyWith<_$ShowtimeImpl> get copyWith =>
@@ -1572,8 +1522,8 @@ abstract class _Showtime implements Showtime {
   @override
   int? get capacity;
   @override
-  int get ticketsSold; // Flexible attributes: language, subtitles, format (3D/IMAX), age restrictions
-  @override
+  int get ticketsSold;
+  @override // Flexible attributes: language, subtitles, format (3D/IMAX), age restrictions
   Map<String, dynamic> get attributes;
   @override
   String get bookingUrl;
@@ -1581,11 +1531,8 @@ abstract class _Showtime implements Showtime {
   String? get imageUrl;
   @override
   EventStatus get status;
-
-  /// Create a copy of Showtime
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ShowtimeImplCopyWith<_$ShowtimeImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -1601,12 +1548,8 @@ mixin _$OutboundClick {
   String? get userId => throw _privateConstructorUsedError;
   String? get showtimeId => throw _privateConstructorUsedError;
 
-  /// Serializes this OutboundClick to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of OutboundClick
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $OutboundClickCopyWith<OutboundClick> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -1631,8 +1574,6 @@ class _$OutboundClickCopyWithImpl<$Res, $Val extends OutboundClick>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of OutboundClick
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1682,8 +1623,6 @@ class __$$OutboundClickImplCopyWithImpl<$Res>
       _$OutboundClickImpl _value, $Res Function(_$OutboundClickImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of OutboundClick
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1752,14 +1691,12 @@ class _$OutboundClickImpl implements _OutboundClick {
                 other.showtimeId == showtimeId));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode =>
       Object.hash(runtimeType, id, clickedAt, userId, showtimeId);
 
-  /// Create a copy of OutboundClick
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$OutboundClickImplCopyWith<_$OutboundClickImpl> get copyWith =>
@@ -1791,11 +1728,8 @@ abstract class _OutboundClick implements OutboundClick {
   String? get userId;
   @override
   String? get showtimeId;
-
-  /// Create a copy of OutboundClick
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$OutboundClickImplCopyWith<_$OutboundClickImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -1816,12 +1750,8 @@ mixin _$OrganizerInvite {
   DateTime? get acceptedAt => throw _privateConstructorUsedError;
   DateTime? get expiresAt => throw _privateConstructorUsedError;
 
-  /// Serializes this OrganizerInvite to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of OrganizerInvite
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $OrganizerInviteCopyWith<OrganizerInvite> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -1854,8 +1784,6 @@ class _$OrganizerInviteCopyWithImpl<$Res, $Val extends OrganizerInvite>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of OrganizerInvite
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1938,8 +1866,6 @@ class __$$OrganizerInviteImplCopyWithImpl<$Res>
       _$OrganizerInviteImpl _value, $Res Function(_$OrganizerInviteImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of OrganizerInvite
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -2056,14 +1982,12 @@ class _$OrganizerInviteImpl implements _OrganizerInvite {
                 other.expiresAt == expiresAt));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, id, createdAt, venueId,
       invitedBy, email, role, token, acceptedAt, expiresAt);
 
-  /// Create a copy of OrganizerInvite
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$OrganizerInviteImplCopyWith<_$OrganizerInviteImpl> get copyWith =>
@@ -2111,11 +2035,8 @@ abstract class _OrganizerInvite implements OrganizerInvite {
   DateTime? get acceptedAt;
   @override
   DateTime? get expiresAt;
-
-  /// Create a copy of OrganizerInvite
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$OrganizerInviteImplCopyWith<_$OrganizerInviteImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -2150,12 +2071,8 @@ mixin _$Listing {
   double get latitude => throw _privateConstructorUsedError;
   String? get venueImageUrl => throw _privateConstructorUsedError;
 
-  /// Serializes this Listing to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Listing
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ListingCopyWith<Listing> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -2199,8 +2116,6 @@ class _$ListingCopyWithImpl<$Res, $Val extends Listing>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Listing
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -2360,8 +2275,6 @@ class __$$ListingImplCopyWithImpl<$Res>
       _$ListingImpl _value, $Res Function(_$ListingImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Listing
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -2623,7 +2536,7 @@ class _$ListingImpl implements _Listing {
                 other.venueImageUrl == venueImageUrl));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
@@ -2651,9 +2564,7 @@ class _$ListingImpl implements _Listing {
         venueImageUrl
       ]);
 
-  /// Create a copy of Listing
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ListingImplCopyWith<_$ListingImpl> get copyWith =>
@@ -2738,11 +2649,1035 @@ abstract class _Listing implements Listing {
   double get latitude;
   @override
   String? get venueImageUrl;
-
-  /// Create a copy of Listing
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ListingImplCopyWith<_$ListingImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+Seat _$SeatFromJson(Map<String, dynamic> json) {
+  return _Seat.fromJson(json);
+}
+
+/// @nodoc
+mixin _$Seat {
+  String get id => throw _privateConstructorUsedError;
+  String get sectionId => throw _privateConstructorUsedError;
+  String get rowLabel => throw _privateConstructorUsedError;
+  int get seatNumber => throw _privateConstructorUsedError;
+  double get x => throw _privateConstructorUsedError;
+  double get y => throw _privateConstructorUsedError;
+  SeatType get type => throw _privateConstructorUsedError;
+  SeatStatus get status => throw _privateConstructorUsedError;
+  double? get price => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $SeatCopyWith<Seat> get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SeatCopyWith<$Res> {
+  factory $SeatCopyWith(Seat value, $Res Function(Seat) then) =
+      _$SeatCopyWithImpl<$Res, Seat>;
+  @useResult
+  $Res call(
+      {String id,
+      String sectionId,
+      String rowLabel,
+      int seatNumber,
+      double x,
+      double y,
+      SeatType type,
+      SeatStatus status,
+      double? price});
+}
+
+/// @nodoc
+class _$SeatCopyWithImpl<$Res, $Val extends Seat>
+    implements $SeatCopyWith<$Res> {
+  _$SeatCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? sectionId = null,
+    Object? rowLabel = null,
+    Object? seatNumber = null,
+    Object? x = null,
+    Object? y = null,
+    Object? type = null,
+    Object? status = null,
+    Object? price = freezed,
+  }) {
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      sectionId: null == sectionId
+          ? _value.sectionId
+          : sectionId // ignore: cast_nullable_to_non_nullable
+              as String,
+      rowLabel: null == rowLabel
+          ? _value.rowLabel
+          : rowLabel // ignore: cast_nullable_to_non_nullable
+              as String,
+      seatNumber: null == seatNumber
+          ? _value.seatNumber
+          : seatNumber // ignore: cast_nullable_to_non_nullable
+              as int,
+      x: null == x
+          ? _value.x
+          : x // ignore: cast_nullable_to_non_nullable
+              as double,
+      y: null == y
+          ? _value.y
+          : y // ignore: cast_nullable_to_non_nullable
+              as double,
+      type: null == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as SeatType,
+      status: null == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as SeatStatus,
+      price: freezed == price
+          ? _value.price
+          : price // ignore: cast_nullable_to_non_nullable
+              as double?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$SeatImplCopyWith<$Res> implements $SeatCopyWith<$Res> {
+  factory _$$SeatImplCopyWith(
+          _$SeatImpl value, $Res Function(_$SeatImpl) then) =
+      __$$SeatImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String id,
+      String sectionId,
+      String rowLabel,
+      int seatNumber,
+      double x,
+      double y,
+      SeatType type,
+      SeatStatus status,
+      double? price});
+}
+
+/// @nodoc
+class __$$SeatImplCopyWithImpl<$Res>
+    extends _$SeatCopyWithImpl<$Res, _$SeatImpl>
+    implements _$$SeatImplCopyWith<$Res> {
+  __$$SeatImplCopyWithImpl(_$SeatImpl _value, $Res Function(_$SeatImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? sectionId = null,
+    Object? rowLabel = null,
+    Object? seatNumber = null,
+    Object? x = null,
+    Object? y = null,
+    Object? type = null,
+    Object? status = null,
+    Object? price = freezed,
+  }) {
+    return _then(_$SeatImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      sectionId: null == sectionId
+          ? _value.sectionId
+          : sectionId // ignore: cast_nullable_to_non_nullable
+              as String,
+      rowLabel: null == rowLabel
+          ? _value.rowLabel
+          : rowLabel // ignore: cast_nullable_to_non_nullable
+              as String,
+      seatNumber: null == seatNumber
+          ? _value.seatNumber
+          : seatNumber // ignore: cast_nullable_to_non_nullable
+              as int,
+      x: null == x
+          ? _value.x
+          : x // ignore: cast_nullable_to_non_nullable
+              as double,
+      y: null == y
+          ? _value.y
+          : y // ignore: cast_nullable_to_non_nullable
+              as double,
+      type: null == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as SeatType,
+      status: null == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as SeatStatus,
+      price: freezed == price
+          ? _value.price
+          : price // ignore: cast_nullable_to_non_nullable
+              as double?,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$SeatImpl implements _Seat {
+  const _$SeatImpl(
+      {required this.id,
+      required this.sectionId,
+      required this.rowLabel,
+      required this.seatNumber,
+      required this.x,
+      required this.y,
+      this.type = SeatType.standard,
+      this.status = SeatStatus.available,
+      this.price});
+
+  factory _$SeatImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SeatImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  final String sectionId;
+  @override
+  final String rowLabel;
+  @override
+  final int seatNumber;
+  @override
+  final double x;
+  @override
+  final double y;
+  @override
+  @JsonKey()
+  final SeatType type;
+  @override
+  @JsonKey()
+  final SeatStatus status;
+  @override
+  final double? price;
+
+  @override
+  String toString() {
+    return 'Seat(id: $id, sectionId: $sectionId, rowLabel: $rowLabel, seatNumber: $seatNumber, x: $x, y: $y, type: $type, status: $status, price: $price)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SeatImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.sectionId, sectionId) ||
+                other.sectionId == sectionId) &&
+            (identical(other.rowLabel, rowLabel) ||
+                other.rowLabel == rowLabel) &&
+            (identical(other.seatNumber, seatNumber) ||
+                other.seatNumber == seatNumber) &&
+            (identical(other.x, x) || other.x == x) &&
+            (identical(other.y, y) || other.y == y) &&
+            (identical(other.type, type) || other.type == type) &&
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.price, price) || other.price == price));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, sectionId, rowLabel,
+      seatNumber, x, y, type, status, price);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SeatImplCopyWith<_$SeatImpl> get copyWith =>
+      __$$SeatImplCopyWithImpl<_$SeatImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SeatImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _Seat implements Seat {
+  const factory _Seat(
+      {required final String id,
+      required final String sectionId,
+      required final String rowLabel,
+      required final int seatNumber,
+      required final double x,
+      required final double y,
+      final SeatType type,
+      final SeatStatus status,
+      final double? price}) = _$SeatImpl;
+
+  factory _Seat.fromJson(Map<String, dynamic> json) = _$SeatImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  String get sectionId;
+  @override
+  String get rowLabel;
+  @override
+  int get seatNumber;
+  @override
+  double get x;
+  @override
+  double get y;
+  @override
+  SeatType get type;
+  @override
+  SeatStatus get status;
+  @override
+  double? get price;
+  @override
+  @JsonKey(ignore: true)
+  _$$SeatImplCopyWith<_$SeatImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+SeatSection _$SeatSectionFromJson(Map<String, dynamic> json) {
+  return _SeatSection.fromJson(json);
+}
+
+/// @nodoc
+mixin _$SeatSection {
+  String get id => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+  double get basePrice => throw _privateConstructorUsedError;
+  List<Seat> get seats => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $SeatSectionCopyWith<SeatSection> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SeatSectionCopyWith<$Res> {
+  factory $SeatSectionCopyWith(
+          SeatSection value, $Res Function(SeatSection) then) =
+      _$SeatSectionCopyWithImpl<$Res, SeatSection>;
+  @useResult
+  $Res call({String id, String name, double basePrice, List<Seat> seats});
+}
+
+/// @nodoc
+class _$SeatSectionCopyWithImpl<$Res, $Val extends SeatSection>
+    implements $SeatSectionCopyWith<$Res> {
+  _$SeatSectionCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? basePrice = null,
+    Object? seats = null,
+  }) {
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      basePrice: null == basePrice
+          ? _value.basePrice
+          : basePrice // ignore: cast_nullable_to_non_nullable
+              as double,
+      seats: null == seats
+          ? _value.seats
+          : seats // ignore: cast_nullable_to_non_nullable
+              as List<Seat>,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$SeatSectionImplCopyWith<$Res>
+    implements $SeatSectionCopyWith<$Res> {
+  factory _$$SeatSectionImplCopyWith(
+          _$SeatSectionImpl value, $Res Function(_$SeatSectionImpl) then) =
+      __$$SeatSectionImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String id, String name, double basePrice, List<Seat> seats});
+}
+
+/// @nodoc
+class __$$SeatSectionImplCopyWithImpl<$Res>
+    extends _$SeatSectionCopyWithImpl<$Res, _$SeatSectionImpl>
+    implements _$$SeatSectionImplCopyWith<$Res> {
+  __$$SeatSectionImplCopyWithImpl(
+      _$SeatSectionImpl _value, $Res Function(_$SeatSectionImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? basePrice = null,
+    Object? seats = null,
+  }) {
+    return _then(_$SeatSectionImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      basePrice: null == basePrice
+          ? _value.basePrice
+          : basePrice // ignore: cast_nullable_to_non_nullable
+              as double,
+      seats: null == seats
+          ? _value._seats
+          : seats // ignore: cast_nullable_to_non_nullable
+              as List<Seat>,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$SeatSectionImpl implements _SeatSection {
+  const _$SeatSectionImpl(
+      {required this.id,
+      required this.name,
+      required this.basePrice,
+      final List<Seat> seats = const []})
+      : _seats = seats;
+
+  factory _$SeatSectionImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SeatSectionImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  final String name;
+  @override
+  final double basePrice;
+  final List<Seat> _seats;
+  @override
+  @JsonKey()
+  List<Seat> get seats {
+    if (_seats is EqualUnmodifiableListView) return _seats;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_seats);
+  }
+
+  @override
+  String toString() {
+    return 'SeatSection(id: $id, name: $name, basePrice: $basePrice, seats: $seats)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SeatSectionImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.basePrice, basePrice) ||
+                other.basePrice == basePrice) &&
+            const DeepCollectionEquality().equals(other._seats, _seats));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, name, basePrice,
+      const DeepCollectionEquality().hash(_seats));
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SeatSectionImplCopyWith<_$SeatSectionImpl> get copyWith =>
+      __$$SeatSectionImplCopyWithImpl<_$SeatSectionImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SeatSectionImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _SeatSection implements SeatSection {
+  const factory _SeatSection(
+      {required final String id,
+      required final String name,
+      required final double basePrice,
+      final List<Seat> seats}) = _$SeatSectionImpl;
+
+  factory _SeatSection.fromJson(Map<String, dynamic> json) =
+      _$SeatSectionImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  String get name;
+  @override
+  double get basePrice;
+  @override
+  List<Seat> get seats;
+  @override
+  @JsonKey(ignore: true)
+  _$$SeatSectionImplCopyWith<_$SeatSectionImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+VenueLayout _$VenueLayoutFromJson(Map<String, dynamic> json) {
+  return _VenueLayout.fromJson(json);
+}
+
+/// @nodoc
+mixin _$VenueLayout {
+  String get id => throw _privateConstructorUsedError;
+  String get venueId => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+  BookingMode get bookingMode => throw _privateConstructorUsedError;
+  double get canvasWidth => throw _privateConstructorUsedError;
+  double get canvasHeight => throw _privateConstructorUsedError;
+  List<SeatSection> get sections => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $VenueLayoutCopyWith<VenueLayout> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $VenueLayoutCopyWith<$Res> {
+  factory $VenueLayoutCopyWith(
+          VenueLayout value, $Res Function(VenueLayout) then) =
+      _$VenueLayoutCopyWithImpl<$Res, VenueLayout>;
+  @useResult
+  $Res call(
+      {String id,
+      String venueId,
+      String name,
+      BookingMode bookingMode,
+      double canvasWidth,
+      double canvasHeight,
+      List<SeatSection> sections});
+}
+
+/// @nodoc
+class _$VenueLayoutCopyWithImpl<$Res, $Val extends VenueLayout>
+    implements $VenueLayoutCopyWith<$Res> {
+  _$VenueLayoutCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? venueId = null,
+    Object? name = null,
+    Object? bookingMode = null,
+    Object? canvasWidth = null,
+    Object? canvasHeight = null,
+    Object? sections = null,
+  }) {
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      venueId: null == venueId
+          ? _value.venueId
+          : venueId // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      bookingMode: null == bookingMode
+          ? _value.bookingMode
+          : bookingMode // ignore: cast_nullable_to_non_nullable
+              as BookingMode,
+      canvasWidth: null == canvasWidth
+          ? _value.canvasWidth
+          : canvasWidth // ignore: cast_nullable_to_non_nullable
+              as double,
+      canvasHeight: null == canvasHeight
+          ? _value.canvasHeight
+          : canvasHeight // ignore: cast_nullable_to_non_nullable
+              as double,
+      sections: null == sections
+          ? _value.sections
+          : sections // ignore: cast_nullable_to_non_nullable
+              as List<SeatSection>,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$VenueLayoutImplCopyWith<$Res>
+    implements $VenueLayoutCopyWith<$Res> {
+  factory _$$VenueLayoutImplCopyWith(
+          _$VenueLayoutImpl value, $Res Function(_$VenueLayoutImpl) then) =
+      __$$VenueLayoutImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String id,
+      String venueId,
+      String name,
+      BookingMode bookingMode,
+      double canvasWidth,
+      double canvasHeight,
+      List<SeatSection> sections});
+}
+
+/// @nodoc
+class __$$VenueLayoutImplCopyWithImpl<$Res>
+    extends _$VenueLayoutCopyWithImpl<$Res, _$VenueLayoutImpl>
+    implements _$$VenueLayoutImplCopyWith<$Res> {
+  __$$VenueLayoutImplCopyWithImpl(
+      _$VenueLayoutImpl _value, $Res Function(_$VenueLayoutImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? venueId = null,
+    Object? name = null,
+    Object? bookingMode = null,
+    Object? canvasWidth = null,
+    Object? canvasHeight = null,
+    Object? sections = null,
+  }) {
+    return _then(_$VenueLayoutImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      venueId: null == venueId
+          ? _value.venueId
+          : venueId // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      bookingMode: null == bookingMode
+          ? _value.bookingMode
+          : bookingMode // ignore: cast_nullable_to_non_nullable
+              as BookingMode,
+      canvasWidth: null == canvasWidth
+          ? _value.canvasWidth
+          : canvasWidth // ignore: cast_nullable_to_non_nullable
+              as double,
+      canvasHeight: null == canvasHeight
+          ? _value.canvasHeight
+          : canvasHeight // ignore: cast_nullable_to_non_nullable
+              as double,
+      sections: null == sections
+          ? _value._sections
+          : sections // ignore: cast_nullable_to_non_nullable
+              as List<SeatSection>,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$VenueLayoutImpl implements _VenueLayout {
+  const _$VenueLayoutImpl(
+      {required this.id,
+      required this.venueId,
+      required this.name,
+      this.bookingMode = BookingMode.generalAdmission,
+      this.canvasWidth = 1000,
+      this.canvasHeight = 800,
+      final List<SeatSection> sections = const []})
+      : _sections = sections;
+
+  factory _$VenueLayoutImpl.fromJson(Map<String, dynamic> json) =>
+      _$$VenueLayoutImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  final String venueId;
+  @override
+  final String name;
+  @override
+  @JsonKey()
+  final BookingMode bookingMode;
+  @override
+  @JsonKey()
+  final double canvasWidth;
+  @override
+  @JsonKey()
+  final double canvasHeight;
+  final List<SeatSection> _sections;
+  @override
+  @JsonKey()
+  List<SeatSection> get sections {
+    if (_sections is EqualUnmodifiableListView) return _sections;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_sections);
+  }
+
+  @override
+  String toString() {
+    return 'VenueLayout(id: $id, venueId: $venueId, name: $name, bookingMode: $bookingMode, canvasWidth: $canvasWidth, canvasHeight: $canvasHeight, sections: $sections)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$VenueLayoutImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.venueId, venueId) || other.venueId == venueId) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.bookingMode, bookingMode) ||
+                other.bookingMode == bookingMode) &&
+            (identical(other.canvasWidth, canvasWidth) ||
+                other.canvasWidth == canvasWidth) &&
+            (identical(other.canvasHeight, canvasHeight) ||
+                other.canvasHeight == canvasHeight) &&
+            const DeepCollectionEquality().equals(other._sections, _sections));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      venueId,
+      name,
+      bookingMode,
+      canvasWidth,
+      canvasHeight,
+      const DeepCollectionEquality().hash(_sections));
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$VenueLayoutImplCopyWith<_$VenueLayoutImpl> get copyWith =>
+      __$$VenueLayoutImplCopyWithImpl<_$VenueLayoutImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$VenueLayoutImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _VenueLayout implements VenueLayout {
+  const factory _VenueLayout(
+      {required final String id,
+      required final String venueId,
+      required final String name,
+      final BookingMode bookingMode,
+      final double canvasWidth,
+      final double canvasHeight,
+      final List<SeatSection> sections}) = _$VenueLayoutImpl;
+
+  factory _VenueLayout.fromJson(Map<String, dynamic> json) =
+      _$VenueLayoutImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  String get venueId;
+  @override
+  String get name;
+  @override
+  BookingMode get bookingMode;
+  @override
+  double get canvasWidth;
+  @override
+  double get canvasHeight;
+  @override
+  List<SeatSection> get sections;
+  @override
+  @JsonKey(ignore: true)
+  _$$VenueLayoutImplCopyWith<_$VenueLayoutImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+SeatHold _$SeatHoldFromJson(Map<String, dynamic> json) {
+  return _SeatHold.fromJson(json);
+}
+
+/// @nodoc
+mixin _$SeatHold {
+  String get id => throw _privateConstructorUsedError;
+  String get seatId => throw _privateConstructorUsedError;
+  String get showtimeId => throw _privateConstructorUsedError;
+  String get sessionId => throw _privateConstructorUsedError;
+  DateTime get createdAt => throw _privateConstructorUsedError;
+  DateTime get expiresAt => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $SeatHoldCopyWith<SeatHold> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SeatHoldCopyWith<$Res> {
+  factory $SeatHoldCopyWith(SeatHold value, $Res Function(SeatHold) then) =
+      _$SeatHoldCopyWithImpl<$Res, SeatHold>;
+  @useResult
+  $Res call(
+      {String id,
+      String seatId,
+      String showtimeId,
+      String sessionId,
+      DateTime createdAt,
+      DateTime expiresAt});
+}
+
+/// @nodoc
+class _$SeatHoldCopyWithImpl<$Res, $Val extends SeatHold>
+    implements $SeatHoldCopyWith<$Res> {
+  _$SeatHoldCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? seatId = null,
+    Object? showtimeId = null,
+    Object? sessionId = null,
+    Object? createdAt = null,
+    Object? expiresAt = null,
+  }) {
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      seatId: null == seatId
+          ? _value.seatId
+          : seatId // ignore: cast_nullable_to_non_nullable
+              as String,
+      showtimeId: null == showtimeId
+          ? _value.showtimeId
+          : showtimeId // ignore: cast_nullable_to_non_nullable
+              as String,
+      sessionId: null == sessionId
+          ? _value.sessionId
+          : sessionId // ignore: cast_nullable_to_non_nullable
+              as String,
+      createdAt: null == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      expiresAt: null == expiresAt
+          ? _value.expiresAt
+          : expiresAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$SeatHoldImplCopyWith<$Res>
+    implements $SeatHoldCopyWith<$Res> {
+  factory _$$SeatHoldImplCopyWith(
+          _$SeatHoldImpl value, $Res Function(_$SeatHoldImpl) then) =
+      __$$SeatHoldImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String id,
+      String seatId,
+      String showtimeId,
+      String sessionId,
+      DateTime createdAt,
+      DateTime expiresAt});
+}
+
+/// @nodoc
+class __$$SeatHoldImplCopyWithImpl<$Res>
+    extends _$SeatHoldCopyWithImpl<$Res, _$SeatHoldImpl>
+    implements _$$SeatHoldImplCopyWith<$Res> {
+  __$$SeatHoldImplCopyWithImpl(
+      _$SeatHoldImpl _value, $Res Function(_$SeatHoldImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? seatId = null,
+    Object? showtimeId = null,
+    Object? sessionId = null,
+    Object? createdAt = null,
+    Object? expiresAt = null,
+  }) {
+    return _then(_$SeatHoldImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      seatId: null == seatId
+          ? _value.seatId
+          : seatId // ignore: cast_nullable_to_non_nullable
+              as String,
+      showtimeId: null == showtimeId
+          ? _value.showtimeId
+          : showtimeId // ignore: cast_nullable_to_non_nullable
+              as String,
+      sessionId: null == sessionId
+          ? _value.sessionId
+          : sessionId // ignore: cast_nullable_to_non_nullable
+              as String,
+      createdAt: null == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      expiresAt: null == expiresAt
+          ? _value.expiresAt
+          : expiresAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$SeatHoldImpl implements _SeatHold {
+  const _$SeatHoldImpl(
+      {required this.id,
+      required this.seatId,
+      required this.showtimeId,
+      required this.sessionId,
+      required this.createdAt,
+      required this.expiresAt});
+
+  factory _$SeatHoldImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SeatHoldImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  final String seatId;
+  @override
+  final String showtimeId;
+  @override
+  final String sessionId;
+  @override
+  final DateTime createdAt;
+  @override
+  final DateTime expiresAt;
+
+  @override
+  String toString() {
+    return 'SeatHold(id: $id, seatId: $seatId, showtimeId: $showtimeId, sessionId: $sessionId, createdAt: $createdAt, expiresAt: $expiresAt)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SeatHoldImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.seatId, seatId) || other.seatId == seatId) &&
+            (identical(other.showtimeId, showtimeId) ||
+                other.showtimeId == showtimeId) &&
+            (identical(other.sessionId, sessionId) ||
+                other.sessionId == sessionId) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.expiresAt, expiresAt) ||
+                other.expiresAt == expiresAt));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, id, seatId, showtimeId, sessionId, createdAt, expiresAt);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SeatHoldImplCopyWith<_$SeatHoldImpl> get copyWith =>
+      __$$SeatHoldImplCopyWithImpl<_$SeatHoldImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SeatHoldImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _SeatHold implements SeatHold {
+  const factory _SeatHold(
+      {required final String id,
+      required final String seatId,
+      required final String showtimeId,
+      required final String sessionId,
+      required final DateTime createdAt,
+      required final DateTime expiresAt}) = _$SeatHoldImpl;
+
+  factory _SeatHold.fromJson(Map<String, dynamic> json) =
+      _$SeatHoldImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  String get seatId;
+  @override
+  String get showtimeId;
+  @override
+  String get sessionId;
+  @override
+  DateTime get createdAt;
+  @override
+  DateTime get expiresAt;
+  @override
+  @JsonKey(ignore: true)
+  _$$SeatHoldImplCopyWith<_$SeatHoldImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

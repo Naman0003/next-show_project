@@ -79,4 +79,10 @@ class VoiceInputService {
     _activeOnDone = null;
     await _speech.cancel();
   }
+
+  /// Roughly normalizes the raw dB-ish level `onSoundLevelChange` reports
+  /// into a 0..1 range suitable for driving a reactive waveform/pulse — an
+  /// approximation, not real frequency analysis, but consistent across every
+  /// caller that visualizes it.
+  static double normalizeSoundLevel(double level) => ((level + 2) / 12).clamp(0.0, 1.0);
 }

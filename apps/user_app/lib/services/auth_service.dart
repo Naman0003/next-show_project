@@ -23,6 +23,12 @@ class AuthService {
     return _client.auth.signOut();
   }
 
+  /// Basic email shape check — not exhaustive RFC 5322 validation, just
+  /// enough to catch obvious typos before hitting the network.
+  static bool isValidEmail(String value) {
+    return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value);
+  }
+
   /// Redirects to Google's consent screen (web only for now). Throws
   /// [AuthException] on failure to even start the redirect.
   static Future<void> signInWithGoogle() {

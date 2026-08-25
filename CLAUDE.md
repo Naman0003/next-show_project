@@ -83,3 +83,17 @@ All upcoming work, priorities, and status are tracked in **TODO.md** at the repo
 4. **If blocked**: Change `[ ]` → `[!]`, note the blocker in the Notes column
 
 This ensures anyone opening the project (human or AI) can immediately see what's next, what's in flight, and what's done — without digging through git history or asking.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues (`Naman0003/next-show_project`), via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default label vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout (root `CONTEXT.md` + `docs/adr/`). See `docs/agents/domain.md`.

@@ -1,5 +1,7 @@
 library ui_kit;
 
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:core_models/core_models.dart';
@@ -143,6 +145,43 @@ ThemeData get nsTheme => ThemeData.light().copyWith(
   ),
 );
 
+/// Scales its child down slightly while pressed, for tactile feedback on
+/// buttons and tappable cards. Uses [Listener] (raw pointer events) rather
+/// than [GestureDetector] so it never competes in the gesture arena with a
+/// wrapped [ElevatedButton]/[InkWell]'s own tap handling.
+class NSPressScale extends StatefulWidget {
+  const NSPressScale({required this.child, this.enabled = true});
+
+  final Widget child;
+  final bool enabled;
+
+  @override
+  State<NSPressScale> createState() => _NSPressScaleState();
+}
+
+class _NSPressScaleState extends State<NSPressScale> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (widget.enabled && _pressed != value) setState(() => _pressed = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      onPointerDown: (_) => _setPressed(true),
+      onPointerUp: (_) => _setPressed(false),
+      onPointerCancel: (_) => _setPressed(false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.96 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeOut,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
 /// Category chips for filtering
 class NSCategoryFilter extends StatelessWidget {
   final EventCategory? selectedCategory;
@@ -240,7 +279,9 @@ class NSEventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return NSPressScale(
+      enabled: onTap != null,
+      child: GestureDetector(
       onTap: onTap,
       child: Container(
         width: 150,
@@ -312,6 +353,7 @@ class NSEventCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -387,12 +429,11 @@ class NSCinemaCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: NSColors.snowWhite,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: NSColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: NSColors.deepNavy.withOpacity(0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -415,6 +456,121 @@ class NSCinemaCard extends StatelessWidget {
   }
 }
 
+/// One tab destination for [NSBottomNavBar].
+class NSBottomNavBarDestination {
+  const NSBottomNavBarDestination({
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+  });
+
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+}
+
+/// Glassmorphic bottom navigation bar — a frosted-blur surface over
+/// whatever's scrolling beneath it, replacing the stock Material
+/// [NavigationBar]. Pair with `Scaffold(extendBody: true, ...)` so page
+/// content actually extends behind the bar for the blur to pick up.
+class NSBottomNavBar extends StatelessWidget {
+  const NSBottomNavBar({
+    super.key,
+    required this.selectedIndex,
+    required this.onDestinationSelected,
+    required this.destinations,
+  });
+
+  final int selectedIndex;
+  final ValueChanged<int> onDestinationSelected;
+  final List<NSBottomNavBarDestination> destinations;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.72),
+            border: Border(top: BorderSide(color: Colors.white.withOpacity(0.6))),
+            boxShadow: [
+              BoxShadow(
+                color: NSColors.deepNavy.withOpacity(0.06),
+                blurRadius: 24,
+                offset: const Offset(0, -6),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  for (var i = 0; i < destinations.length; i++)
+                    _NSNavItem(
+                      destination: destinations[i],
+                      selected: i == selectedIndex,
+                      onTap: () => onDestinationSelected(i),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NSNavItem extends StatelessWidget {
+  const _NSNavItem({
+    required this.destination,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final NSBottomNavBarDestination destination;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? NSColors.royalBlue : NSColors.textSecondary;
+
+    return NSPressScale(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: selected ? NSColors.royalBlue.withOpacity(0.12) : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(selected ? destination.selectedIcon : destination.icon, color: color, size: 24),
+              const SizedBox(height: 2),
+              Text(
+                destination.label,
+                style: NSTextStyles.labelSmall.copyWith(
+                  color: color,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// NextShow logo widget
 class NSLogo extends StatelessWidget {
   final double fontSize;
@@ -423,19 +579,39 @@ class NSLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ShaderMask(
-      shaderCallback: (bounds) => LinearGradient(
-        colors: NSColors.brandGradient,
-      ).createShader(bounds),
-      child: Text(
-        'NEXT SHOW',
-        style: GoogleFonts.manrope(
-          fontSize: fontSize,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 1.5,
-          color: Colors.white,
+    final iconSize = fontSize * 1.3;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // The source mark ships with its own solid background, so it's
+        // presented as a rounded icon tile rather than composited directly
+        // onto the page (which would leave a raw white square on dark
+        // screens).
+        ClipRRect(
+          borderRadius: BorderRadius.circular(iconSize * 0.28),
+          child: Image.asset(
+            'packages/ui_kit/assets/logo_mark.png',
+            width: iconSize,
+            height: iconSize,
+            fit: BoxFit.cover,
+          ),
         ),
-      ),
+        SizedBox(width: fontSize * 0.4),
+        ShaderMask(
+          shaderCallback: (bounds) => LinearGradient(
+            colors: NSColors.brandGradient,
+          ).createShader(bounds),
+          child: Text(
+            'NEXT SHOW',
+            style: GoogleFonts.manrope(
+              fontSize: fontSize,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.5,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -457,31 +633,37 @@ class NSPrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 50,
-      child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: NSColors.royalBlue,
-          foregroundColor: NSColors.snowWhite,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        child: isLoading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (icon != null) ...[
-                    Icon(icon, size: 20),
-                    const SizedBox(width: 8),
+    return NSPressScale(
+      enabled: !isLoading && onPressed != null,
+      child: SizedBox(
+        height: 50,
+        child: ElevatedButton(
+          onPressed: isLoading ? null : onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: NSColors.royalBlue,
+            foregroundColor: NSColors.snowWhite,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          child: isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                )
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (icon != null) ...[
+                      Icon(icon, size: 20, color: NSColors.snowWhite),
+                      const SizedBox(width: 8),
+                    ],
+                    Text(
+                      label,
+                      style: NSTextStyles.labelLarge.copyWith(color: NSColors.snowWhite),
+                    ),
                   ],
-                  Text(label, style: NSTextStyles.labelLarge),
-                ],
-              ),
+                ),
+        ),
       ),
     );
   }
@@ -502,21 +684,138 @@ class NSSecondaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 50,
-      child: OutlinedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: NSColors.border),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return NSPressScale(
+      enabled: !isLoading && onPressed != null,
+      child: SizedBox(
+        height: 50,
+        child: OutlinedButton(
+          onPressed: isLoading ? null : onPressed,
+          style: OutlinedButton.styleFrom(
+            side: BorderSide(color: NSColors.border),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          child: isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: NSColors.royalBlue),
+                )
+              : Text(label, style: NSTextStyles.labelLarge),
         ),
-        child: isLoading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2, color: NSColors.royalBlue),
-              )
-            : Text(label, style: NSTextStyles.labelLarge),
+      ),
+    );
+  }
+}
+
+/// A shimmering placeholder box, for skeleton loading states that mirror the
+/// shape of the content they'll be replaced by (rather than a generic
+/// centered spinner).
+class NSSkeleton extends StatefulWidget {
+  const NSSkeleton({
+    super.key,
+    required this.width,
+    required this.height,
+    this.borderRadius = 8,
+    this.baseColor,
+    this.highlightColor,
+  });
+
+  final double width;
+  final double height;
+  final double borderRadius;
+
+  /// Overrides for use on non-light backgrounds. Default to the light-mode
+  /// `NSColors` tokens when omitted, so existing callers are unaffected.
+  final Color? baseColor;
+  final Color? highlightColor;
+
+  @override
+  State<NSSkeleton> createState() => _NSSkeletonState();
+}
+
+class _NSSkeletonState extends State<NSSkeleton> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1400),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final base = widget.baseColor ?? NSColors.border;
+    final highlight = widget.highlightColor ?? NSColors.snowWhite;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(widget.borderRadius),
+      child: SizedBox(
+        width: widget.width,
+        height: widget.height,
+        child: Stack(
+          children: [
+            Positioned.fill(child: Container(color: base)),
+            Positioned.fill(
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, _) => FractionalTranslation(
+                  translation: Offset(_controller.value * 3 - 1.5, 0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          base.withOpacity(0),
+                          highlight.withOpacity(0.9),
+                          base.withOpacity(0),
+                        ],
+                        stops: const [0.35, 0.5, 0.65],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Skeleton placeholder shaped like a horizontal list-item result card
+/// (thumbnail + title + subtitle lines) — for search/list results that are
+/// still loading.
+class NSListItemSkeleton extends StatelessWidget {
+  const NSListItemSkeleton({super.key, this.baseColor, this.highlightColor});
+
+  final Color? baseColor;
+  final Color? highlightColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          NSSkeleton(width: 56, height: 78, borderRadius: 8, baseColor: baseColor, highlightColor: highlightColor),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                NSSkeleton(width: double.infinity, height: 14, baseColor: baseColor, highlightColor: highlightColor),
+                const SizedBox(height: 8),
+                NSSkeleton(width: double.infinity, height: 12, baseColor: baseColor, highlightColor: highlightColor),
+                const SizedBox(height: 6),
+                NSSkeleton(width: 120, height: 12, baseColor: baseColor, highlightColor: highlightColor),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

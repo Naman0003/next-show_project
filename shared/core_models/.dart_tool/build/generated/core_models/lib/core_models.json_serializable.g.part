@@ -263,3 +263,114 @@ Map<String, dynamic> _$$ListingImplToJson(_$ListingImpl instance) =>
       'latitude': instance.latitude,
       'venueImageUrl': instance.venueImageUrl,
     };
+
+_$SeatImpl _$$SeatImplFromJson(Map<String, dynamic> json) => _$SeatImpl(
+      id: json['id'] as String,
+      sectionId: json['sectionId'] as String,
+      rowLabel: json['rowLabel'] as String,
+      seatNumber: (json['seatNumber'] as num).toInt(),
+      x: (json['x'] as num).toDouble(),
+      y: (json['y'] as num).toDouble(),
+      type: $enumDecodeNullable(_$SeatTypeEnumMap, json['type']) ??
+          SeatType.standard,
+      status: $enumDecodeNullable(_$SeatStatusEnumMap, json['status']) ??
+          SeatStatus.available,
+      price: (json['price'] as num?)?.toDouble(),
+    );
+
+Map<String, dynamic> _$$SeatImplToJson(_$SeatImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'sectionId': instance.sectionId,
+      'rowLabel': instance.rowLabel,
+      'seatNumber': instance.seatNumber,
+      'x': instance.x,
+      'y': instance.y,
+      'type': _$SeatTypeEnumMap[instance.type]!,
+      'status': _$SeatStatusEnumMap[instance.status]!,
+      'price': instance.price,
+    };
+
+const _$SeatTypeEnumMap = {
+  SeatType.standard: 'standard',
+  SeatType.vip: 'vip',
+  SeatType.wheelchair: 'wheelchair',
+};
+
+const _$SeatStatusEnumMap = {
+  SeatStatus.available: 'available',
+  SeatStatus.locked: 'locked',
+  SeatStatus.selected: 'selected',
+  SeatStatus.sold: 'sold',
+};
+
+_$SeatSectionImpl _$$SeatSectionImplFromJson(Map<String, dynamic> json) =>
+    _$SeatSectionImpl(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      basePrice: (json['basePrice'] as num).toDouble(),
+      seats: (json['seats'] as List<dynamic>?)
+              ?.map((e) => Seat.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+    );
+
+Map<String, dynamic> _$$SeatSectionImplToJson(_$SeatSectionImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'basePrice': instance.basePrice,
+      'seats': instance.seats,
+    };
+
+_$VenueLayoutImpl _$$VenueLayoutImplFromJson(Map<String, dynamic> json) =>
+    _$VenueLayoutImpl(
+      id: json['id'] as String,
+      venueId: json['venueId'] as String,
+      name: json['name'] as String,
+      bookingMode:
+          $enumDecodeNullable(_$BookingModeEnumMap, json['bookingMode']) ??
+              BookingMode.generalAdmission,
+      canvasWidth: (json['canvasWidth'] as num?)?.toDouble() ?? 1000,
+      canvasHeight: (json['canvasHeight'] as num?)?.toDouble() ?? 800,
+      sections: (json['sections'] as List<dynamic>?)
+              ?.map((e) => SeatSection.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+    );
+
+Map<String, dynamic> _$$VenueLayoutImplToJson(_$VenueLayoutImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'venueId': instance.venueId,
+      'name': instance.name,
+      'bookingMode': _$BookingModeEnumMap[instance.bookingMode]!,
+      'canvasWidth': instance.canvasWidth,
+      'canvasHeight': instance.canvasHeight,
+      'sections': instance.sections,
+    };
+
+const _$BookingModeEnumMap = {
+  BookingMode.generalAdmission: 'general_admission',
+  BookingMode.reservedSeating: 'reserved_seating',
+};
+
+_$SeatHoldImpl _$$SeatHoldImplFromJson(Map<String, dynamic> json) =>
+    _$SeatHoldImpl(
+      id: json['id'] as String,
+      seatId: json['seatId'] as String,
+      showtimeId: json['showtimeId'] as String,
+      sessionId: json['sessionId'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      expiresAt: DateTime.parse(json['expiresAt'] as String),
+    );
+
+Map<String, dynamic> _$$SeatHoldImplToJson(_$SeatHoldImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'seatId': instance.seatId,
+      'showtimeId': instance.showtimeId,
+      'sessionId': instance.sessionId,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'expiresAt': instance.expiresAt.toIso8601String(),
+    };
