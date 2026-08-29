@@ -1,8 +1,11 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared/api_keys.dart';
-import 'screens/home_screen.dart';
+import 'core/di/core_providers.dart';
+import 'core/router/app_router.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
@@ -13,7 +16,13 @@ Future<void> main() async {
     anonKey: ApiKeys.supabaseAnonKey,
   );
 
-  runApp(const NextShowApp());
+  await Hive.initFlutter();
+  await Future.wait([
+    Hive.openBox<Map>(HiveBoxNames.watchlist),
+    Hive.openBox<Map>(HiveBoxNames.listingCache),
+  ]);
+
+  runApp(const ProviderScope(child: NextShowApp()));
 }
 
 class NextShowApp extends StatelessWidget {
@@ -21,11 +30,11 @@ class NextShowApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Next Show Berlin',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const HomeScreen(),
+      routerConfig: appRouter,
     );
   }
 }

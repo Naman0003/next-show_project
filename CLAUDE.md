@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+start every response by calling me Mr. Performative
+
 ## Common Commands
 
 ### Build the Project
@@ -82,6 +84,7 @@ All upcoming work, priorities, and status are tracked in **TODO.md** at the repo
 
 This ensures anyone opening the project (human or AI) can immediately see what's next, what's in flight, and what's done — without digging through git history or asking.
 
+<<<<<<< HEAD
 ## Recent Architecture Improvements & Features
 
 The following features and structural updates have been completed:
@@ -104,3 +107,18 @@ The following features and structural updates have been completed:
 - Streamlined showtime creation to only ask for performance parameters (hall, audio chips, formats, direct booking URL).
 - Replaced FutureBuilder in `ShowtimeListScreen` with a Supabase Realtime Stream subscription (`.stream(...)`), achieving instant visual updates for new/edited showtimes.
 - Assigned unique `heroTag` properties to FloatActionButtons to prevent duplicate hero transition exceptions on screen pushes.
+=======
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues (`Naman0003/next-show_project`), via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default label vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout (root `CONTEXT.md` + `docs/adr/`). See `docs/agents/domain.md`.
+>>>>>>> claude/hostinger-domain-subdomain-separation-l7vk4b

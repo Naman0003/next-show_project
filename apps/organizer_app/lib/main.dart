@@ -10,12 +10,7 @@ import 'screens/dashboard_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Supabase.initialize(
-    url: ApiKeys.supabaseUrl,
-    anonKey: ApiKeys.supabaseAnonKey,
-  );
-
-  // Initialize typed Supabase client
+  // Initialize typed Supabase client (also initializes Supabase itself)
   await NextShowSupabaseClient.initialize(
     url: ApiKeys.supabaseUrl,
     anonKey: ApiKeys.supabaseAnonKey,

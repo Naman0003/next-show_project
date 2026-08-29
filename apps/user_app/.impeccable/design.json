@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-26T00:00:00Z",
+  "title": "Design System: NextShow user_app",
+  "extensions": {
+    "colorMeta": {
+      "royal-blue": { "role": "primary", "displayName": "Royal Blue", "canonical": "#2563EB", "tonalRamp": ["#0B1740", "#122559", "#1A3480", "#2563EB", "#4A7FEF", "#7FA4F5", "#B3C7FA", "#E4ECFE"] },
+      "sky-blue": { "role": "secondary", "displayName": "Sky Blue", "canonical": "#60A5FA", "tonalRamp": ["#0F2A4D", "#193F6E", "#2D5C99", "#4A83D6", "#60A5FA", "#8CBEFB", "#B9D8FD", "#E4F0FE"] },
+      "deep-navy": { "role": "neutral", "displayName": "Deep Navy", "canonical": "#0F172A" },
+      "snow-white": { "role": "neutral", "displayName": "Snow White", "canonical": "#FCFCFD" },
+      "ice-blue": { "role": "neutral", "displayName": "Ice Blue", "canonical": "#DBEAFE" },
+      "text-primary": { "role": "neutral", "displayName": "Text Primary", "canonical": "#0F172A" },
+      "text-secondary": { "role": "neutral", "displayName": "Text Secondary", "canonical": "#64748B" },
+      "border": { "role": "neutral", "displayName": "Hairline Border", "canonical": "#E2E8F0" },
+      "success": { "role": "semantic", "displayName": "Success Green", "canonical": "#22C55E" },
+      "warning": { "role": "semantic", "displayName": "Warning Amber", "canonical": "#F59E0B" },
+      "error": { "role": "semantic", "displayName": "Error Red", "canonical": "#EF4444" },
+      "cinema-background": { "role": "neutral", "displayName": "Cinema Background", "canonical": "#0A0E17" },
+      "cinema-surface-elevated": { "role": "neutral", "displayName": "Cinema Surface Elevated", "canonical": "#161B29" },
+      "cinema-text-primary": { "role": "neutral", "displayName": "Cinema Text Primary", "canonical": "#F5F7FA" },
+      "cinema-text-muted": { "role": "neutral", "displayName": "Cinema Text Muted", "canonical": "#94A3B8" },
+      "cinema-text-body": { "role": "neutral", "displayName": "Cinema Text Body", "canonical": "#C7CDD9" },
+      "cinema-shimmer-highlight": { "role": "neutral", "displayName": "Cinema Shimmer Highlight", "canonical": "#2A3450" },
+      "cinema-glass-fill": { "role": "neutral", "displayName": "Cinema Glass Fill", "canonical": "rgba(255,255,255,0.06)" },
+      "cinema-glass-border": { "role": "neutral", "displayName": "Cinema Glass Border", "canonical": "rgba(255,255,255,0.10)" },
+      "category-movie": { "role": "tertiary", "displayName": "Category Red", "canonical": "#E0435D" },
+      "category-comedy": { "role": "tertiary", "displayName": "Category Amber", "canonical": "#F5A623" },
+      "category-music": { "role": "tertiary", "displayName": "Category Green", "canonical": "#22C55E" },
+      "category-theatre": { "role": "tertiary", "displayName": "Category Violet", "canonical": "#8B5CF6" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Rare hero moments only." },
+      "headline": { "displayName": "Headline", "purpose": "Section headers, screen titles." },
+      "title": { "displayName": "Title", "purpose": "Card titles, list headers, app bar title." },
+      "body": { "displayName": "Body", "purpose": "Running text, descriptions." },
+      "label": { "displayName": "Label", "purpose": "Buttons, chips, badges, captions." },
+      "cinema-display": { "displayName": "Cinema Display", "purpose": "Discovery-only spotlight title and section headers." }
+    },
+    "shadows": [
+      { "name": "card-lift", "value": "0 4px 16px rgba(15,23,42,0.08)", "purpose": "Event cards and cinema cards; the only shadow on flat surfaces." },
+      { "name": "nav-bar-lift", "value": "0 -6px 24px rgba(15,23,42,0.06)", "purpose": "Bottom nav bar, cast upward since the bar sits at the screen's bottom edge." }
+    ],
+    "motion": [
+      { "name": "press-scale", "value": "scale(0.96) over 100ms ease-out", "purpose": "Universal tactile feedback on every button, nav item, and tappable card (NSPressScale)." },
+      { "name": "nav-item-transition", "value": "200ms implicit (AnimatedContainer)", "purpose": "Bottom nav active-pill background/size transition." },
+      { "name": "skeleton-shimmer", "value": "1400ms linear repeat, translateX sweep", "purpose": "Loading skeleton highlight sweep." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Full-width filled CTA, 50px height, 12px radius.",
+      "html": "<button class=\"ds-btn-primary\">Book Now</button>",
+      "css": ".ds-btn-primary { background: #2563EB; color: #FCFCFD; font-family: 'Inter', sans-serif; font-weight: 500; font-size: 14px; height: 50px; width: 100%; border: none; border-radius: 12px; transition: transform 0.1s ease-out; } .ds-btn-primary:active { transform: scale(0.96); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined ghost button, same footprint as primary.",
+      "html": "<button class=\"ds-btn-secondary\">Cancel</button>",
+      "css": ".ds-btn-secondary { background: transparent; color: #0F172A; font-family: 'Inter', sans-serif; font-weight: 500; font-size: 14px; height: 50px; width: 100%; border: 1px solid #E2E8F0; border-radius: 12px; transition: transform 0.1s ease-out; } .ds-btn-secondary:active { transform: scale(0.96); }"
+    },
+    {
+      "name": "Category Chip",
+      "kind": "chip",
+      "refersTo": "chip-category-selected",
+      "description": "Pill filter chip; selected (filled) and unselected (outlined) states.",
+      "html": "<div style=\"display:flex;gap:8px\"><span class=\"ds-chip ds-chip-selected\">All</span><span class=\"ds-chip\">Movie</span></div>",
+      "css": ".ds-chip { display: inline-block; padding: 8px 16px; border-radius: 20px; border: 1px solid #E2E8F0; background: #FCFCFD; color: #0F172A; font-family: 'Inter', sans-serif; font-size: 14px; } .ds-chip-selected { background: #2563EB; border-color: #2563EB; color: #FCFCFD; font-weight: 700; }"
+    },
+    {
+      "name": "Event Card",
+      "kind": "card",
+      "refersTo": "card-event",
+      "description": "150px-wide browse-rail card: image, title, category, price.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-image\"></div><div class=\"ds-card-title\">Dune: Part Three</div><div class=\"ds-card-meta\">Movie</div><div class=\"ds-card-price\">€12.00 onwards</div></div>",
+      "css": ".ds-card { width: 150px; font-family: 'Inter', sans-serif; } .ds-card-image { height: 200px; border-radius: 12px; background: #E2E8F0; margin-bottom: 8px; } .ds-card-title { font-weight: 700; font-size: 14px; color: #0F172A; } .ds-card-meta { font-size: 12px; color: #64748B; } .ds-card-price { font-size: 12px; font-weight: 700; color: #22C55E; margin-top: 4px; }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "status-badge",
+      "description": "Semantic pill badge; background always the same token as text at 15% opacity.",
+      "html": "<span class=\"ds-badge ds-badge-success\">Published</span>",
+      "css": ".ds-badge { display: inline-block; padding: 4px 8px; border-radius: 12px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; } .ds-badge-success { background: rgba(34,197,94,0.15); color: #22C55E; }"
+    },
+    {
+      "name": "Bottom Nav Bar",
+      "kind": "nav",
+      "refersTo": "nav-bar",
+      "description": "Frosted-glass fixed bottom nav; active tab gets a soft pill highlight.",
+      "html": "<nav class=\"ds-nav\"><div class=\"ds-nav-item ds-nav-item-active\">🎬 Discover</div><div class=\"ds-nav-item\">🎟 Tickets</div></nav>",
+      "css": ".ds-nav { display: flex; justify-content: space-around; padding: 8px 0; background: rgba(255,255,255,0.72); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.6); box-shadow: 0 -6px 24px rgba(15,23,42,0.06); } .ds-nav-item { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500; color: #64748B; padding: 6px 14px; border-radius: 16px; } .ds-nav-item-active { color: #2563EB; font-weight: 700; background: rgba(37,99,235,0.12); }"
+    },
+    {
+      "name": "Cinema Glass Badge",
+      "kind": "custom",
+      "refersTo": "cinema-glass-badge",
+      "description": "Signature Discovery-only frosted pill (icon + label) floating over imagery.",
+      "html": "<span class=\"ds-glass-badge\">★ 8.4</span>",
+      "css": ".ds-glass-badge { display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); backdrop-filter: blur(12px); color: #F5F7FA; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Box Office",
+    "overview": "The app reads as a ticket counter: efficient, legible, trustworthy. Royal blue is the one accent that recurs everywhere — buttons, links, selected states, the brand gradient in the wordmark — sitting on near-white surfaces with a restrained Manrope/Inter type pairing. Screens are flat, high-contrast, and built for scanning a list of showtimes fast; there is no ornamental chrome, no gratuitous shadow, no decorative color beyond the functional success/warning/error trio.\n\nOne screen breaks the rule on purpose: Discovery (the home tab) drops to a near-black, glassmorphic \"Cinema\" system — dark background, frosted-blur badges and nav, Space Grotesk display type, and one saturated color per event category. It's the moment the app becomes the thing it sells tickets to — walking from the lobby (light, functional) into the screening room (dark, immersive) — before returning to the light system for every task screen.",
+    "keyCharacteristics": [
+      "One brand accent (Royal Blue), used sparingly and consistently across both light and dark worlds.",
+      "Light system is flat and utilitarian; the Discovery-only dark system is glassmorphic and cinematic.",
+      "Manrope for headings/emphasis, Inter for body/labels, Space Grotesk reserved exclusively for Discovery's dark screens.",
+      "A single named category-color set (movie/comedy/music/theatre) exists only inside Discovery's category grid.",
+      "Every primary interactive element scales to 96% on press — the app's one consistent tactile signature."
+    ],
+    "rules": [
+      { "name": "The One Accent Rule", "body": "Royal Blue is the only color ever used for interactive/brand meaning. Every other hue stays fixed to its single role.", "section": "colors" },
+      { "name": "The Discovery Exception", "body": "Dark surface tokens (cinema-*) exist only for the Discovery tab and never fall back to the light system's palette.", "section": "colors" },
+      { "name": "The Two-Typeface Rule", "body": "Only Manrope and Inter appear outside Discovery. Space Grotesk is a Discovery-only accent typeface.", "section": "typography" },
+      { "name": "The Float Rule", "body": "Blur and shadow are reserved for elements conceptually floating above content (nav bar, glass badges). Everything else sits flush at rest.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep Royal Blue as the only interactive/brand accent across both the light and dark systems.",
+      "Do confine CinemaColors/CinemaTextStyles/Space Grotesk strictly to Discovery.",
+      "Do reserve blur + shadow for surfaces that are conceptually floating.",
+      "Do apply the 0.96 press-scale to every new tappable primary/card component.",
+      "Do treat shared/ui_kit as the single canonical source for cross-app component tokens."
+    ],
+    "donts": [
+      "Don't introduce a second accent color; semantic and category colors stay fixed to their single roles.",
+      "Don't use the light system's NSSecondaryButton/NSEmptyState/NSErrorState on Discovery's dark background.",
+      "Don't add drop shadows to flat elements — shadow is reserved for nav bar and cards only.",
+      "Don't hardcode hex values in screens; reference NSColors/NSTextStyles or CinemaColors/CinemaTextStyles."
+    ]
+  }
+}

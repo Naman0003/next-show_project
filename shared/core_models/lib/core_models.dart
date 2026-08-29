@@ -203,3 +203,109 @@ class Listing with _$Listing {
 
   factory Listing.fromJson(Map<String, dynamic> json) => _$ListingFromJson(json);
 }
+
+// ---------------------------------------------------------------------------
+// Seat matrix (Phase 4 — dormant until Phase 5 wires it to Supabase/booking)
+// ---------------------------------------------------------------------------
+
+/// Whether a showtime sells tickets as reserved seats or general admission.
+@JsonEnum()
+enum BookingMode {
+  @JsonValue('general_admission')
+  generalAdmission,
+  @JsonValue('reserved_seating')
+  reservedSeating,
+}
+
+/// Lifecycle of an individual [Seat] for a given showtime.
+@JsonEnum()
+enum SeatStatus {
+  @JsonValue('available')
+  available,
+  @JsonValue('locked')
+  locked,
+  @JsonValue('selected')
+  selected,
+  @JsonValue('sold')
+  sold,
+}
+
+/// Pricing/accessibility tier of a [Seat].
+@JsonEnum()
+enum SeatType {
+  @JsonValue('standard')
+  standard,
+  @JsonValue('vip')
+  vip,
+  @JsonValue('wheelchair')
+  wheelchair,
+}
+
+/// A single bookable seat, positioned on the [VenueLayout] canvas in
+/// normalized (0..1) `x`/`y` coordinates so the layout can be laid out at
+/// any pixel size.
+@freezed
+class Seat with _$Seat {
+  const factory Seat({
+    required String id,
+    required String sectionId,
+    required String rowLabel,
+    required int seatNumber,
+    required double x,
+    required double y,
+    @Default(SeatType.standard) SeatType type,
+    @Default(SeatStatus.available) SeatStatus status,
+    double? price,
+  }) = _Seat;
+
+  factory Seat.fromJson(Map<String, dynamic> json) => _$SeatFromJson(json);
+}
+
+/// A named group of seats (e.g. "Orchestra", "Balcony") sharing a base price.
+@freezed
+class SeatSection with _$SeatSection {
+  const factory SeatSection({
+    required String id,
+    required String name,
+    required double basePrice,
+    @Default([]) List<Seat> seats,
+  }) = _SeatSection;
+
+  factory SeatSection.fromJson(Map<String, dynamic> json) =>
+      _$SeatSectionFromJson(json);
+}
+
+/// The full seat map for a venue (or a specific showtime override), plus the
+/// canvas dimensions [SeatMatrixPainter] should lay sections out against.
+@freezed
+class VenueLayout with _$VenueLayout {
+  const factory VenueLayout({
+    required String id,
+    required String venueId,
+    required String name,
+    @Default(BookingMode.generalAdmission) BookingMode bookingMode,
+    @Default(1000) double canvasWidth,
+    @Default(800) double canvasHeight,
+    @Default([]) List<SeatSection> sections,
+  }) = _VenueLayout;
+
+  factory VenueLayout.fromJson(Map<String, dynamic> json) =>
+      _$VenueLayoutFromJson(json);
+}
+
+/// A short-lived claim on a seat while a user is mid-checkout, preventing
+/// double-booking before payment confirms it as sold.
+@freezed
+class SeatHold with _$SeatHold {
+  const factory SeatHold({
+    required String id,
+    required String seatId,
+    required String showtimeId,
+    required String sessionId,
+    required DateTime createdAt,
+    required DateTime expiresAt,
+  }) = _SeatHold;
+
+  factory SeatHold.fromJson(Map<String, dynamic> json) =>
+      _$SeatHoldFromJson(json);
+}

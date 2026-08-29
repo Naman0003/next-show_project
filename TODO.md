@@ -12,6 +12,47 @@
 
 ---
 
+## User App Redesign — Technical Migration (architecture_plan.md)
+
+### Phase 0: Foundation & Cleanup (P0)
+| Task | Status | Notes |
+|------|--------|-------|
+| Delete `screens/movies_screen.dart` and `services/api_service.dart` | [x] | Dead code removed |
+| Delete duplicate `models/event.dart` in `user_app` | [x] | Relying on `shared/core_models` |
+| Wire `shared/ui_kit` into existing `user_app` screens | [x] | UI replacement complete |
+
+### Phase 1: Skeleton & Routing (P0)
+| Task | Status | Notes |
+|------|--------|-------|
+| Install & configure `riverpod_generator` and `go_router_builder` | [x] | Pinned exact versions for Flutter 3.13.9/Dart 3.1.5 compat; codegen verified via `flutter build web --release` |
+| Setup `StatefulShellRoute` for Bottom Navigation | [x] | `core/router/app_router.dart` + `shell/app_shell.dart`; Discover/Search/Watchlist/Profile placeholder tabs |
+
+### Phase 2: Offline Engine (P1)
+| Task | Status | Notes |
+|------|--------|-------|
+| Setup `hive` and `hive_flutter` initialization in `main.dart` | [x] | Pinned exact versions; boxes `watchlist`/`listing_cache` opened before `runApp`; exposed via `core/di/core_providers.dart` |
+| Build Watchlist & Profile UI | [x] | `WatchlistController` (@riverpod) + `NSEventCard` grid, swipe-to-remove, debug mock-insert button; Profile has placeholder notification toggles + Recently Viewed reading `listing_cache` |
+
+### Phase 3: Deep Discovery & Webview (P1)
+| Task | Status | Notes |
+|------|--------|-------|
+| Build rich Event Detail page | [x] | Trailer (youtube_player_flutter, Android/iOS only — web/desktop fall back to an external-link card since `flutter_inappwebview` has no web impl), flutter_map OSM snippet, Save/Share/Notify actions |
+| Implement `BookingWebViewScreen` | [x] | webview_flutter (+ webview_flutter_web for Chrome testing), UTM params appended, "Return to NextShow" app bar, external-browser fallback on main-frame load failure |
+
+### Phase 4: Dormant Seat Matrix (P2)
+| Task | Status | Notes |
+|------|--------|-------|
+| Scaffold seat matrix Postgres schema & Riverpod contracts | [x] | `VenueLayout`/`SeatSection`/`Seat`/`SeatHold` freezed models + `SeatStatus`/`SeatType`/`BookingMode` enums in `core_models`; `SeatMatrixController` (@riverpod) with max-6 limit + optimistic status updates |
+| Build `InteractiveViewer` + `CustomPainter` UI module | [x] | `SeatMatrixPainter` + tap-to-nearest-seat hit testing, bottom summary bar w/ Checkout placeholder, reachable only via debug route `/debug/seat-matrix` — not linked from the live app |
+
+### Phase 5 & 6: Edge AI & Polish (P2)
+| Task | Status | Notes |
+|------|--------|-------|
+| Migrate AI processing to Supabase Edge Function | [x] | `AiConciergeService` contract + `SupabaseAiConciergeService` written against `functions.invoke('ai-concierge-search')` per this pass's scope; edge function itself isn't deployed, so `MockAiConciergeService` (2s delay, placeholder `Listing`s) is what actually runs. Old client-side Gemini key in `ai_recommendation_service.dart` (dead code, not routed to) still needs removal — separate follow-up |
+| 120Hz performance profiling & glassmorphism optimization | [x] | Animated splash (`flutter_animate`) + glassmorphism `BackdropFilter` search bar shipped; no perf profiling pass done yet |
+
+---
+
 ## Phase 1 — Discovery: Aggregate 3–5 Berlin Cinemas
 
 ### Data Ingestion & Pilot Onboarding (P0)
