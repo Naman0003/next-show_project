@@ -1,76 +1,44 @@
-import 'dart:ui' as ui;
-
 import 'package:core_models/core_models.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:ui_kit/ui_kit.dart';
 
-/// Dark, cinematic design tokens for the Discovery homepage only — the rest
-/// of the app stays on `ui_kit`'s light `NSColors`/`NSTextStyles`. Brand
-/// accent (royal blue) is unchanged from the rest of the app; only the
-/// surface/background palette is new here.
+import 'theme/cinema_tokens.dart';
+import 'widgets/glass.dart';
+import 'widgets/spring_tap.dart';
+
+/// Compatibility surface for the dark screens that predate the "Marquee After
+/// Dark" redesign (Search, Event Detail, Watchlist, Profile, auth). They keep
+/// their layouts; these shims re-point the old `Cinema*` names at the new
+/// [NsxColors] / [NsxType] tokens so the whole feature app shifts to the warm
+/// near-black + amber world in one move. New Discovery code imports the tokens
+/// directly.
 class CinemaColors {
   CinemaColors._();
 
-  static const Color background = Color(0xFF0A0E17);
-  static const Color surfaceElevated = Color(0xFF161B29);
-  static final Color glassFill = Colors.white.withOpacity(0.06);
-  static final Color glassBorder = Colors.white.withOpacity(0.10);
-  static const Color textPrimary = Color(0xFFF5F7FA);
-  static const Color textMuted = Color(0xFF94A3B8);
-  static const Color shimmerHighlight = Color(0xFF2A3450);
+  static const Color background = NsxColors.ground;
+  static const Color surfaceElevated = NsxColors.surface;
+  static const Color glassFill = NsxColors.glassFill;
+  static const Color glassBorder = NsxColors.glassBorder;
+  static const Color textPrimary = NsxColors.bone;
+  static const Color textMuted = NsxColors.muted;
+  static const Color shimmerHighlight = NsxColors.shimmer;
 
-  /// One saturated color per [EventCategory], for the category tile grid
-  /// only — every other accent on this screen stays [NSColors.royalBlue].
-  static Color forCategory(EventCategory category) => switch (category) {
-        EventCategory.movie => const Color(0xFFE0435D),
-        EventCategory.comedy => const Color(0xFFF5A623),
-        EventCategory.music => const Color(0xFF22C55E),
-        EventCategory.theatre => const Color(0xFF8B5CF6),
-      };
+  /// The palette is now a single accent — every category resolves to amber.
+  /// Kept as a function so old call sites still compile.
+  static Color forCategory(EventCategory category) => NsxColors.accent;
 }
 
 class CinemaTextStyles {
   CinemaTextStyles._();
 
-  static TextStyle get spotlightTitle => GoogleFonts.spaceGrotesk(
-        fontWeight: FontWeight.w800,
-        color: CinemaColors.textPrimary,
-        fontSize: 28,
-        letterSpacing: -0.5,
-        height: 1.1,
-      );
-
-  static TextStyle get sectionHeader => GoogleFonts.spaceGrotesk(
-        fontWeight: FontWeight.w700,
-        color: CinemaColors.textPrimary,
-        fontSize: 22,
-      );
-
-  static TextStyle get cardTitle => GoogleFonts.spaceGrotesk(
-        fontWeight: FontWeight.w600,
-        color: CinemaColors.textPrimary,
-        fontSize: 15,
-      );
-
-  static TextStyle get meta => GoogleFonts.inter(
-        color: CinemaColors.textMuted,
-        fontSize: 12,
-      );
-
-  /// Comfortable long-form reading color on dark — brighter than [meta]
-  /// (which is for short labels), dimmer than [CinemaColors.textPrimary]
-  /// (which is for headings) so paragraphs don't glare.
-  static TextStyle get body => GoogleFonts.inter(
-        color: const Color(0xFFC7CDD9),
-        fontSize: 14,
-        height: 1.5,
-      );
+  static TextStyle get spotlightTitle =>
+      NsxType.displayXl.copyWith(fontSize: 28, letterSpacing: -0.8);
+  static TextStyle get sectionHeader => NsxType.display.copyWith(fontSize: 20);
+  static TextStyle get cardTitle => NsxType.title.copyWith(fontSize: 15);
+  static TextStyle get meta => NsxType.textMuted.copyWith(fontSize: 12);
+  static TextStyle get body => NsxType.text;
 }
 
-/// A frosted-glass pill badge (icon + label) — same `BackdropFilter`
-/// technique as `search_screen.dart`'s glass search bar and `ui_kit`'s
-/// `NSBottomNavBar`, restyled for the dark cinema background.
+/// A frosted pill badge (icon + label).
 class CinemaGlassBadge extends StatelessWidget {
   const CinemaGlassBadge({
     super.key,
@@ -85,43 +53,28 @@ class CinemaGlassBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(999),
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: CinemaColors.glassFill,
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: CinemaColors.glassBorder),
+    return GlassSurface(
+      glow: false,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 14, color: iconColor ?? NsxColors.bone),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            style: NsxType.mono.copyWith(fontSize: 10),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (icon != null) ...[
-                Icon(icon, size: 14, color: iconColor ?? CinemaColors.textPrimary),
-                const SizedBox(width: 4),
-              ],
-              Text(
-                label,
-                style: CinemaTextStyles.meta.copyWith(
-                  color: CinemaColors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
+        ],
       ),
     );
   }
 }
 
-/// The "Ne[chair]tShow" wordmark — the director's-chair mark inline in
-/// place of the 'x', sized to the text and using the transparent-background
-/// asset so it blends directly into the dark page instead of sitting in a
-/// white tile.
+/// The "Ne‹chair›tShow" wordmark — the director's-chair mark inline for the
+/// 'x'. Kept per the redesign brief; restyled to the display face.
 class CinemaWordmark extends StatelessWidget {
   const CinemaWordmark({super.key, this.fontSize = 20});
 
@@ -129,37 +82,48 @@ class CinemaWordmark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = GoogleFonts.spaceGrotesk(
+    final style = NsxType.display.copyWith(
       fontSize: fontSize,
-      fontWeight: FontWeight.w800,
-      color: CinemaColors.textPrimary,
+      letterSpacing: -1.4,
+      height: 1,
     );
-    final iconSize = fontSize * 0.9;
+    final iconSize = fontSize * 0.72;
 
-    return Text.rich(
-      TextSpan(
-        style: style,
-        children: [
-          const TextSpan(text: 'Ne'),
-          WidgetSpan(
-            alignment: PlaceholderAlignment.middle,
-            child: Image.asset(
-              'packages/ui_kit/assets/logo_mark_transparent.png',
-              width: iconSize,
-              height: iconSize,
+    // The mark PNG carries transparent side padding; clamp its layout footprint
+    // (OverflowBox lets the glyph render full-size past the narrower box) so
+    // "Ne·chair·tShow" reads as one word, not three.
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text('Ne', style: style),
+        SizedBox(
+          width: iconSize * 0.60,
+          height: iconSize,
+          child: OverflowBox(
+            maxWidth: iconSize,
+            maxHeight: iconSize,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: fontSize * 0.06),
+              child: ColorFiltered(
+                colorFilter:
+                    const ColorFilter.mode(NsxColors.accent, BlendMode.srcATop),
+                child: Image.asset(
+                  'packages/ui_kit/assets/logo_mark_transparent.png',
+                  width: iconSize,
+                  height: iconSize,
+                ),
+              ),
             ),
           ),
-          const TextSpan(text: 'tShow'),
-        ],
-      ),
+        ),
+        Text('tShow', style: style),
+      ],
     );
   }
 }
 
-/// Shared shape for empty/loading/error messages on the cinema-dark
-/// screens: icon, title, optional subtitle, optional action. The light-mode
-/// `NSEmptyState`/`NSErrorState` hardcode dark-on-light colors and render
-/// illegibly here.
+/// Shared empty/loading/error message shape for the dark screens.
 class CinemaEmptyState extends StatelessWidget {
   const CinemaEmptyState({
     super.key,
@@ -182,16 +146,17 @@ class CinemaEmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 56, color: CinemaColors.textMuted),
+            Icon(icon, size: 52, color: NsxColors.muted),
             const SizedBox(height: 16),
             Text(
               title,
-              style: CinemaTextStyles.sectionHeader.copyWith(fontSize: 18),
+              style: NsxType.title.copyWith(fontSize: 18),
               textAlign: TextAlign.center,
             ),
             if (subtitle != null) ...[
               const SizedBox(height: 8),
-              Text(subtitle!, style: CinemaTextStyles.meta, textAlign: TextAlign.center),
+              Text(subtitle!,
+                  style: CinemaTextStyles.meta, textAlign: TextAlign.center),
             ],
             if (action != null) ...[
               const SizedBox(height: 24),
@@ -204,10 +169,7 @@ class CinemaEmptyState extends StatelessWidget {
   }
 }
 
-/// Dark-friendly ghost/secondary button — same API as `ui_kit`'s
-/// `NSSecondaryButton`, but that one is styled for a light background
-/// (transparent fill, light-gray border, dark text) and renders illegibly
-/// on the cinema-dark screens.
+/// Dark ghost/secondary button — API-compatible with the old one.
 class CinemaSecondaryButton extends StatelessWidget {
   const CinemaSecondaryButton({
     super.key,
@@ -222,39 +184,34 @@ class CinemaSecondaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NSPressScale(
+    return SpringTap(
       enabled: !isLoading && onPressed != null,
-      child: SizedBox(
+      onTap: onPressed,
+      child: Container(
         height: 50,
-        child: OutlinedButton(
-          onPressed: isLoading ? null : onPressed,
-          style: OutlinedButton.styleFrom(
-            backgroundColor: CinemaColors.glassFill,
-            side: BorderSide(color: CinemaColors.glassBorder),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          child: isLoading
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: CinemaColors.textPrimary),
-                )
-              : Text(
-                  label,
-                  style: CinemaTextStyles.meta.copyWith(
-                    color: CinemaColors.textPrimary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: NsxColors.glassFill,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: NsxColors.glassBorder),
         ),
+        child: isLoading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: NsxColors.bone),
+              )
+            : Text(
+                label,
+                style: NsxType.mono.copyWith(fontSize: 12),
+              ),
       ),
     );
   }
 }
 
-/// A circular frosted-glass icon button, for the spotlight card's bookmark
-/// action.
+/// A circular frosted icon button (old name kept; delegates to the new one).
 class CinemaGlassIconButton extends StatelessWidget {
   const CinemaGlassIconButton({super.key, required this.icon, this.onTap});
 
@@ -262,26 +219,6 @@ class CinemaGlassIconButton extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) {
-    return NSPressScale(
-      child: GestureDetector(
-        onTap: onTap,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(999),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: CinemaColors.glassFill,
-                shape: BoxShape.circle,
-                border: Border.all(color: CinemaColors.glassBorder),
-              ),
-              child: Icon(icon, size: 18, color: CinemaColors.textPrimary),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) =>
+      GlassIconButton(icon: icon, onTap: onTap, size: 36);
 }

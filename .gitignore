@@ -2,3 +2,16 @@
 shared/lib/api_keys.dart
 .claude
 .idea
+
+# impeccable-ignore-start
+# Ephemeral Impeccable output; shared artifacts (design.json, config.json,
+# critique/*.md) stay tracked.
+.impeccable/review/
+.impeccable/*.png
+.impeccable/config.local.json
+.impeccable/hook.cache.json
+.impeccable/hook.pending.json
+.impeccable/live/sessions/
+.impeccable/live/previews/
+.impeccable/live/cache/
+# impeccable-ignore-end

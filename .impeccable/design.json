@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-30T00:00:00Z",
+  "title": "Design System: NextShow User App",
+  "scope": "apps/user_app — Discovery surface + shared navigation (Marquee After Dark redesign)",
+  "extensions": {
+    "colorMeta": {
+      "accent-amber": { "role": "primary", "displayName": "Marquee Amber", "canonical": "#FFA424", "tonalRamp": ["#2A1B05", "#4A300A", "#6E4A0F", "#946313", "#BC7F18", "#E29A1F", "#FFA424", "#FFC062", "#FFDCA6", "#FFEED2"] },
+      "ground": { "role": "neutral", "displayName": "Cinema Black", "canonical": "#0B0B0C", "tonalRamp": ["#0B0B0C", "#141413", "#1D1C1B", "#2E2D2A", "#494741", "#6E6B63", "#9B988F", "#C4C1B8", "#E0DDD4", "#EDE9E1"] },
+      "bone": { "role": "neutral", "displayName": "Bone", "canonical": "#EDE9E1" },
+      "muted": { "role": "neutral", "displayName": "Muted Bone", "canonical": "#9B988F" }
+    },
+    "typographyMeta": {
+      "display-xl": { "displayName": "Display XL", "purpose": "Spotlight title only; steps to 34px past ~20 chars." },
+      "display": { "displayName": "Display", "purpose": "Section headings." },
+      "mono": { "displayName": "Mono", "purpose": "Every label, tag, metadata run, nav label — uppercase." },
+      "mono-tiny": { "displayName": "Mono Tiny", "purpose": "Location strip, page counters, poster sub-labels." }
+    },
+    "shadows": [
+      { "name": "dock-lift-ambient", "value": "0 18px 40px -4px rgba(0,0,0,0.6)", "purpose": "Wide soft shadow under the floating nav dock." },
+      { "name": "dock-lift-contact", "value": "0 3px 10px rgba(0,0,0,0.25)", "purpose": "Tight contact shadow, paired with the ambient." },
+      { "name": "glass-edge-glow", "value": "inset top gradient rgba(237,233,225,0.19) -> transparent over 40%", "purpose": "Lit top lip on frosted pills (inner highlight, not a drop shadow)." }
+    ],
+    "motion": [
+      { "name": "expo-out", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Entrances and layout moves." },
+      { "name": "spring-press", "value": "mass 1, stiffness 420, damping 22", "purpose": "Tap-release feedback with slight overshoot." },
+      { "name": "spring-settle", "value": "mass 1, stiffness 240, damping 26", "purpose": "Nav dock blob, spotlight swap." },
+      { "name": "reduced-motion", "value": "90ms fade, no overshoot; haptics + state changes retained", "purpose": "OS reduce-motion path for every SpringTap and the dock." }
+    ],
+    "backdropFilter": [
+      { "name": "glass-blur", "value": "blur(18px) default, blur(22px) dock; never animated", "purpose": "Frosted surfaces only — bounded to pills, icon buttons, the search field, the dock." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Filter Chip",
+      "kind": "chip",
+      "refersTo": "chip-filter",
+      "description": "Category filter. Uppercase mono; tap toggles, tapping the selected one (or ALL) clears.",
+      "html": "<button class=\"ds-chip\">MOVIES</button><button class=\"ds-chip ds-chip--on\">MUSIC</button>",
+      "css": ".ds-chip { background: rgba(11,11,12,0.55); color: #EDE9E1; border: 1px solid rgba(237,233,225,0.14); border-radius: 2px; padding: 6px 12px; font-family: 'Martian Mono', ui-monospace, monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; transition: transform 0.09s; } .ds-chip:active { transform: scale(0.94); } .ds-chip--on { background: #FFA424; color: #0B0B0C; border-color: #FFA424; }"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "search-field",
+      "description": "Non-editable glass entry point; routes to the Search tab.",
+      "html": "<button class=\"ds-search\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#9B988F\" stroke-width=\"2\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><line x1=\"21\" y1=\"21\" x2=\"16.65\" y2=\"16.65\"/></svg><span>SEARCH EVENTS · TIMES · VENUES</span></button>",
+      "css": ".ds-search { display: flex; align-items: center; gap: 12px; width: 100%; background: rgba(237,233,225,0.06); border: 1px solid rgba(237,233,225,0.14); border-radius: 16px; padding: 14px 16px; color: #9B988F; font-family: 'Martian Mono', ui-monospace, monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; backdrop-filter: blur(18px); }"
+    },
+    {
+      "name": "Category Tag",
+      "kind": "chip",
+      "refersTo": "chip-filter",
+      "description": "Non-interactive information tag in the spotlight caption block.",
+      "html": "<span class=\"ds-tag\">LIVE MUSIC</span>",
+      "css": ".ds-tag { display: inline-block; background: rgba(11,11,12,0.55); color: #EDE9E1; border: 1px solid rgba(237,233,225,0.14); border-radius: 2px; padding: 6px 12px; font-family: 'Martian Mono', ui-monospace, monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; }"
+    },
+    {
+      "name": "Floating Glass Dock",
+      "kind": "nav",
+      "refersTo": "nav-dock",
+      "description": "The app's main navigation — a frosted pill floating over content; an amber circle springs between the four slots.",
+      "html": "<nav class=\"ds-dock\"><span class=\"ds-dock__blob\"></span><button class=\"ds-dock__i ds-dock__i--on\">◉</button><button class=\"ds-dock__i\">○</button><button class=\"ds-dock__i\">○</button><button class=\"ds-dock__i\">○</button></nav>",
+      "css": ".ds-dock { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 4px; padding: 8px 10px; border-radius: 999px; background: rgba(237,233,225,0.06); border: 1px solid rgba(237,233,225,0.14); backdrop-filter: blur(22px); box-shadow: 0 18px 40px -4px rgba(0,0,0,0.6), 0 3px 10px rgba(0,0,0,0.25); } .ds-dock__blob { position: absolute; left: 12px; width: 44px; height: 44px; border-radius: 50%; background: #FFA424; } .ds-dock__i { position: relative; flex: 1; height: 44px; border: 0; background: transparent; color: rgba(237,233,225,0.72); font-size: 20px; } .ds-dock__i--on { color: #0B0B0C; }"
+    },
+    {
+      "name": "Poster Card",
+      "kind": "card",
+      "description": "Now Showing rail item — processed 2:3 image in a hairline frame, mono meta below.",
+      "html": "<a class=\"ds-poster\"><div class=\"ds-poster__img\"></div><div class=\"ds-poster__t\">Oppenheimer</div><div class=\"ds-poster__m\">DRAMA · IMDB 8.4</div><div class=\"ds-poster__v\">Kino International</div></a>",
+      "css": ".ds-poster { display: block; width: 150px; } .ds-poster__img { aspect-ratio: 2/3; border: 1px solid #2E2D2A; border-radius: 4px; background: #161615; } .ds-poster__t { margin-top: 8px; font-family: 'Bricolage Grotesque', Georgia, serif; font-weight: 700; font-size: 15px; letter-spacing: -0.4px; color: #EDE9E1; } .ds-poster__m { margin-top: 4px; font-family: 'Martian Mono', ui-monospace, monospace; font-size: 9.5px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #9B988F; } .ds-poster__v { margin-top: 2px; font-family: 'Bricolage Grotesque', Georgia, serif; font-size: 12px; color: #9B988F; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Marquee After Dark",
+    "overview": "NextShow's consumer surface is a repertory cinema's marquee after the lights drop: one monumental, printed title fills the field, and everything around it is precise typewriter signage. Near-monochrome — warm near-black ground, warm bone ink — lit by a single amber that behaves like a marquee bulb, marking only what is live or chosen. The register is confident and technical, not friendly; hierarchy comes from scale and material, never color variety. Frosted glass (genuine backdrop blur, crisp 1px edge, top inner-glow) is used only for floating interactive surfaces; hard-edged neo-brutalist tags (1px border, 2px radius, no shadow) carry fixed information. Imagery is never raw — every picture passes through duotone + film-grain + fine-linework so it reads as a pressed plate. Motion is physics, not decoration: tap targets punch down and spring back, and the spotlight arrives with one authored sequence.",
+    "keyCharacteristics": [
+      "Warm near-black ground; one amber accent, live/selected state only.",
+      "Typographic extremes: monumental grotesque display against tight uppercase mono.",
+      "Frosted pills for interaction, hard 1px tags for information — never mixed.",
+      "Every image duotone + grain + linework; no raw photography.",
+      "Spring-physics feedback on every touch; one authored entrance per screen."
+    ],
+    "rules": [
+      { "name": "The One Amber Rule", "body": "The accent marks only what is live, selected, or current. If two things on screen are amber, one of them is wrong. Its rarity is the light.", "section": "colors" },
+      { "name": "The Mono Signage Rule", "body": "All metadata, labels, counts, and navigation text are uppercase Martian Mono. The display face never does label work; mono never does headline work.", "section": "typography" },
+      { "name": "The Flat-Information Rule", "body": "Anything that carries fixed information is flat with a 1px edge. Shadow is reserved for the one element that genuinely floats.", "section": "elevation" },
+      { "name": "The Hard Tag / Soft Pill Rule", "body": "If it states information, it is a hard-edged rectangle. If it floats and responds to touch, it is a frosted pill. Never the reverse, never a blend.", "section": "elevation" },
+      { "name": "The Spring-Back Rule", "body": "Every tap target punches to ~0.94 scale and springs back past 1.0 to rest — physics, never a linear ease. Under OS reduced-motion it collapses to a 90ms fade with no overshoot; haptics and state changes stay.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep amber to one live/selected region per viewport (The One Amber Rule).",
+      "Do set every label, count, and metadata run in uppercase Martian Mono.",
+      "Do run every image through ProcessedImage — duotone + grain + linework.",
+      "Do use hard 1px-edge rectangles for information, frosted pills for touch.",
+      "Do give every tap target SpringTap feedback and a reduced-motion path.",
+      "Do let the OS text-size setting scale type; wrap, never clip."
+    ],
+    "donts": [
+      "Don't introduce a second accent hue or a colored-category palette.",
+      "Don't ship a raw image, or fake the treatment with a low-opacity wash.",
+      "Don't use gradients as a surface fill (scrims over imagery are the only gradients allowed).",
+      "Don't add drop shadows to information surfaces; shadow is the floating dock's alone.",
+      "Don't use the display face for labels or the mono face for headlines.",
+      "Don't use Unicode glyphs or emoji as icons — draw them."
+    ]
+  },
+  "notCanonized": [
+    "The wordmark's OverflowBox footprint clamp is an implementation workaround for the logo PNG's transparent padding, not a system rule.",
+    "The 'BERLIN · TONIGHT' location strip is a Discovery-surface element, not a global pattern.",
+    "cinema_theme.dart's Cinema* names are a back-compat shim for pre-redesign screens; new code imports NsxColors / NsxType directly."
+  ]
+}

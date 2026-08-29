@@ -1,247 +1,320 @@
 ---
-name: NextShow user_app
-description: Ticketing app for movies, comedy, music, and theatre — clean royal-blue utility screens with one dark, cinematic exception at Discovery.
+name: NextShow User App
+description: Berlin's night program as a cinema marquee after dark
 colors:
-  royal-blue: "#2563EB"
-  sky-blue: "#60A5FA"
-  deep-navy: "#0F172A"
-  snow-white: "#FCFCFD"
-  ice-blue: "#DBEAFE"
-  text-primary: "#0F172A"
-  text-secondary: "#64748B"
-  border: "#E2E8F0"
-  success: "#22C55E"
-  warning: "#F59E0B"
-  error: "#EF4444"
-  cinema-background: "#0A0E17"
-  cinema-surface-elevated: "#161B29"
-  cinema-text-primary: "#F5F7FA"
-  cinema-text-muted: "#94A3B8"
-  cinema-text-body: "#C7CDD9"
-  cinema-shimmer-highlight: "#2A3450"
-  cinema-glass-fill: "rgba(255,255,255,0.06)"
-  cinema-glass-border: "rgba(255,255,255,0.10)"
-  category-movie: "#E0435D"
-  category-comedy: "#F5A623"
-  category-music: "#22C55E"
-  category-theatre: "#8B5CF6"
+  ground: "#0B0B0C"
+  surface: "#161615"
+  surface-high: "#201F1D"
+  hairline: "#2E2D2A"
+  bone: "#EDE9E1"
+  muted: "#9B988F"
+  accent-amber: "#FFA424"
+  accent-ink: "#0B0B0C"
+  glass-fill: "rgba(237,233,225,0.06)"
+  glass-border: "rgba(237,233,225,0.14)"
 typography:
+  display-xl:
+    fontFamily: "Bricolage Grotesque, Georgia, serif"
+    fontSize: "44px"
+    fontWeight: 800
+    lineHeight: 0.98
+    letterSpacing: "-1.6px"
   display:
-    fontFamily: "Manrope, sans-serif"
-    fontSize: "57px"
+    fontFamily: "Bricolage Grotesque, Georgia, serif"
+    fontSize: "26px"
     fontWeight: 800
-    lineHeight: 1.1
-  headline:
-    fontFamily: "Manrope, sans-serif"
-    fontSize: "32px"
-    fontWeight: 700
-    lineHeight: 1.15
+    lineHeight: 1.02
+    letterSpacing: "-0.9px"
   title:
-    fontFamily: "Manrope, sans-serif"
-    fontSize: "22px"
+    fontFamily: "Bricolage Grotesque, Georgia, serif"
+    fontSize: "17px"
     fontWeight: 700
-    lineHeight: 1.2
-  body:
-    fontFamily: "Inter, sans-serif"
-    fontSize: "16px"
-    fontWeight: 400
-    lineHeight: 1.4
-  label:
-    fontFamily: "Inter, sans-serif"
-    fontSize: "14px"
-    fontWeight: 500
-    lineHeight: 1.2
-  cinema-display:
-    fontFamily: "Space Grotesk, sans-serif"
-    fontSize: "28px"
-    fontWeight: 800
     lineHeight: 1.1
-    letterSpacing: "-0.5px"
+    letterSpacing: "-0.4px"
+  body:
+    fontFamily: "Bricolage Grotesque, Georgia, serif"
+    fontSize: "14px"
+    fontWeight: 400
+    lineHeight: 1.45
+    letterSpacing: "normal"
+  mono:
+    fontFamily: "Martian Mono, ui-monospace, monospace"
+    fontSize: "11px"
+    fontWeight: 500
+    lineHeight: 1.3
+    letterSpacing: "0.8px"
+  mono-tiny:
+    fontFamily: "Martian Mono, ui-monospace, monospace"
+    fontSize: "9.5px"
+    fontWeight: 600
+    lineHeight: 1.3
+    letterSpacing: "1px"
 rounded:
-  sm: "8px"
-  md: "12px"
-  lg: "16px"
-  pill: "20px"
-  full: "999px"
+  tag: "2px"
+  card: "4px"
+  panel: "16px"
+  pill: "999px"
 spacing:
-  xs: "4px"
-  sm: "8px"
-  md: "16px"
-  lg: "24px"
-  xl: "32px"
+  x1: "4px"
+  x2: "8px"
+  x3: "12px"
+  x4: "16px"
+  x5: "20px"
+  x6: "24px"
+  x7: "32px"
+  x8: "48px"
 components:
-  button-primary:
-    backgroundColor: "{colors.royal-blue}"
-    textColor: "{colors.snow-white}"
-    typography: "{typography.label}"
-    rounded: "{rounded.md}"
-    height: "50px"
-  button-secondary:
-    backgroundColor: "transparent"
-    textColor: "{colors.text-primary}"
-    typography: "{typography.label}"
-    rounded: "{rounded.md}"
-    height: "50px"
-  chip-category-selected:
-    backgroundColor: "{colors.royal-blue}"
-    textColor: "{colors.snow-white}"
-    typography: "{typography.body}"
+  chip-filter:
+    backgroundColor: "{colors.ground}"
+    textColor: "{colors.bone}"
+    rounded: "{rounded.tag}"
+    padding: "6px 12px"
+    typography: "{typography.mono}"
+  chip-filter-selected:
+    backgroundColor: "{colors.accent-amber}"
+    textColor: "{colors.accent-ink}"
+    rounded: "{rounded.tag}"
+    padding: "6px 12px"
+    typography: "{typography.mono}"
+  search-field:
+    backgroundColor: "{colors.glass-fill}"
+    textColor: "{colors.muted}"
+    rounded: "{rounded.panel}"
+    padding: "14px 16px"
+    typography: "{typography.mono}"
+  nav-dock:
+    backgroundColor: "{colors.glass-fill}"
+    textColor: "{colors.bone}"
     rounded: "{rounded.pill}"
-  chip-category-unselected:
-    backgroundColor: "{colors.snow-white}"
-    textColor: "{colors.text-primary}"
-    typography: "{typography.body}"
-    rounded: "{rounded.pill}"
-  card-event:
-    backgroundColor: "{colors.snow-white}"
-    rounded: "{rounded.md}"
-    width: "150px"
-  cinema-button-secondary:
-    backgroundColor: "{colors.cinema-glass-fill}"
-    textColor: "{colors.cinema-text-primary}"
-    typography: "{typography.body}"
-    rounded: "{rounded.md}"
-    height: "50px"
+    padding: "8px 10px"
 ---
 
-# Design System: NextShow user_app
+# Design System: NextShow User App
+
+<!-- Recorded from the shipped "Marquee After Dark" redesign of the Discovery
+surface + shared navigation (apps/user_app/lib/features/discovery/,
+lib/shell/). The other three apps and the pre-redesign screens are not part of
+this world yet. -->
 
 ## Overview
 
-**Creative North Star: "The Box Office"** *(inferred from the incumbent implementation — not yet confirmed with the user; treat as a working label, not a locked brand decision.)*
+**Creative North Star: "Marquee After Dark"**
 
-The app reads as a ticket counter: efficient, legible, trustworthy. Royal blue is the one accent that recurs everywhere — buttons, links, selected states, the brand gradient in the wordmark — sitting on near-white surfaces with a restrained Manrope/Inter type pairing. Screens are flat, high-contrast, and built for scanning a list of showtimes fast; there is no ornamental chrome, no gratuitous shadow, no decorative color beyond the functional success/warning/error trio.
+NextShow's consumer surface is a repertory cinema's marquee after the lights
+drop: one monumental, printed title fills the field, and everything around it is
+precise typewriter signage. It is near-monochrome — a warm near-black ground,
+warm bone ink — lit by a single amber that behaves like a marquee bulb: it only
+ever marks what is live or chosen. The register is confident and technical, not
+friendly; hierarchy comes from scale and material, never from color variety or
+decoration.
 
-One screen breaks the rule on purpose: **Discovery** (the home tab) drops to a near-black, glassmorphic "Cinema" system — dark background, frosted-blur badges and nav, Space Grotesk display type, and one saturated color per event category. The code comments already frame this precisely: *"Dark, cinematic design tokens for the Discovery homepage only — the rest of the app stays on `ui_kit`'s light `NSColors`/`NSTextStyles`."* It's the moment the app becomes the thing it sells tickets to — walking from the lobby (light, functional) into the screening room (dark, immersive) — before returning to the light system for every task screen (search, booking, seat selection, profile).
+Two materials are held deliberately far apart. Frosted glass — genuine backdrop
+blur with a crisp 1px inner edge and a top inner-glow — is used only for
+floating, interactive surfaces (the nav dock, icon buttons, the search field).
+Hard-edged neo-brutalist tags — a 1px border, a 2px radius, no shadow — carry
+fixed information (category, filter state). Imagery is never raw: every picture
+passes through a duotone + film-grain + fine-linework treatment so it reads as a
+pressed plate, not a stock photo.
+
+Motion is physics, not decoration. Tap targets punch down and spring back with a
+small overshoot; the spotlight arrives with one authored sequence (poster
+scale-settle, title wipe-up, metadata fade) and nothing else animates on load.
+
+This world explicitly rejects: purple or multi-stop gradients as surface;
+glossy 3D "SaaS blob" shapes and rounded-everything friendliness; raw stock
+photography; generic icon-grid feature rows; Inter or system fonts as the voice;
+and evenly-distributed colorful palettes.
 
 **Key Characteristics:**
-- One brand accent (Royal Blue), used sparingly and consistently across both light and dark worlds.
-- Light system is flat and utilitarian; the Discovery-only dark system is glassmorphic and cinematic.
-- Manrope for headings/emphasis, Inter for body/labels, Space Grotesk reserved exclusively for Discovery's dark screens.
-- A single named category-color set (movie/comedy/music/theatre) exists only inside Discovery's category grid — nowhere else uses these hues.
-- Every primary interactive element (buttons, nav items, cards) scales to 96% on press (`NSPressScale`) — the app's one consistent tactile signature.
+- Warm near-black ground; one amber accent, live/selected state only.
+- Typographic extremes: monumental grotesque display against tight uppercase mono.
+- Frosted pills for interaction, hard 1px tags for information — never mixed.
+- Every image duotone + grain + linework; no raw photography.
+- Spring-physics feedback on every touch; one authored entrance per screen.
 
 ## Colors
 
-The palette is a single-accent system: one blue carries all brand and interactive meaning, layered on near-white in the main app and near-black in Discovery.
+Near-monochrome: a single warm near-black field, warm bone ink at two
+brightnesses, one amber accent. Nothing else carries hue.
 
 ### Primary
-- **Royal Blue** (`#2563EB`): the only brand/interactive accent — primary buttons, active nav/tab state, selected chips, links, focus rings, progress indicators. Same value in both light and dark contexts; never substituted.
-
-### Secondary
-- **Sky Blue** (`#60A5FA`): pairs with Royal Blue only in the brand gradient (wordmark, hero text treatments). Not used standalone as an interactive color.
-
-### Tertiary (Discovery-only category set)
-- **Category Red** (`#E0435D`): Movie category tile.
-- **Category Amber** (`#F5A623`): Comedy category tile.
-- **Category Green** (`#22C55E`): Music category tile — reuses the semantic Success hue by coincidence of value, not by reference; keep them as separate tokens since their roles never overlap.
-- **Category Violet** (`#8B5CF6`): Theatre category tile.
+- **Marquee Amber** (`#FFA424`): the only chromatic color. Fills the selected
+  filter chip, the active nav-dock indicator, the active page dot, the wordmark's
+  chair mark, and section counts. Never a fill for large regions, never
+  decorative, never more than one live region per viewport.
 
 ### Neutral
-- **Snow White** (`#FCFCFD`): default scaffold background and card surface across the light system.
-- **Ice Blue** (`#DBEAFE`): light tint fill for inputs and subtle highlighted rows (OTP fields, search fill, price tag背景). Always used at reduced opacity (40–50%) except as a flat icon-chip background.
-- **Deep Navy** (`#0F172A`): primary text color in the light system; also the literal background of the splash screen and voice-search overlay, and the tint source for all light-system shadows (`deepNavy.withOpacity(0.06–0.08)`).
-- **Text Secondary** (`#64748B`): secondary/meta text, disabled states, captions.
-- **Border** (`#E2E8F0`): all light-system hairlines, dividers, unselected chip/button outlines.
-- **Cinema Background** (`#0A0E17`): Discovery's page background — distinct from, and darker than, Deep Navy.
-- **Cinema Surface Elevated** (`#161B29`): reserved elevated-surface tone for Discovery (shimmer/skeleton base).
-- **Cinema Text Primary** (`#F5F7FA`) / **Cinema Text Muted** (`#94A3B8`) / **Cinema Text Body** (`#C7CDD9`): the three-step dark-mode text ramp — heading, short label, and long-form paragraph respectively, deliberately kept distinct so paragraphs don't glare against headings.
-
-### Semantic
-- **Success** (`#22C55E`): confirmed/published status, price display, positive distance/availability text.
-- **Warning** (`#F59E0B`): draft status, rating badges.
-- **Error** (`#EF4444`): cancelled status, error states/icons.
+- **Cinema Black** (`#0B0B0C`): the ground under every surface. Warm, not the
+  blue-black slate that dark UIs drift toward.
+- **Plate Surface** (`#161615`): raised panels — poster fallbacks, loading
+  skeletons.
+- **Riser Surface** (`#201F1D`): the rare second elevation step.
+- **Bone** (`#EDE9E1`): primary ink. A warm off-white; never pure `#FFFFFF`
+  (which glares on OLED).
+- **Muted Bone** (`#9B988F`): secondary ink — mono metadata, captions, inactive
+  hints. ~7:1 on Cinema Black.
+- **Hairline** (`#2E2D2A`): 1px borders, dividers, unselected tag strokes.
+- **Glass Fill / Glass Border** (`rgba(237,233,225,0.06)` / `0.14`): the frosted
+  surface fill and its inner edge, tuned for backdrop blur over the dark ground.
 
 ### Named Rules
-**The One Accent Rule.** Royal Blue is the only color ever used for interactive/brand meaning. Every other hue (semantic, category, neutral) stays fixed to its single role and never substitutes for the brand accent.
-
-**The Discovery Exception.** Dark surface tokens (`cinema-*`) exist only for the Discovery tab. No other screen may use them, and Discovery may not fall back to the light system's `NSColors`/`AppColors` — its own `CinemaColors` set is a closed, deliberate palette.
+**The One Amber Rule.** The accent marks only what is live, selected, or current.
+If two things on screen are amber, one of them is wrong. Its rarity is the light.
 
 ## Typography
 
-**Display/Headline/Title Font:** Manrope (weights 600–800)
-**Body/Label Font:** Inter (weights 400–500)
-**Discovery-only Display Font:** Space Grotesk (weight 600–800)
+**Display Font:** Bricolage Grotesque (bundled variable TTF; fallback Georgia)
+**Mono / Label Font:** Martian Mono (bundled variable TTF; fallback ui-monospace)
+**Body Font:** Bricolage Grotesque at weight 400 — the display family does the
+small amount of running copy rather than adding a third face.
 
-**Character:** Manrope's geometric, slightly condensed heaviness carries confidence in headings; Inter stays neutral and highly legible underneath it for body and label text. Space Grotesk is deliberately swapped in only on Discovery's dark screens for a cooler, more editorial, more "cinema marquee" feel — it never appears anywhere else in the app.
+**Character:** A monumental, slightly idiosyncratic grotesque set very tight
+(`-1.6px` on the largest role) against a squarish technical monospace set wide
+and uppercase. The gap between them is the hierarchy — there is almost nothing
+in the middle.
 
 ### Hierarchy
-- **Display** (w800, 57px / 45px, Manrope): rare — largest hero moments only.
-- **Headline** (w600–700, 24–32px, Manrope): section headers, screen titles.
-- **Title** (w600–700, 14–22px, Manrope): card titles, list headers, app bar title (18px/w700).
-- **Body** (w400, 14–16px, Inter): running text, descriptions.
-- **Label** (w500, 11–14px, Inter): buttons, chips, badges, captions — usually the smallest legible size in the system.
-- **Cinema Display** (w800, 22–28px, Space Grotesk, −0.5 letter-spacing on the largest size): Discovery spotlight title and section headers only.
+- **Display XL** (800, 44px, line-height 0.98, `-1.6px`): the spotlight title.
+  Steps down to 34px for titles over ~20 characters.
+- **Display** (800, 26px, 1.02, `-0.9px`): section headings ("Now Showing").
+- **Title** (700, 17px, 1.1, `-0.4px`): card titles.
+- **Body** (400, 14px, 1.45): venue names, one-line descriptions.
+- **Mono** (500, 11px, `+0.8px`, uppercase): every metadata run, category tag,
+  filter chip, nav label, search hint.
+- **Mono Tiny** (600, 9.5px, `+1px`, uppercase): the location strip, page
+  counters, poster sub-labels.
 
 ### Named Rules
-**The Two-Typeface Rule.** Only Manrope and Inter appear outside Discovery. Space Grotesk is a Discovery-only accent typeface, not a system-wide third voice — introducing it elsewhere would blur the one deliberate tonal shift the app has.
+**The Mono Signage Rule.** All metadata, labels, counts, and navigation text are
+uppercase Martian Mono. The display face never does label work; mono never does
+headline work.
 
 ## Layout
 
-Screens are single-column, edge-padded lists and grids rather than complex multi-region layouts — consistent with a mobile ticketing app where the primary job is scanning a list of showtimes/events. Horizontal scrollers (category chips, event card rails, showtime chip `Wrap`) are the standard pattern for browsing without a full page navigation. Spacing follows a loose 8px rhythm (`4px` for tight icon/text gaps, `8px` for internal component padding, `16px`/`24px` for section and screen padding, `32px` for empty/error-state padding). The bottom navigation bar is a fixed glass overlay (`Scaffold(extendBody: true)`) so scrolling content passes behind it rather than stopping above it — this is a load-bearing layout choice, not a style choice: removing `extendBody` breaks the blur effect.
+Single-column, full-bleed. Page gutter is 20px (`spacing.x5`); the spotlight
+anchor and processed imagery run edge to edge past it. Vertical rhythm is a 4px
+scale (`x1`–`x8`); sections are separated by `x7` (32px), tight groups by `x2`–`x3`.
+The Discovery screen is a `CustomScrollView`: pinned header row → mono location
+strip → glass search field → spotlight anchor (~46% of viewport height, clamped
+320–460px) → horizontal filter strip → horizontal "Now Showing" rail → 108px
+(`spacing.dockClearance`) of trailing space so content can scroll clear of the
+floating dock. Text scales with the OS Dynamic Type / font-size setting; the
+mono strip and display title wrap rather than clip at the largest steps.
 
 ## Elevation & Depth
 
-The system is hybrid: flat by default, with two deliberate uses of depth. (1) Soft ambient shadows (`deepNavy` at 6–8% opacity) lift cards and the bottom nav bar off the background — never used for anything else. (2) Glassmorphism (`BackdropFilter` blur + translucent white/near-black fill + hairline border) marks a small, consistent set of "floating over content" surfaces: the bottom nav bar (light), and on Discovery specifically, glass badges, glass icon buttons, and the glass search bar (dark). Buttons, inputs, chips, and screen backgrounds themselves stay flat — shadow and blur are reserved for surfaces that visually float over other content.
+Mostly flat. Information surfaces (tags, cards, the ground itself) cast no
+shadow; depth between them is conveyed by the 1px hairline border and the two
+surface tones. The exception is the floating navigation dock, which is a genuine
+raised plane over scrolling content.
 
 ### Shadow Vocabulary
-- **Card lift** (`box-shadow: 0 4px 16px rgba(15,23,42,0.08)`): event/cinema cards.
-- **Nav bar lift** (`box-shadow: 0 -6px 24px rgba(15,23,42,0.06)`): bottom navigation bar only, shadow direction inverted (cast upward) since the bar sits at the screen's bottom edge.
+- **Dock lift** (`0 18px 40px -4px rgba(0,0,0,0.6)` + `0 3px 10px rgba(0,0,0,0.25)`):
+  the only real drop shadow in the system. Two layers — a wide soft ambient and
+  a tight contact shadow — so the dock reads as hovering, not painted on.
+- **Glass edge-glow** (top-anchored `rgba(237,233,225,0.19)` → transparent over
+  the top 40%): an inner highlight, not a shadow; gives frosted pills a lit top
+  lip.
 
 ### Named Rules
-**The Float Rule.** Blur and shadow are reserved for elements that are conceptually floating above the content (nav bar, glass badges/buttons). Everything else — cards, buttons, chips — sits flush with its surface at rest.
+**The Flat-Information Rule.** Anything that carries fixed information is flat
+with a 1px edge. Shadow is reserved for the one element that genuinely floats.
 
 ## Shapes
 
-Corner radius scales in five steps and is applied by role, not by component type: `8px` for small/tight elements (skeleton blocks, thumbnail crops), `12px` for the default control size (buttons, inputs, cards, the discovery secondary button), `16px` for the nav bar's active-tab highlight, `20px` for pill-shaped filter/category chips, and `999px` (true pill/circle) for Discovery's glass badges and glass icon buttons. Borders are single 1px hairlines (`border` in light mode, `cinema-glass-border` in dark) — never doubled, never colored beyond those two tokens.
+Two corner languages, assigned by function:
+- **Hard tags** — 2px radius, 1px border (`rounded.tag`): category tags, filter
+  chips. Rectangular, blunt.
+- **Frosted pills & panels** — 999px for the nav dock and icon buttons, 16px for
+  the search field and larger glass panels (`rounded.pill` / `rounded.panel`).
+- **Poster cards** — 4px radius (`rounded.card`) inside a 1px hairline frame.
+
+### Named Rules
+**The Hard Tag / Soft Pill Rule.** If it states information, it is a hard-edged
+rectangle. If it floats and responds to touch, it is a frosted pill. Never the
+reverse, never a blend.
 
 ## Components
 
 ### Buttons
-- **Shape:** 12px radius, fixed 50px height, full-width by default.
-- **Primary:** Royal Blue fill, Snow White label text (Inter, w500). Loading state swaps the label for a white `CircularProgressIndicator` at the same size — the button never changes size or shape while loading.
-- **Secondary / Outlined:** transparent fill, `border`-token 1px outline, `text-primary` label.
-- **Cinema Secondary (Discovery only):** glass fill + glass border instead of the light system's outline, `cinema-text-primary` label — exists because the light secondary button is unreadable on Discovery's dark background.
-- **Press state:** every button (and nav item, card) scales to 0.96 via `NSPressScale` on pointer-down — the app's one universal tactile affordance.
+No traditional filled button on this surface — primary action is the full-bleed
+spotlight tap and the dock. Secondary actions use the ghost style:
+- **Ghost:** glass-fill background, 1px glass-border, 12px radius, uppercase
+  Mono label; `SpringTap` press feedback.
 
 ### Chips
-- **Category filter chip:** pill (20px radius), 1px `border` outline when unselected, Royal Blue fill + white bold label when selected.
-- **Showtime chip:** 8px radius, Royal Blue 1px border, stacked time/format/price in descending emphasis (label-bold / label-small-skyBlue / label-small-secondary).
-- **Glass pill badge (Discovery only):** 999px radius, glass fill/border, icon + label, used for meta tags floating over imagery.
+- **Filter chip:** uppercase Mono. Unselected — transparent-dark fill, 1px
+  hairline border, bone text. Selected — Marquee Amber fill, Cinema Black text,
+  amber border. 2px radius, `6px 12px` padding. Tapping toggles; tapping the
+  selected chip (or "ALL") clears the filter.
+- **Category tag** (non-interactive): same shape, sits in the spotlight's
+  caption block above the title.
 
 ### Cards / Containers
-- **Event card:** 12px image radius, 150px fixed width, title/category/price stacked below the image with 1-line ellipsis truncation. An IMDb-style rating badge (black 80% opacity, 6px radius) overlays the image's bottom-left corner when rating data exists.
-- **Cinema card:** 12px radius, Snow White background, ambient card-lift shadow, showtime chips wrapped inside.
-- **Corner Style:** 12px, consistent with buttons/inputs.
-- **Shadow Strategy:** card-lift shadow only (see Elevation & Depth); no border.
+- **Poster card:** 2:3 processed image in a 4px-radius, 1px-hairline frame;
+  Title (17→15px) + uppercase Mono meta (`GENRE · IMDB 8.4`) + Body venue name
+  below. `SpringTap` → event detail. No shadow.
+- **Glass surface:** backdrop blur (sigma ≤ 22, never animated), `glass-fill`,
+  1px `glass-border`, top inner-glow. Bounded to small elements only.
 
 ### Inputs / Fields
-- **Style:** filled (white or Ice Blue-tinted fill), 12px radius, 1px `border` outline, 16/14px content padding.
-- **Focus:** border switches to 2px Royal Blue.
-- **Error:** border switches to `error` red, same width as default.
+- **Search field:** a glass panel (16px radius), search glyph left, uppercase
+  Mono hint (`SEARCH EVENTS · TIMES · VENUES`), amber sparkle glyph right.
+  Non-editable entry point — tapping routes to the Search tab.
 
-### Navigation
-- **Bottom nav bar:** frosted glass (`sigma 20` blur, white 72% opacity fill, top hairline), rides over content via `extendBody`. Active tab: Royal Blue icon/label (bold) on a 16px-radius Royal-Blue-at-12%-opacity pill; inactive: `text-secondary` icon/label (medium weight), no background.
-- **App bar:** flat white, no elevation, 18px/w700 Manrope title, `text-primary` icons.
+### Navigation — Floating Glass Dock (signature)
+A frosted pill hovering 16px above the bottom safe area, 20px side margins, the
+"Dock lift" shadow. Four destinations, drawn icons in one weight. The active
+destination is marked by a **44px amber circle that springs between slots** (the
+"blob") with the icon flipping to Cinema Black; inactive icons are bone at 72%.
+Tap: `HapticFeedback.selectionClick` + a `SpringTap` scale punch. Reduced motion:
+the blob cross-fades between slots instead of springing.
 
-### Status & Category Badges
-- **Status badge** (draft/published/cancelled/archived): 12px-radius pill, semantic color at 15% opacity fill with the same color at full opacity for bold label text — background and text always derive from one semantic token, never mixed.
-- **Venue type badge:** 16px-radius pill, Royal Blue at 10% opacity fill, Royal Blue icon + label.
+### Monumental Spotlight (signature)
+A swipeable stack (≤3 picks) filling ~46% of the viewport. Full-bleed
+`ProcessedImage` (duotone + grain + linework) under a top+bottom scrim. Glass
+bookmark button top-right. A bottom-anchored caption block: hard Mono category
+tag → Display XL title (≤3 lines) → one Mono metadata run
+(`150 MIN · OV · IMDB 8.6 · €24`) → amber-marked page dots + `01 / 03` counter.
+**Entrance (the screen's one authored motion):** on mount and on each swipe, the
+poster scale-settles 1.05→1.0 while the title wipes up (clip height-factor +
+16px lift) and the metadata fades in — `expoOut` over 700ms.
 
-### Discovery Wordmark (signature component)
-The logo swaps its icon glyph for a director's-chair mark inline in the word itself ("Ne[chair]tShow"), rendered on the transparent-background asset variant so it sits directly on Discovery's dark background rather than in a white icon tile — the one place branding gets literal about the cinema metaphor.
+### ProcessedImage (signature)
+Every image passes through: full desaturate + hard contrast bump with a warm
+bias → shadow-crush gradient toward the ground → thin amber wash → edge vignette
+→ optional 1px horizontal linework (large anchors only) → seeded film grain.
+Loading = shimmer skeleton; error = a hairline-framed `NO IMAGE` Mono label.
+
+### Motion tokens
+- **expoOut** (`cubic-bezier(0.16, 1, 0.3, 1)`): entrances and layout moves.
+- **spring-press** (mass 1, stiffness 420, damping 22): tap release — snappy,
+  slight overshoot.
+- **spring-settle** (mass 1, stiffness 240, damping 26): the dock blob, spotlight
+  swap.
+- Durations: 120ms feedback · 240ms state · 420ms layout · 700ms focal.
+
+### Named Rules
+**The Spring-Back Rule.** Every tap target punches to ~0.94 scale and springs
+back past 1.0 to rest — physics, never a linear ease. Under OS reduced-motion it
+collapses to a 90ms fade with no overshoot; haptics and state changes stay.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** keep Royal Blue as the only interactive/brand accent across both the light and dark systems.
-- **Do** confine `CinemaColors`/`CinemaTextStyles`/Space Grotesk strictly to Discovery; every other screen reads from `ui_kit`'s `NSColors`/`NSTextStyles`.
-- **Do** reserve blur + shadow for surfaces that are conceptually floating (nav bar, glass badges) — keep buttons, chips, and cards flat at rest.
-- **Do** apply the 0.96 press-scale to every new tappable primary/card component for tactile consistency.
-- **Do** treat `shared/ui_kit` as the single canonical source for cross-app component tokens; `apps/user_app/lib/theme/app_theme.dart` exists only to wire the same values into Flutter's `ThemeData` and must stay value-identical to `ui_kit`'s `NSColors`/`NSTextStyles`, not drift into a third palette.
+- **Do** keep amber to one live/selected region per viewport (The One Amber Rule).
+- **Do** set every label, count, and metadata run in uppercase Martian Mono.
+- **Do** run every image through `ProcessedImage` — duotone + grain + linework.
+- **Do** use hard 1px-edge rectangles for information, frosted pills for touch.
+- **Do** give every tap target `SpringTap` feedback and a reduced-motion path.
+- **Do** let the OS text-size setting scale type; wrap, never clip.
 
 ### Don't:
-- **Don't** introduce a second accent color; semantic and category colors stay fixed to their single roles.
-- **Don't** use the light system's `NSSecondaryButton`/`NSEmptyState`/`NSErrorState` on Discovery's dark background — they hardcode dark-on-light colors and render illegibly; use the `Cinema*` equivalents.
-- **Don't** add drop shadows to flat elements (buttons, chips, screen backgrounds) — shadow is reserved for nav bar and cards only.
-- **Don't** hardcode hex values in screens; reference `NSColors`/`NSTextStyles` (or `CinemaColors`/`CinemaTextStyles` on Discovery) so a future palette change stays a one-file edit.
+- **Don't** introduce a second accent hue or a colored-category palette.
+- **Don't** ship a raw image, or fake the treatment with a low-opacity wash.
+- **Don't** use gradients as a surface fill (scrims over imagery are the only
+  gradients allowed).
+- **Don't** add drop shadows to information surfaces; shadow is the floating
+  dock's alone.
+- **Don't** use the display face for labels or the mono face for headlines.
+- **Don't** use Unicode glyphs or emoji as icons — draw them.
