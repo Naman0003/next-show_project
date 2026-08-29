@@ -28,6 +28,7 @@ mixin _$Profile {
   UserRole get role => throw _privateConstructorUsedError;
   List<String> get favoriteVenueIds => throw _privateConstructorUsedError;
   List<String> get preferredCategories => throw _privateConstructorUsedError;
+  bool get isVerified => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -47,7 +48,8 @@ abstract class $ProfileCopyWith<$Res> {
       String? fullName,
       UserRole role,
       List<String> favoriteVenueIds,
-      List<String> preferredCategories});
+      List<String> preferredCategories,
+      bool isVerified});
 }
 
 /// @nodoc
@@ -71,6 +73,7 @@ class _$ProfileCopyWithImpl<$Res, $Val extends Profile>
     Object? role = null,
     Object? favoriteVenueIds = null,
     Object? preferredCategories = null,
+    Object? isVerified = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -105,6 +108,10 @@ class _$ProfileCopyWithImpl<$Res, $Val extends Profile>
           ? _value.preferredCategories
           : preferredCategories // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      isVerified: null == isVerified
+          ? _value.isVerified
+          : isVerified // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -124,7 +131,8 @@ abstract class _$$ProfileImplCopyWith<$Res> implements $ProfileCopyWith<$Res> {
       String? fullName,
       UserRole role,
       List<String> favoriteVenueIds,
-      List<String> preferredCategories});
+      List<String> preferredCategories,
+      bool isVerified});
 }
 
 /// @nodoc
@@ -146,6 +154,7 @@ class __$$ProfileImplCopyWithImpl<$Res>
     Object? role = null,
     Object? favoriteVenueIds = null,
     Object? preferredCategories = null,
+    Object? isVerified = null,
   }) {
     return _then(_$ProfileImpl(
       id: null == id
@@ -180,6 +189,10 @@ class __$$ProfileImplCopyWithImpl<$Res>
           ? _value._preferredCategories
           : preferredCategories // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      isVerified: null == isVerified
+          ? _value.isVerified
+          : isVerified // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -195,7 +208,8 @@ class _$ProfileImpl implements _Profile {
       this.fullName,
       this.role = UserRole.user,
       final List<String> favoriteVenueIds = const [],
-      final List<String> preferredCategories = const []})
+      final List<String> preferredCategories = const [],
+      this.isVerified = false})
       : _favoriteVenueIds = favoriteVenueIds,
         _preferredCategories = preferredCategories;
 
@@ -236,8 +250,12 @@ class _$ProfileImpl implements _Profile {
   }
 
   @override
+  @JsonKey()
+  final bool isVerified;
+
+  @override
   String toString() {
-    return 'Profile(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, email: $email, fullName: $fullName, role: $role, favoriteVenueIds: $favoriteVenueIds, preferredCategories: $preferredCategories)';
+    return 'Profile(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, email: $email, fullName: $fullName, role: $role, favoriteVenueIds: $favoriteVenueIds, preferredCategories: $preferredCategories, isVerified: $isVerified)';
   }
 
   @override
@@ -257,7 +275,9 @@ class _$ProfileImpl implements _Profile {
             const DeepCollectionEquality()
                 .equals(other._favoriteVenueIds, _favoriteVenueIds) &&
             const DeepCollectionEquality()
-                .equals(other._preferredCategories, _preferredCategories));
+                .equals(other._preferredCategories, _preferredCategories) &&
+            (identical(other.isVerified, isVerified) ||
+                other.isVerified == isVerified));
   }
 
   @JsonKey(ignore: true)
@@ -271,7 +291,8 @@ class _$ProfileImpl implements _Profile {
       fullName,
       role,
       const DeepCollectionEquality().hash(_favoriteVenueIds),
-      const DeepCollectionEquality().hash(_preferredCategories));
+      const DeepCollectionEquality().hash(_preferredCategories),
+      isVerified);
 
   @JsonKey(ignore: true)
   @override
@@ -296,7 +317,8 @@ abstract class _Profile implements Profile {
       final String? fullName,
       final UserRole role,
       final List<String> favoriteVenueIds,
-      final List<String> preferredCategories}) = _$ProfileImpl;
+      final List<String> preferredCategories,
+      final bool isVerified}) = _$ProfileImpl;
 
   factory _Profile.fromJson(Map<String, dynamic> json) = _$ProfileImpl.fromJson;
 
@@ -316,6 +338,8 @@ abstract class _Profile implements Profile {
   List<String> get favoriteVenueIds;
   @override
   List<String> get preferredCategories;
+  @override
+  bool get isVerified;
   @override
   @JsonKey(ignore: true)
   _$$ProfileImplCopyWith<_$ProfileImpl> get copyWith =>
@@ -743,6 +767,7 @@ mixin _$Event {
       throw _privateConstructorUsedError; // Static metadata (genres, directors, release year, etc.)
   Map<String, dynamic> get metadata => throw _privateConstructorUsedError;
   EventStatus get status => throw _privateConstructorUsedError;
+  bool get isVerified => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -765,7 +790,8 @@ abstract class $EventCopyWith<$Res> {
       int? durationMinutes,
       Map<String, dynamic> externalIds,
       Map<String, dynamic> metadata,
-      EventStatus status});
+      EventStatus status,
+      bool isVerified});
 }
 
 /// @nodoc
@@ -792,6 +818,7 @@ class _$EventCopyWithImpl<$Res, $Val extends Event>
     Object? externalIds = null,
     Object? metadata = null,
     Object? status = null,
+    Object? isVerified = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -838,6 +865,10 @@ class _$EventCopyWithImpl<$Res, $Val extends Event>
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
               as EventStatus,
+      isVerified: null == isVerified
+          ? _value.isVerified
+          : isVerified // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -860,7 +891,8 @@ abstract class _$$EventImplCopyWith<$Res> implements $EventCopyWith<$Res> {
       int? durationMinutes,
       Map<String, dynamic> externalIds,
       Map<String, dynamic> metadata,
-      EventStatus status});
+      EventStatus status,
+      bool isVerified});
 }
 
 /// @nodoc
@@ -885,6 +917,7 @@ class __$$EventImplCopyWithImpl<$Res>
     Object? externalIds = null,
     Object? metadata = null,
     Object? status = null,
+    Object? isVerified = null,
   }) {
     return _then(_$EventImpl(
       id: null == id
@@ -931,6 +964,10 @@ class __$$EventImplCopyWithImpl<$Res>
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
               as EventStatus,
+      isVerified: null == isVerified
+          ? _value.isVerified
+          : isVerified // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -949,7 +986,8 @@ class _$EventImpl implements _Event {
       this.durationMinutes,
       final Map<String, dynamic> externalIds = const {},
       final Map<String, dynamic> metadata = const {},
-      this.status = EventStatus.published})
+      this.status = EventStatus.published,
+      this.isVerified = true})
       : _externalIds = externalIds,
         _metadata = metadata;
 
@@ -997,10 +1035,13 @@ class _$EventImpl implements _Event {
   @override
   @JsonKey()
   final EventStatus status;
+  @override
+  @JsonKey()
+  final bool isVerified;
 
   @override
   String toString() {
-    return 'Event(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, category: $category, title: $title, description: $description, imageUrl: $imageUrl, durationMinutes: $durationMinutes, externalIds: $externalIds, metadata: $metadata, status: $status)';
+    return 'Event(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, category: $category, title: $title, description: $description, imageUrl: $imageUrl, durationMinutes: $durationMinutes, externalIds: $externalIds, metadata: $metadata, status: $status, isVerified: $isVerified)';
   }
 
   @override
@@ -1025,7 +1066,9 @@ class _$EventImpl implements _Event {
             const DeepCollectionEquality()
                 .equals(other._externalIds, _externalIds) &&
             const DeepCollectionEquality().equals(other._metadata, _metadata) &&
-            (identical(other.status, status) || other.status == status));
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.isVerified, isVerified) ||
+                other.isVerified == isVerified));
   }
 
   @JsonKey(ignore: true)
@@ -1042,7 +1085,8 @@ class _$EventImpl implements _Event {
       durationMinutes,
       const DeepCollectionEquality().hash(_externalIds),
       const DeepCollectionEquality().hash(_metadata),
-      status);
+      status,
+      isVerified);
 
   @JsonKey(ignore: true)
   @override
@@ -1070,7 +1114,8 @@ abstract class _Event implements Event {
       final int? durationMinutes,
       final Map<String, dynamic> externalIds,
       final Map<String, dynamic> metadata,
-      final EventStatus status}) = _$EventImpl;
+      final EventStatus status,
+      final bool isVerified}) = _$EventImpl;
 
   factory _Event.fromJson(Map<String, dynamic> json) = _$EventImpl.fromJson;
 
@@ -1096,6 +1141,8 @@ abstract class _Event implements Event {
   Map<String, dynamic> get metadata;
   @override
   EventStatus get status;
+  @override
+  bool get isVerified;
   @override
   @JsonKey(ignore: true)
   _$$EventImplCopyWith<_$EventImpl> get copyWith =>
