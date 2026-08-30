@@ -1020,3 +1020,134 @@ class NSVenueTypeBadge extends StatelessWidget {
     );
   }
 }
+
+/// A horizontal segmented toggle: a pill slides behind the active label as the
+/// selection changes. For switching between a small number (2–4) of mutually
+/// exclusive modes — e.g. Sign In / Sign Up on an auth form.
+///
+/// Styling defaults to the light `NS` tokens. Pass the optional colour / label
+/// overrides to drop it onto a dark surface:
+///
+/// ```dart
+/// NSSegmentedToggle(
+///   segments: const ['SIGN IN', 'SIGN UP'],
+///   selectedIndex: mode.index,
+///   onChanged: (i) => setState(() => mode = AuthMode.values[i]),
+///   thumbColor: NsxColors.accent,
+///   trackColor: NsxColors.glassFill,
+///   borderRadius: 2,
+/// )
+/// ```
+class NSSegmentedToggle extends StatelessWidget {
+  const NSSegmentedToggle({
+    super.key,
+    required this.segments,
+    required this.selectedIndex,
+    required this.onChanged,
+    this.trackColor,
+    this.thumbColor,
+    this.borderColor,
+    this.selectedLabelStyle,
+    this.unselectedLabelStyle,
+    this.borderRadius = 12,
+    this.height = 44,
+    this.padding = const EdgeInsets.all(4),
+  }) : assert(segments.length >= 2, 'NSSegmentedToggle needs at least 2 segments');
+
+  final List<String> segments;
+  final int selectedIndex;
+  final ValueChanged<int> onChanged;
+
+  /// Track fill behind the segments. Defaults to a faint ice-blue wash.
+  final Color? trackColor;
+
+  /// The sliding pill behind the active label. Defaults to [NSColors.royalBlue].
+  final Color? thumbColor;
+
+  /// Optional 1px border around the track.
+  final Color? borderColor;
+
+  final TextStyle? selectedLabelStyle;
+  final TextStyle? unselectedLabelStyle;
+  final double borderRadius;
+  final double height;
+  final EdgeInsets padding;
+
+  @override
+  Widget build(BuildContext context) {
+    final track = trackColor ?? NSColors.iceBlue.withOpacity(0.4);
+    final thumb = thumbColor ?? NSColors.royalBlue;
+    final selStyle = selectedLabelStyle ??
+        NSTextStyles.labelLarge.copyWith(
+          color: NSColors.snowWhite,
+          fontWeight: FontWeight.w700,
+        );
+    final unselStyle = unselectedLabelStyle ??
+        NSTextStyles.labelLarge.copyWith(color: NSColors.textSecondary);
+
+    final count = segments.length;
+    final index = selectedIndex.clamp(0, count - 1);
+    final innerRadius =
+        (borderRadius - padding.top).clamp(0.0, borderRadius).toDouble();
+    final thumbHeight = height - padding.vertical;
+
+    return Container(
+      height: height,
+      padding: padding,
+      decoration: BoxDecoration(
+        color: track,
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: borderColor != null ? Border.all(color: borderColor!) : null,
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final thumbWidth = constraints.maxWidth / count;
+          return Stack(
+            children: [
+              AnimatedAlign(
+                alignment: Alignment(
+                  count == 1 ? 0 : (index / (count - 1)) * 2 - 1,
+                  0,
+                ),
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                child: Container(
+                  width: thumbWidth,
+                  height: thumbHeight,
+                  decoration: BoxDecoration(
+                    color: thumb,
+                    borderRadius: BorderRadius.circular(innerRadius),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  for (var i = 0; i < count; i++)
+                    Expanded(
+                      child: NSPressScale(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => onChanged(i),
+                          child: Center(
+                            child: AnimatedDefaultTextStyle(
+                              duration: const Duration(milliseconds: 220),
+                              style: i == index ? selStyle : unselStyle,
+                              child: Text(
+                                segments[i],
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}

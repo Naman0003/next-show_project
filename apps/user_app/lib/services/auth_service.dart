@@ -19,6 +19,27 @@ class AuthService {
     return _client.auth.verifyOTP(email: email, token: code, type: OtpType.email);
   }
 
+  /// Signs an existing user in with an email + password pair. Throws
+  /// [AuthException] on bad credentials. Requires the Email provider's password
+  /// sign-in to be enabled in the Supabase project.
+  static Future<AuthResponse> signInWithPassword({
+    required String email,
+    required String password,
+  }) {
+    return _client.auth.signInWithPassword(email: email, password: password);
+  }
+
+  /// Creates an account from an email + password pair. Throws [AuthException]
+  /// on failure. When "Confirm email" is on for the project, the returned
+  /// [AuthResponse.session] is null until the user clicks the confirmation
+  /// link — callers should check for that rather than assume a live session.
+  static Future<AuthResponse> signUpWithPassword({
+    required String email,
+    required String password,
+  }) {
+    return _client.auth.signUp(email: email, password: password);
+  }
+
   static Future<void> signOut() {
     return _client.auth.signOut();
   }

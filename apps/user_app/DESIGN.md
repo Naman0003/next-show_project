@@ -300,16 +300,34 @@ never a full screen — the caller's Discovery position stays mounted and visibl
 A non-opaque route lays a `BackdropFilter` (blur 10) + 32%-ground scrim over the
 live screen (tap-to-dismiss), then slides the sheet up (`expoOut`). The sheet is
 a `glass-fill` panel (20px top corners, blur 22) with a drag handle, wrapped in
-`AnimatedSize` so it grows/shrinks as its phase changes. Two phases swap in place
+`AnimatedSize` so it grows/shrinks as its phase changes; it is capped to the
+space above the keyboard + status bar and scrolls internally past that (Sign Up
+with the keyboard open on a small phone). Two phases swap in place
 via an `AnimatedSwitcher` (horizontal slide + fade), **no route push between
-them**: **email** — Display heading, glass email field (amber caret), amber
-`NsxButton` "SEND CODE", "OR" hairline, ghost `NsxButton` "Continue with Google";
+them**: **email** — a Sign In / Sign Up mode toggle (see below), a Display
+heading + one Mono-muted sub-line that both track the mode, glass email +
+password fields (a third "confirm password" field on Sign Up, revealed via the
+`AnimatedSize`), amber `NsxButton` "SIGN IN" / "CREATE ACCOUNT", a Mono-muted
+"EMAIL ME A CODE INSTEAD" link (drops to the **otp** phase), "OR" hairline,
+ghost `NsxButton` "Continue with Google";
 **otp** — a back-arrow + `CODE SENT TO {email}` Mono line, a centred letter-spaced
 code field, amber "VERIFY", Mono "RESEND CODE". Reduced motion: the sheet fades
 in place; phases cross-fade.
 
+Email + password is the primary path; the passwordless one-time code is kept as
+the fallback link and as Sign Up's confirmation channel. Sign In and Sign Up are
+the same sheet — the toggle only reframes copy and reveals the confirm field.
+
 **The No-Redirect Rule.** Identity is never a destination. Any flow that needs
 sign-in opens this sheet over the current screen; there are no `/login` routes.
+
+### Auth Mode Toggle
+A full-width segmented control at the top of the sheet's email phase: two Mono
+labels, an amber pill that slides behind the active one (`easeOutCubic`, snaps
+instantly under reduced motion), hairline track. It is the email phase's single
+live/selected amber region — the "code instead" link stays Mono-muted, not amber.
+Built on `ui_kit`'s theme-agnostic `NSSegmentedToggle` (light `NS` defaults,
+overridden here with the dark tokens), so other apps can reuse the base.
 
 ### Buttons — NsxButton
 A hard 2px-radius stamp, 52px tall, uppercase Mono label, `SpringTap` + haptic.

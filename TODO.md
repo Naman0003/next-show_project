@@ -128,6 +128,7 @@
 | TMDB Dio failover (multi-host, errno 104 fix) | [x] | Failover from `api.themoviedb.org` → `api.tmdb.org` |
 | Remove `_fallbackCatalog` (show empty state instead) | [x] | Returns `NSEmptyState` widget when search yields no results |
 | OTP code length fix (8 digits instead of 6) | [x] | Updated auth screens to accept 8-digit Supabase OTP |
+| Auth sheet: Sign In / Sign Up mode toggle + email-password | [x] | `NSSegmentedToggle` in `ui_kit` + `AuthModeToggle` skin; `_EmailPhase` gains password/confirm fields, `AuthService.signInWithPassword`/`signUpWithPassword`; OTP kept as "email me a code instead" fallback. Needs Email-password provider enabled in Supabase. |
 | Home screen Upcoming Showtimes overflow fix | [x] | Bounded height + scroll on the showtimes box |
 | Quick Actions grid uniform tile sizes | [x] | `Add Venue`, `Create Event`, `New Showtime` equal-width tiles |
 | Showtime card shows movie title (not just time) | [x] | Prevents confusion when multiple movies share a schedule |
