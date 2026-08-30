@@ -60,9 +60,23 @@
       "name": "Floating Glass Dock",
       "kind": "nav",
       "refersTo": "nav-dock",
-      "description": "The app's main navigation — a frosted pill floating over content; an amber circle springs between the four slots.",
+      "description": "The app's main navigation — a frosted pill floating over content. Gesture-driven: a horizontal pan drags the amber blob 1:1 with the finger (blob stretches toward travel direction by velocity, icons morph by proximity), and release spring-snaps to the nearest tab carrying fling velocity. Plain taps still select. Reduced motion: linear track, tween snap, no stretch.",
       "html": "<nav class=\"ds-dock\"><span class=\"ds-dock__blob\"></span><button class=\"ds-dock__i ds-dock__i--on\">◉</button><button class=\"ds-dock__i\">○</button><button class=\"ds-dock__i\">○</button><button class=\"ds-dock__i\">○</button></nav>",
-      "css": ".ds-dock { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 4px; padding: 8px 10px; border-radius: 999px; background: rgba(237,233,225,0.06); border: 1px solid rgba(237,233,225,0.14); backdrop-filter: blur(22px); box-shadow: 0 18px 40px -4px rgba(0,0,0,0.6), 0 3px 10px rgba(0,0,0,0.25); } .ds-dock__blob { position: absolute; left: 12px; width: 44px; height: 44px; border-radius: 50%; background: #FFA424; } .ds-dock__i { position: relative; flex: 1; height: 44px; border: 0; background: transparent; color: rgba(237,233,225,0.72); font-size: 20px; } .ds-dock__i--on { color: #0B0B0C; }"
+      "css": ".ds-dock { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 4px; padding: 8px 10px; border-radius: 999px; background: rgba(237,233,225,0.06); border: 1px solid rgba(237,233,225,0.14); backdrop-filter: blur(22px); box-shadow: 0 18px 40px -4px rgba(0,0,0,0.6), 0 3px 10px rgba(0,0,0,0.25); touch-action: pan-x; } .ds-dock__blob { position: absolute; left: 12px; width: 44px; height: 44px; border-radius: 22px; background: #FFA424; transition: none; } .ds-dock__i { position: relative; flex: 1; height: 44px; border: 0; background: transparent; color: rgba(237,233,225,0.72); font-size: 20px; } .ds-dock__i--on { color: #0B0B0C; transform: scale(1.07); }"
+    },
+    {
+      "name": "Auth Sheet",
+      "kind": "custom",
+      "description": "Sign-in + OTP as a frosted bottom-sheet fragment over a blurred, dimmed backdrop of the caller's screen (never full-screen; no /login route). Email and OTP phases swap in place via slide+fade; the sheet grows/shrinks with AnimatedSize. Email: display heading, glass field, amber SEND CODE, OR rule, ghost 'Continue with Google'. OTP: back-arrow + CODE SENT TO {email}, centred letter-spaced code field, amber VERIFY, mono RESEND CODE.",
+      "html": "<div class=\"ds-authsheet\"><span class=\"ds-authsheet__handle\"></span><h2 class=\"ds-authsheet__h\">No password.<br>Just a code.</h2><div class=\"ds-authsheet__field\">you@example.com</div><button class=\"ds-btn ds-btn--fill\">SEND CODE</button><div class=\"ds-authsheet__or\">OR</div><button class=\"ds-btn ds-btn--ghost\">CONTINUE WITH GOOGLE</button></div>",
+      "css": ".ds-authsheet { background: rgba(237,233,225,0.06); backdrop-filter: blur(22px); border: 1px solid rgba(237,233,225,0.14); border-radius: 20px 20px 0 0; padding: 12px 24px 24px; color: #EDE9E1; } .ds-authsheet__handle { display: block; width: 36px; height: 4px; margin: 0 auto 20px; border-radius: 2px; background: rgba(237,233,225,0.14); } .ds-authsheet__h { font-family: 'Bricolage Grotesque', Georgia, serif; font-weight: 800; font-size: 26px; line-height: 1.02; letter-spacing: -0.9px; margin: 0 0 16px; } .ds-authsheet__field { background: rgba(237,233,225,0.06); border: 1px solid rgba(237,233,225,0.14); border-radius: 12px; padding: 16px; color: #9B988F; font-family: 'Bricolage Grotesque', Georgia, serif; } .ds-authsheet__or { text-align: center; margin: 12px 0; font-family: 'Martian Mono', ui-monospace, monospace; font-size: 9.5px; letter-spacing: 1px; color: #9B988F; }"
+    },
+    {
+      "name": "NsxButton",
+      "kind": "button",
+      "description": "The one action button — a hard 2px-radius stamp, 52px tall, uppercase Martian Mono label, SpringTap press + haptic. Filled = amber / Cinema Black (primary). Ghost = glass-fill / hairline border / bone (secondary). One shape for both.",
+      "html": "<button class=\"ds-btn ds-btn--fill\">VERIFY</button><button class=\"ds-btn ds-btn--ghost\">CONTINUE WITH GOOGLE</button>",
+      "css": ".ds-btn { height: 52px; width: 100%; border-radius: 2px; font-family: 'Martian Mono', ui-monospace, monospace; font-size: 12px; font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; transition: transform 0.09s; } .ds-btn:active { transform: scale(0.94); } .ds-btn--fill { background: #FFA424; color: #0B0B0C; border: 1px solid #FFA424; } .ds-btn--ghost { background: rgba(237,233,225,0.06); color: #EDE9E1; border: 1px solid rgba(237,233,225,0.14); } .ds-btn:disabled { background: #201F1D; color: #9B988F; border-color: #2E2D2A; }"
     },
     {
       "name": "Poster Card",
@@ -87,7 +101,9 @@
       { "name": "The Mono Signage Rule", "body": "All metadata, labels, counts, and navigation text are uppercase Martian Mono. The display face never does label work; mono never does headline work.", "section": "typography" },
       { "name": "The Flat-Information Rule", "body": "Anything that carries fixed information is flat with a 1px edge. Shadow is reserved for the one element that genuinely floats.", "section": "elevation" },
       { "name": "The Hard Tag / Soft Pill Rule", "body": "If it states information, it is a hard-edged rectangle. If it floats and responds to touch, it is a frosted pill. Never the reverse, never a blend.", "section": "elevation" },
-      { "name": "The Spring-Back Rule", "body": "Every tap target punches to ~0.94 scale and springs back past 1.0 to rest — physics, never a linear ease. Under OS reduced-motion it collapses to a 90ms fade with no overshoot; haptics and state changes stay.", "section": "elevation" }
+      { "name": "The Spring-Back Rule", "body": "Every tap target punches to ~0.94 scale and springs back past 1.0 to rest — physics, never a linear ease. Under OS reduced-motion it collapses to a 90ms fade with no overshoot; haptics and state changes stay.", "section": "elevation" },
+      { "name": "The Continuous Track Rule", "body": "A draggable indicator follows the finger in real time and resolves with a spring — never a stepped or instant jump. Movement is information: speed drives the deform (the dock blob's stretch), direction drives the icon morph.", "section": "elevation" },
+      { "name": "The No-Redirect Rule", "body": "Identity is never a destination. Any flow that needs sign-in opens the auth sheet over the current screen; there are no /login routes and no full-screen OTP page.", "section": "elevation" }
     ],
     "dos": [
       "Do keep amber to one live/selected region per viewport (The One Amber Rule).",
@@ -95,7 +111,9 @@
       "Do run every image through ProcessedImage — duotone + grain + linework.",
       "Do use hard 1px-edge rectangles for information, frosted pills for touch.",
       "Do give every tap target SpringTap feedback and a reduced-motion path.",
-      "Do let the OS text-size setting scale type; wrap, never clip."
+      "Do let the OS text-size setting scale type; wrap, never clip.",
+      "Do open sign-in as the auth sheet over the current screen (The No-Redirect Rule); use one NsxButton shape for both variants.",
+      "Do make draggable indicators track the finger and resolve with a spring (The Continuous Track Rule)."
     ],
     "donts": [
       "Don't introduce a second accent hue or a colored-category palette.",
@@ -103,7 +121,9 @@
       "Don't use gradients as a surface fill (scrims over imagery are the only gradients allowed).",
       "Don't add drop shadows to information surfaces; shadow is the floating dock's alone.",
       "Don't use the display face for labels or the mono face for headlines.",
-      "Don't use Unicode glyphs or emoji as icons — draw them."
+      "Don't use Unicode glyphs or emoji as icons — draw them.",
+      "Don't route to a full-screen sign-in or OTP page.",
+      "Don't put a stepped or instant jump on a draggable indicator."
     ]
   },
   "notCanonized": [

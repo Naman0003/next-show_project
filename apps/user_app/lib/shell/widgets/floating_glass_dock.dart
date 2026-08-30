@@ -6,13 +6,15 @@ import 'package:flutter/material.dart' show Icons;
 import '../../features/discovery/presentation/theme/cinema_tokens.dart';
 import '../../features/discovery/presentation/theme/nsx_motion.dart';
 import '../../features/discovery/presentation/widgets/glass.dart';
-import '../../features/discovery/presentation/widgets/spring_tap.dart';
 
 typedef _Dest = ({IconData icon, IconData active, String label});
 
-/// The app's main navigation, rebuilt as a floating frosted pill hovering
-/// over the content. Replaces `ui_kit`'s `NSBottomNavBar`. A single amber
-/// blob springs between slots to mark the current tab.
+/// The app's main navigation — a floating frosted pill hovering over content.
+/// A single amber blob marks the current tab. It is gesture-driven: a
+/// horizontal pan across the pill drags the blob 1:1 with the finger, the
+/// blob stretches toward its travel direction with velocity, the icons morph
+/// state continuously as it passes, and on release it spring-snaps to the
+/// nearest tab (carrying fling velocity) and switches. Plain taps still work.
 class FloatingGlassDock extends StatefulWidget {
   const FloatingGlassDock({
     super.key,
@@ -36,23 +38,28 @@ class FloatingGlassDock extends StatefulWidget {
 
 class _FloatingGlassDockState extends State<FloatingGlassDock>
     with SingleTickerProviderStateMixin {
+  static const _hPad = 10.0;
+  static const _blobSize = 44.0;
+  static const _maxStretch = 34.0;
+  static const _dockHeight = 52.0;
+
+  /// The blob's fractional slot position, 0…N-1.
   late final AnimationController _blob = AnimationController.unbounded(
     vsync: this,
     value: widget.selectedIndex.toDouble(),
   );
 
+  double _slot = 0; // pixel width of one tab, set in LayoutBuilder
+  double _prevValue = 0; // for per-frame velocity → stretch
+  bool _dragging = false;
+
+  int get _count => FloatingGlassDock._dests.length;
+
   @override
   void didUpdateWidget(FloatingGlassDock old) {
     super.didUpdateWidget(old);
-    if (old.selectedIndex != widget.selectedIndex) {
-      final target = widget.selectedIndex.toDouble();
-      if (NsxMotion.reduced(context)) {
-        _blob.animateTo(target, duration: NsxMotion.fast);
-      } else {
-        _blob.animateWith(
-          SpringSimulation(NsxMotion.settle, _blob.value, target, 0),
-        );
-      }
+    if (!_dragging && old.selectedIndex != widget.selectedIndex) {
+      _snapTo(widget.selectedIndex.toDouble(), 0);
     }
   }
 
@@ -62,11 +69,58 @@ class _FloatingGlassDockState extends State<FloatingGlassDock>
     super.dispose();
   }
 
+  void _snapTo(double target, double pixelsPerSecond) {
+    if (NsxMotion.reduced(context)) {
+      _blob.animateTo(target,
+          duration: NsxMotion.fast, curve: NsxMotion.expoOut);
+    } else {
+      final unitsPerSecond = _slot == 0 ? 0.0 : pixelsPerSecond / _slot;
+      _blob.animateWith(
+        SpringSimulation(NsxMotion.settle, _blob.value, target, unitsPerSecond),
+      );
+    }
+  }
+
+  double _fractionAt(double localX) =>
+      (localX / _slot - 0.5).clamp(0.0, (_count - 1).toDouble());
+
+  void _onDragStart(DragStartDetails d) {
+    _blob.stop();
+    _dragging = true;
+    _prevValue = _blob.value;
+  }
+
+  void _onDragUpdate(DragUpdateDetails d) {
+    if (_slot == 0) return;
+    _blob.value = _fractionAt(d.localPosition.dx);
+  }
+
+  void _handleDragEnd(DragEndDetails d) {
+    _dragging = false;
+    final vx = d.velocity.pixelsPerSecond.dx;
+    // Project a little in the fling direction before rounding, so a decisive
+    // flick past the halfway point lands on the next tab.
+    final projected =
+        (_blob.value + (vx / _slot) * 0.12).clamp(0.0, (_count - 1).toDouble());
+    final target = projected.round();
+    _snapTo(target.toDouble(), vx);
+    if (target != widget.selectedIndex) {
+      HapticFeedback.selectionClick();
+      widget.onDestinationSelected(target);
+    }
+  }
+
+  void _tap(int i) {
+    if (i == widget.selectedIndex) return;
+    HapticFeedback.selectionClick();
+    _snapTo(i.toDouble(), 0);
+    widget.onDestinationSelected(i);
+  }
+
   @override
   Widget build(BuildContext context) {
     const dests = FloatingGlassDock._dests;
-    const hPad = 10.0;
-    const blob = 44.0;
+    final reduced = NsxMotion.reduced(context);
 
     return SafeArea(
       top: false,
@@ -75,7 +129,7 @@ class _FloatingGlassDockState extends State<FloatingGlassDock>
             NsxSpace.gutter, 0, NsxSpace.gutter, NsxSpace.x4),
         child: GlassSurface(
           blurSigma: 22,
-          padding: const EdgeInsets.symmetric(horizontal: hPad, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: _hPad, vertical: 8),
           shadow: const [
             BoxShadow(
               color: Color(0x99000000),
@@ -91,43 +145,64 @@ class _FloatingGlassDockState extends State<FloatingGlassDock>
           ],
           child: LayoutBuilder(
             builder: (context, c) {
-              final slot = (c.maxWidth - hPad * 2) / dests.length;
-              return SizedBox(
-                height: 52,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    AnimatedBuilder(
-                      animation: _blob,
-                      builder: (context, _) => Positioned(
-                        left: hPad + slot * _blob.value + (slot - blob) / 2,
-                        child: Container(
-                          width: blob,
-                          height: blob,
-                          decoration: const BoxDecoration(
-                            color: NsxColors.accent,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        for (var i = 0; i < dests.length; i++)
-                          SizedBox(
-                            width: slot,
-                            child: _DockItem(
-                              dest: dests[i],
-                              selected: i == widget.selectedIndex,
-                              onTap: () {
-                                HapticFeedback.selectionClick();
-                                widget.onDestinationSelected(i);
-                              },
+              _slot = c.maxWidth / _count;
+              return GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onHorizontalDragStart: _onDragStart,
+                onHorizontalDragUpdate: _onDragUpdate,
+                onHorizontalDragEnd: _handleDragEnd,
+                onTapUp: (d) => _tap(_fractionAt(d.localPosition.dx).round()),
+                child: SizedBox(
+                  height: _dockHeight,
+                  child: AnimatedBuilder(
+                    animation: _blob,
+                    builder: (context, _) {
+                      final p = _blob.value;
+                      final frameV = p - _prevValue;
+                      _prevValue = p;
+                      final stretch = reduced
+                          ? 0.0
+                          : (frameV.abs() * _slot * 2.2)
+                              .clamp(0.0, _maxStretch);
+                      final movingLeft = frameV < 0;
+                      final blobLeft = _slot * (p + 0.5) -
+                          _blobSize / 2 -
+                          (movingLeft ? stretch : 0);
+
+                      return Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Positioned(
+                            left: blobLeft,
+                            child: Container(
+                              width: _blobSize + stretch,
+                              height: _blobSize,
+                              decoration: BoxDecoration(
+                                color: NsxColors.accent,
+                                borderRadius:
+                                    BorderRadius.circular(_blobSize / 2),
+                              ),
                             ),
                           ),
-                      ],
-                    ),
-                  ],
+                          Row(
+                            children: [
+                              for (var i = 0; i < dests.length; i++)
+                                SizedBox(
+                                  width: _slot,
+                                  child: _DockIcon(
+                                    dest: dests[i],
+                                    // 1 when the blob is centred on this icon,
+                                    // 0 a slot or more away.
+                                    on: (1 - (i - p).abs()).clamp(0.0, 1.0),
+                                    selected: i == widget.selectedIndex,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
               );
             },
@@ -138,34 +213,33 @@ class _FloatingGlassDockState extends State<FloatingGlassDock>
   }
 }
 
-class _DockItem extends StatelessWidget {
-  const _DockItem({
+class _DockIcon extends StatelessWidget {
+  const _DockIcon({
     required this.dest,
+    required this.on,
     required this.selected,
-    required this.onTap,
   });
 
   final _Dest dest;
+  final double on;
   final bool selected;
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return SpringTap(
-      onTap: onTap,
-      child: Semantics(
-        button: true,
-        selected: selected,
-        label: dest.label,
-        child: SizedBox(
-          height: 52,
-          child: Center(
-            child: Icon(
-              selected ? dest.active : dest.icon,
-              size: 22,
-              color: selected
-                  ? NsxColors.accentInk
-                  : NsxColors.bone.withOpacity(0.72),
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: dest.label,
+      child: Center(
+        child: Transform.scale(
+          scale: 1 + 0.07 * on,
+          child: Icon(
+            on > 0.5 ? dest.active : dest.icon,
+            size: 22,
+            color: Color.lerp(
+              NsxColors.bone.withOpacity(0.72),
+              NsxColors.accentInk,
+              Curves.easeIn.transform(on),
             ),
           ),
         ),

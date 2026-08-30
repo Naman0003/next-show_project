@@ -265,10 +265,24 @@ spotlight tap and the dock. Secondary actions use the ghost style:
 ### Navigation — Floating Glass Dock (signature)
 A frosted pill hovering 16px above the bottom safe area, 20px side margins, the
 "Dock lift" shadow. Four destinations, drawn icons in one weight. The active
-destination is marked by a **44px amber circle that springs between slots** (the
-"blob") with the icon flipping to Cinema Black; inactive icons are bone at 72%.
-Tap: `HapticFeedback.selectionClick` + a `SpringTap` scale punch. Reduced motion:
-the blob cross-fades between slots instead of springing.
+destination is marked by a **44px amber circle** (the "blob") with its icon in
+Cinema Black; inactive icons are bone at 72%, scaling to 1.07 as the blob nears.
+
+**Gesture-driven.** A horizontal pan anywhere on the pill drags the blob 1:1
+with the finger (its position is a continuous fractional slot value, 0…N-1). The
+blob **stretches toward its travel direction** — an elongated capsule up to +34px
+wide, magnitude from the frame-to-frame velocity — and every icon morphs its
+colour and scale continuously by proximity, so state changes mid-drag rather than
+flipping. On release the blob **spring-snaps** (`spring-settle`, seeded with the
+fling velocity) to the nearest slot, projecting a little in the fling direction
+so a decisive flick past halfway lands on the next tab; the tab switches and
+`HapticFeedback.selectionClick` fires. A plain tap still selects directly.
+Reduced motion: the blob tracks linearly (no stretch) and snaps with a 120ms
+tween.
+
+**The Continuous Track Rule.** The indicator follows the finger in real time and
+resolves with physics — never a stepped or instant jump between tabs. Movement is
+information: its speed drives the stretch, its direction drives the icon morph.
 
 ### Monumental Spotlight (signature)
 A swipeable stack (≤3 picks) filling ~46% of the viewport. Full-bleed
@@ -280,6 +294,30 @@ tag → Display XL title (≤3 lines) → one Mono metadata run
 poster scale-settles 1.05→1.0 while the title wipes up (clip height-factor +
 16px lift) and the metadata fades in — `expoOut` over 700ms.
 
+### Auth Sheet (signature)
+Sign-in and OTP are a **frosted bottom-sheet fragment over a blurred backdrop**,
+never a full screen — the caller's Discovery position stays mounted and visible.
+A non-opaque route lays a `BackdropFilter` (blur 10) + 32%-ground scrim over the
+live screen (tap-to-dismiss), then slides the sheet up (`expoOut`). The sheet is
+a `glass-fill` panel (20px top corners, blur 22) with a drag handle, wrapped in
+`AnimatedSize` so it grows/shrinks as its phase changes. Two phases swap in place
+via an `AnimatedSwitcher` (horizontal slide + fade), **no route push between
+them**: **email** — Display heading, glass email field (amber caret), amber
+`NsxButton` "SEND CODE", "OR" hairline, ghost `NsxButton` "Continue with Google";
+**otp** — a back-arrow + `CODE SENT TO {email}` Mono line, a centred letter-spaced
+code field, amber "VERIFY", Mono "RESEND CODE". Reduced motion: the sheet fades
+in place; phases cross-fade.
+
+**The No-Redirect Rule.** Identity is never a destination. Any flow that needs
+sign-in opens this sheet over the current screen; there are no `/login` routes.
+
+### Buttons — NsxButton
+A hard 2px-radius stamp, 52px tall, uppercase Mono label, `SpringTap` + haptic.
+**Filled** = amber ground / Cinema Black label (the primary action). **Ghost** =
+`glass-fill` / hairline border / bone label (the secondary). Disabled drops to
+Riser Surface / Muted Bone. One shape for both variants — never a rounded
+secondary next to a stamped primary.
+
 ### ProcessedImage (signature)
 Every image passes through: full desaturate + hard contrast bump with a warm
 bias → shadow-crush gradient toward the ground → thin amber wash → edge vignette
@@ -290,8 +328,11 @@ Loading = shimmer skeleton; error = a hairline-framed `NO IMAGE` Mono label.
 - **expoOut** (`cubic-bezier(0.16, 1, 0.3, 1)`): entrances and layout moves.
 - **spring-press** (mass 1, stiffness 420, damping 22): tap release — snappy,
   slight overshoot.
-- **spring-settle** (mass 1, stiffness 240, damping 26): the dock blob, spotlight
-  swap.
+- **spring-settle** (mass 1, stiffness 240, damping 26): the dock blob snap
+  (seeded with fling velocity), spotlight swap.
+- **Continuous drag:** a pan-tracked element follows the pointer 1:1 with no
+  animation; its per-frame velocity drives a secondary deform (the dock blob's
+  stretch). Physics resolves the release, never a tween.
 - Durations: 120ms feedback · 240ms state · 420ms layout · 700ms focal.
 
 ### Named Rules
@@ -308,9 +349,14 @@ collapses to a 90ms fade with no overshoot; haptics and state changes stay.
 - **Do** use hard 1px-edge rectangles for information, frosted pills for touch.
 - **Do** give every tap target `SpringTap` feedback and a reduced-motion path.
 - **Do** let the OS text-size setting scale type; wrap, never clip.
+- **Do** open sign-in as the auth sheet over the current screen (The No-Redirect
+  Rule) and use one `NsxButton` shape for both button variants.
+- **Do** make draggable indicators track the finger and resolve with a spring
+  (The Continuous Track Rule).
 
 ### Don't:
 - **Don't** introduce a second accent hue or a colored-category palette.
+- **Don't** route to a full-screen sign-in or OTP page.
 - **Don't** ship a raw image, or fake the treatment with a low-opacity wash.
 - **Don't** use gradients as a surface fill (scrims over imagery are the only
   gradients allowed).

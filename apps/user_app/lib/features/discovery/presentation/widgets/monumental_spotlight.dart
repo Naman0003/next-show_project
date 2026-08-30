@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/router/app_router.dart';
-import '../../../auth/presentation/login_screen.dart';
+import '../../../auth/presentation/auth_sheet.dart';
 import '../../../watchlist/application/watchlist_controller.dart';
 import '../theme/cinema_tokens.dart';
 import '../theme/nsx_motion.dart';
