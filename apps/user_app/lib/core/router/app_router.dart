@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/booking/presentation/booking_web_view_screen.dart';
-import '../../features/discovery/presentation/discovery_screen.dart';
+import '../../features/home/presentation/home_screen.dart';
 import '../../features/discovery/presentation/splash_screen.dart';
 import '../../features/event_detail/presentation/event_detail_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
@@ -60,7 +60,7 @@ class DiscoveryRouteData extends GoRouteData {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const DiscoveryScreen();
+      const HomeScreen();
 }
 
 class SearchBranchData extends StatefulShellBranchData {

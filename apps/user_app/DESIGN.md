@@ -294,40 +294,45 @@ tag → Display XL title (≤3 lines) → one Mono metadata run
 poster scale-settles 1.05→1.0 while the title wipes up (clip height-factor +
 16px lift) and the metadata fades in — `expoOut` over 700ms.
 
-### Auth Sheet (signature)
-Sign-in and OTP are a **frosted bottom-sheet fragment over a blurred backdrop**,
-never a full screen — the caller's Discovery position stays mounted and visible.
-A non-opaque route lays a `BackdropFilter` (blur 10) + 32%-ground scrim over the
-live screen (tap-to-dismiss), then slides the sheet up (`expoOut`). The sheet is
-a `glass-fill` panel (20px top corners, blur 22) with a drag handle, wrapped in
-`AnimatedSize` so it grows/shrinks as its phase changes; it is capped to the
-space above the keyboard + status bar and scrolls internally past that (Sign Up
-with the keyboard open on a small phone). Two phases swap in place
-via an `AnimatedSwitcher` (horizontal slide + fade), **no route push between
-them**: **email** — a Sign In / Sign Up mode toggle (see below), a Display
-heading + one Mono-muted sub-line that both track the mode, glass email +
-password fields (a third "confirm password" field on Sign Up, revealed via the
-`AnimatedSize`), amber `NsxButton` "SIGN IN" / "CREATE ACCOUNT", a Mono-muted
-"EMAIL ME A CODE INSTEAD" link (drops to the **otp** phase), "OR" hairline,
-ghost `NsxButton` "Continue with Google";
-**otp** — a back-arrow + `CODE SENT TO {email}` Mono line, a centred letter-spaced
-code field, amber "VERIFY", Mono "RESEND CODE". Reduced motion: the sheet fades
-in place; phases cross-fade.
+### Auth Screen (signature)
+> **Deliberate departure from Marquee After Dark.** Identity is the one surface
+> that opts out of the dark amber world: a bright, full-screen **split panel** on
+> `AppColors.royalBlue` + white. The look is imported wholesale from the
+> `apps/web` `AuthSwitch` component and re-implemented in Dart
+> (`features/auth/presentation/split_auth_screen.dart`).
 
-Email + password is the primary path; the passwordless one-time code is kept as
-the fallback link and as Sign Up's confirmation channel. Sign In and Sign Up are
-the same sheet — the toggle only reframes copy and reveals the confirm field.
+A solid royal-blue **brand panel** and a white **form panel** share the screen
+along its long axis — side-by-side on wide layouts (`≥700dp`), stacked on phones
+where the panel is a ~38%-tall banner. Their dividing edge is a single sweeping
+curve (`ClipPath` + cubic bézier), never a straight line.
 
-**The No-Redirect Rule.** Identity is never a destination. Any flow that needs
-sign-in opens this sheet over the current screen; there are no `/login` routes.
+Switching between Sign In and Sign Up is a **three-step move on the panel**:
+1. it **expands until it covers the whole screen** (`easeInOutCubic`, 320ms);
+2. both form sides and the panel copy swap while completely hidden;
+3. it **retracts to the opposite half** on a physics spring
+   (`SpringSimulation`, stiffness 100 / damping 20).
 
-### Auth Mode Toggle
-A full-width segmented control at the top of the sheet's email phase: two Mono
-labels, an amber pill that slides behind the active one (`easeOutCubic`, snaps
-instantly under reduced motion), hairline track. It is the email phase's single
-live/selected amber region — the "code instead" link stays Mono-muted, not amber.
-Built on `ui_kit`'s theme-agnostic `NSSegmentedToggle` (light `NS` defaults,
-overridden here with the dark tokens), so other apps can reuse the base.
+Both forms stay mounted (one faded out); the panel copy swaps via
+`AnimatedSwitcher`. Reduced motion: the swap is instant, no expand/retract.
+
+- **Form side:** "Sign in" / "Sign up" heading, pill fields (slate-100, leading
+  icon) — email + password, plus username on Sign Up — a royal-blue `LOGIN` /
+  `SIGN UP` button, and an outlined "Continue with Google".
+- **Brand panel:** an invitation to the *other* side — "New here?" / "One of us?"
+  + a line of copy + a white ghost button (`SIGN UP` / `SIGN IN`) that triggers
+  the switch.
+
+Auth is **email + password + Google OAuth** (`AuthService.signInWithPassword` /
+`signUpWithPassword` / `signInWithGoogle`). Session persistence and the OAuth
+return are handled by `supabase_flutter`; the screen listens to
+`onAuthStateChange` and pops `true` on `signedIn`. Sign Up with email
+confirmation on (no session) shows a "check your email" notice. The passwordless
+one-time-code path is retired from the UI (`AuthService.sendOtp`/`verifyOtp`
+remain for future use).
+
+**Identity is now a destination.** `ensureSignedIn(context)` pushes
+`SplitAuthScreen` as a `fullscreenDialog` route (was a bottom sheet). The
+earlier "No-Redirect Rule" is dropped.
 
 ### Buttons — NsxButton
 A hard 2px-radius stamp, 52px tall, uppercase Mono label, `SpringTap` + haptic.
@@ -367,14 +372,15 @@ collapses to a 90ms fade with no overshoot; haptics and state changes stay.
 - **Do** use hard 1px-edge rectangles for information, frosted pills for touch.
 - **Do** give every tap target `SpringTap` feedback and a reduced-motion path.
 - **Do** let the OS text-size setting scale type; wrap, never clip.
-- **Do** open sign-in as the auth sheet over the current screen (The No-Redirect
-  Rule) and use one `NsxButton` shape for both button variants.
+- **Do** use one `NsxButton` shape for both button variants.
 - **Do** make draggable indicators track the finger and resolve with a spring
   (The Continuous Track Rule).
+- **Do** keep the auth screen (and only the auth screen) on the bright royal-blue
+  split-panel look — the rest of the app stays dark.
 
 ### Don't:
-- **Don't** introduce a second accent hue or a colored-category palette.
-- **Don't** route to a full-screen sign-in or OTP page.
+- **Don't** introduce a second accent hue or a colored-category palette
+  (outside the auth screen).
 - **Don't** ship a raw image, or fake the treatment with a low-opacity wash.
 - **Don't** use gradients as a surface fill (scrims over imagery are the only
   gradients allowed).

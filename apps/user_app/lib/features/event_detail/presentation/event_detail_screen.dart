@@ -11,7 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import '../../../core/router/app_router.dart';
-import '../../auth/presentation/auth_sheet.dart';
+import '../../auth/presentation/split_auth_screen.dart';
 import '../../discovery/presentation/cinema_theme.dart';
 import '../../watchlist/application/watchlist_controller.dart';
 

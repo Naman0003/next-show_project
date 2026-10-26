@@ -197,15 +197,14 @@ class EventBuilder {
     return Event(
       id: id,
       title: title,
+      subtitle: genre,
+      description: title,
       category: category,
-      genre: genre,
       imageUrl: imageUrl,
-      rating: rating,
-      imdbRating: imdbRating,
-      date: date,
-      venue: venue,
-      price: basePrice,
-      cinemas: cinemas,
+      startDate: DateTime.now(),
+      venueName: venue,
+      city: 'Berlin',
+      organizer: 'Next Show',
     );
   }
 }

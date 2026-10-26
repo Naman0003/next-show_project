@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../services/auth_service.dart';
-import '../../auth/presentation/auth_sheet.dart';
+import '../../auth/presentation/split_auth_screen.dart';
 import '../../discovery/presentation/cinema_theme.dart';
 import '../../discovery/presentation/movie_poster_card.dart';
 import '../application/recently_viewed_provider.dart';

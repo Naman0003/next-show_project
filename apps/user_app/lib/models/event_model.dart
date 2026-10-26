@@ -1,80 +1,99 @@
-// lib/models/event_model.dart
+import 'package:flutter/material.dart';
+import '../core/theme/app_colors.dart';
 
-enum EventCategory { movies, comedy, music, theatre }
+enum EventCategory {
+  all('All', Icons.grid_view_rounded, AppColors.royalBlue),
+  music('Music', Icons.music_note_rounded, AppColors.accentPink),
+  sports('Sports', Icons.sports_basketball_rounded, AppColors.accentOrange),
+  film('Film', Icons.movie_rounded, AppColors.accentCyan),
+  education('Education', Icons.school_rounded, AppColors.accentTeal),
+  art('Art', Icons.palette_rounded, AppColors.accentPurple),
+  food('Food', Icons.restaurant_rounded, AppColors.accentYellow),
+  nightlife('Nightlife', Icons.nightlife_rounded, AppColors.accentIndigo),
+  community('Community', Icons.groups_rounded, AppColors.accentTeal);
 
-class CastMember {
-  final String name;
-  final String role;
-  final String imageUrl;
+  final String label;
+  final IconData icon;
+  final Color accentColor;
 
-  CastMember({required this.name, required this.role, required this.imageUrl});
-}
+  const EventCategory(this.label, this.icon, this.accentColor);
 
-class ShowFormatOption {
-  final String language;
-  final List<String> formats;
-
-  ShowFormatOption({required this.language, required this.formats});
-}
-
-class ShowTime {
-  final String id;
-  final String time;
-  final String format;
-  final double price;
-  final String bookingUrl;
-
-  ShowTime({
-    required this.id,
-    required this.time,
-    required this.format,
-    required this.price,
-    required this.bookingUrl,
-  });
-}
-
-class CinemaHall {
-  final String cinemaName;
-  final String distance;
-  final List<ShowTime> showtimes;
-
-  CinemaHall({
-    required this.cinemaName,
-    required this.distance,
-    required this.showtimes,
-  });
+  // Legacy compatibility enum constants
+  static EventCategory get movies => film;
+  static EventCategory get comedy => nightlife;
+  static EventCategory get theatre => art;
 }
 
 class Event {
   final String id;
   final String title;
+  final String subtitle;
+  final String description;
   final EventCategory category;
-  final String genre;
   final String imageUrl;
-  final double rating;
-  final String imdbRating;
-  final String date;
-  final String venue;
-  final double price;
-  bool isFavorite;
-  final List<CastMember>? cast;
-  final List<ShowFormatOption>? formatOptions;
-  final List<CinemaHall>? cinemas;
+  final DateTime startDate;
+  final String venueName;
+  final String city;
+  final bool isFree;
+  final String organizer;
+  final bool isSaved;
+  final bool isTrending;
 
-  Event({
+  const Event({
     required this.id,
     required this.title,
+    required this.subtitle,
+    required this.description,
     required this.category,
-    required this.genre,
     required this.imageUrl,
-    required this.rating,
-    required this.imdbRating,
-    required this.date,
-    required this.venue,
-    required this.price,
-    this.isFavorite = false,
-    this.cast,
-    this.formatOptions,
-    this.cinemas,
+    required this.startDate,
+    required this.venueName,
+    required this.city,
+    this.isFree = true,
+    required this.organizer,
+    this.isSaved = false,
+    this.isTrending = false,
   });
+
+  // Legacy compatibility getters
+  String get genre => category.name.toUpperCase();
+  String get date => 'Showing Today';
+  String get venue => venueName;
+  double get price => 0.0;
+  double get rating => 8.5;
+  String get imdbRating => 'Free Event';
+  List<String> get cast => const [];
+  List<dynamic> get cinemas => const [];
+
+  Event copyWith({
+    String? id,
+    String? title,
+    String? subtitle,
+    String? description,
+    EventCategory? category,
+    String? imageUrl,
+    DateTime? startDate,
+    String? venueName,
+    String? city,
+    bool? isFree,
+    String? organizer,
+    bool? isSaved,
+    bool? isTrending,
+  }) {
+    return Event(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      subtitle: subtitle ?? this.subtitle,
+      description: description ?? this.description,
+      category: category ?? this.category,
+      imageUrl: imageUrl ?? this.imageUrl,
+      startDate: startDate ?? this.startDate,
+      venueName: venueName ?? this.venueName,
+      city: city ?? this.city,
+      isFree: isFree ?? this.isFree,
+      organizer: organizer ?? this.organizer,
+      isSaved: isSaved ?? this.isSaved,
+      isTrending: isTrending ?? this.isTrending,
+    );
+  }
 }

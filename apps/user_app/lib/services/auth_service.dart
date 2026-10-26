@@ -29,15 +29,18 @@ class AuthService {
     return _client.auth.signInWithPassword(email: email, password: password);
   }
 
-  /// Creates an account from an email + password pair. Throws [AuthException]
-  /// on failure. When "Confirm email" is on for the project, the returned
-  /// [AuthResponse.session] is null until the user clicks the confirmation
-  /// link — callers should check for that rather than assume a live session.
+  /// Creates an account from an email + password pair. Optional [data] is
+  /// stored on the user's `user_metadata` (e.g. `{'username': ...}`). Throws
+  /// [AuthException] on failure. When "Confirm email" is on for the project,
+  /// the returned [AuthResponse.session] is null until the user clicks the
+  /// confirmation link — callers should check for that rather than assume a
+  /// live session.
   static Future<AuthResponse> signUpWithPassword({
     required String email,
     required String password,
+    Map<String, dynamic>? data,
   }) {
-    return _client.auth.signUp(email: email, password: password);
+    return _client.auth.signUp(email: email, password: password, data: data);
   }
 
   static Future<void> signOut() {
