@@ -101,16 +101,16 @@ class Event {
 
   static core.EventCategory _mapToCoreCategory(EventCategory cat) {
     switch (cat) {
-      case EventCategory.music:
+      case EventCategory.concerts:
+      case EventCategory.festivals:
         return core.EventCategory.music;
       case EventCategory.film:
         return core.EventCategory.movie;
-      case EventCategory.art:
+      case EventCategory.exhibitions:
         return core.EventCategory.theatre;
       case EventCategory.nightlife:
         return core.EventCategory.comedy;
       case EventCategory.sports:
-      case EventCategory.education:
       case EventCategory.food:
       case EventCategory.community:
       case EventCategory.all:
@@ -122,7 +122,7 @@ class Event {
     switch (cat) {
       case EventCategory.film:
         return core.VenueType.cinema;
-      case EventCategory.art:
+      case EventCategory.exhibitions:
         return core.VenueType.theatre;
       default:
         return core.VenueType.club;

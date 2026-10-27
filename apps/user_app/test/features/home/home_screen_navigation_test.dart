@@ -9,7 +9,6 @@ void main() {
       final event = Event(
         id: 'evt-test-1',
         title: 'Ariana Grande Live',
-        subtitle: 'Sweetener World Tour Encore',
         description: 'An unforgettable night with Ariana in Berlin.',
         category: EventCategory.music,
         imageUrl: 'https://example.com/poster.jpg',
@@ -30,7 +29,7 @@ void main() {
       expect(listing.venueType, core.VenueType.club);
       expect(listing.latitude, 52.5200);
       expect(listing.longitude, 13.4050);
-      expect(listing.showtimeAttributes['tagline'], 'Sweetener World Tour Encore');
+      expect(listing.showtimeAttributes['tagline'], 'An unforgettable night with Ariana in Berlin.');
       expect(listing.eventMetadata['organizer'], 'Live Nation');
     });
 
@@ -38,7 +37,6 @@ void main() {
       final munichEvent = Event(
         id: 'evt-munich',
         title: 'Munich Film Gala',
-        subtitle: 'Indie Cinema Festival',
         description: 'Screening of top indie films in Bavaria.',
         category: EventCategory.film,
         imageUrl: 'https://example.com/film.jpg',

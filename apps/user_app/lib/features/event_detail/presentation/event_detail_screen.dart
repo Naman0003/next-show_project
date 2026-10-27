@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:core_models/core_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -10,12 +11,14 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/router/app_router.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../../widgets/tap_scale_container.dart';
 import '../../auth/presentation/split_auth_screen.dart';
-import '../../discovery/presentation/theme/cinema_tokens.dart';
 import '../../watchlist/application/watchlist_controller.dart';
 
-/// Redesigned Live Event Details Screen adhering to the blueprint in details.png
-/// and the app's "Marquee After Dark" dark aesthetic.
+/// Live Event Details Screen styled with the Home Screen's clean light UI kit
+/// (AppColors.lightCanvas, surfaceWhite, darkPrimary) and conforming to details.png blueprint.
 class EventDetailScreen extends ConsumerStatefulWidget {
   const EventDetailScreen({super.key, required this.listing});
 
@@ -36,7 +39,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
         .any((l) => l.showtimeId == listing.showtimeId);
 
     return Scaffold(
-      backgroundColor: NsxColors.ground,
+      backgroundColor: AppColors.lightCanvas,
       body: Stack(
         children: [
           // Scrollable content area
@@ -50,9 +53,13 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   onSave: () async {
                     final signedIn = await ensureSignedIn(context);
                     if (!signedIn || !mounted) return;
-                    await ref
-                        .read(watchlistControllerProvider.notifier)
-                        .add(listing);
+                    final controller =
+                        ref.read(watchlistControllerProvider.notifier);
+                    if (isSaved) {
+                      await controller.remove(listing.showtimeId);
+                    } else {
+                      await controller.add(listing);
+                    }
                   },
                   onShare: () => Share.share(
                     'Check out ${listing.eventTitle} at ${listing.venueName} on NextShow: ${listing.bookingUrl}',
@@ -64,19 +71,15 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
               // Content Sheet
               SliverToBoxAdapter(
                 child: Transform.translate(
-                  offset: const Offset(0, -16),
+                  offset: const Offset(0, -18),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: NsxColors.ground,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                      border: Border.all(color: NsxColors.hairline.withValues(alpha: 0.5)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.5),
-                          blurRadius: 16,
-                          offset: const Offset(0, -6),
-                        ),
-                      ],
+                      color: AppColors.surfaceWhite,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(AppTokens.radiusCard),
+                      ),
+                      border: Border.all(color: AppColors.borderLight, width: 1),
+                      boxShadow: AppTokens.cardShadow,
                     ),
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
                     child: Column(
@@ -85,11 +88,11 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                         // Subtle sheet drag handle
                         Center(
                           child: Container(
-                            width: 36,
+                            width: 38,
                             height: 4,
-                            margin: const EdgeInsets.only(bottom: 22),
+                            margin: const EdgeInsets.only(bottom: 20),
                             decoration: BoxDecoration(
-                              color: NsxColors.muted.withValues(alpha: 0.35),
+                              color: AppColors.borderLight,
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ),
@@ -103,11 +106,10 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                         Text(
                           listing.eventTitle,
                           style: const TextStyle(
-                            fontFamily: NsxFonts.display,
                             fontSize: 26,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w900,
                             letterSpacing: -0.5,
-                            color: NsxColors.bone,
+                            color: AppColors.textPrimary,
                             height: 1.15,
                           ),
                         ),
@@ -118,10 +120,9 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           Text(
                             listing.showtimeAttributes['tagline'].toString(),
                             style: const TextStyle(
-                              fontFamily: NsxFonts.display,
                               fontSize: 14,
-                              fontStyle: FontStyle.italic,
-                              color: NsxColors.muted,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ],
@@ -145,7 +146,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           },
                         ),
 
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 26),
 
                         // Venue info & Map section
                         _VenueMapSection(listing: listing),
@@ -200,14 +201,21 @@ class _HeroBanner extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Hero Poster Image
-          Image.network(
-            imageUrl,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(
-              color: NsxColors.surface,
-              child: const Center(
-                child: Icon(Icons.music_note, color: NsxColors.muted, size: 56),
+          // Hero Poster Image with matching Hero tag
+          Hero(
+            tag: 'event-img-${listing.eventId}',
+            child: Image.network(
+              imageUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                color: AppColors.surfaceSecondary,
+                child: const Center(
+                  child: Icon(
+                    Icons.music_note,
+                    color: AppColors.textMuted,
+                    size: 56,
+                  ),
+                ),
               ),
             ),
           ),
@@ -224,8 +232,8 @@ class _HeroBanner extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withValues(alpha: 0.7),
-                    Colors.black.withValues(alpha: 0.0),
+                    Colors.black.withValues(alpha: 0.65),
+                    Colors.transparent,
                   ],
                 ),
               ),
@@ -245,7 +253,7 @@ class _HeroBanner extends StatelessWidget {
                   end: Alignment.bottomCenter,
                   colors: [
                     Colors.transparent,
-                    Colors.black.withValues(alpha: 0.6),
+                    Colors.black.withValues(alpha: 0.4),
                   ],
                 ),
               ),
@@ -264,7 +272,7 @@ class _HeroBanner extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Back button (matching details.png)
+                    // Back button (matching details.png & home screen theme)
                     _CircularFrostedButton(
                       icon: Icons.arrow_back_ios_new_rounded,
                       onTap: () => Navigator.of(context).maybePop(),
@@ -275,8 +283,16 @@ class _HeroBanner extends StatelessWidget {
                     Row(
                       children: [
                         _CircularFrostedButton(
-                          icon: isSaved ? Icons.bookmark : Icons.bookmark_border_rounded,
-                          iconColor: isSaved ? NsxColors.accent : NsxColors.bone,
+                          icon: isSaved
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
+                          iconColor: isSaved ? AppColors.heartRed : Colors.white,
+                          backgroundColor: isSaved
+                              ? AppColors.heartRed.withValues(alpha: 0.2)
+                              : Colors.black.withValues(alpha: 0.35),
+                          borderColor: isSaved
+                              ? AppColors.heartRed
+                              : Colors.white.withValues(alpha: 0.4),
                           onTap: onSave,
                           semanticLabel: isSaved ? 'Saved' : 'Save to Watchlist',
                         ),
@@ -303,13 +319,17 @@ class _CircularFrostedButton extends StatelessWidget {
   const _CircularFrostedButton({
     required this.icon,
     required this.onTap,
-    this.iconColor = NsxColors.bone,
+    this.iconColor = Colors.white,
+    this.backgroundColor,
+    this.borderColor,
     this.semanticLabel,
   });
 
   final IconData icon;
   final VoidCallback onTap;
   final Color iconColor;
+  final Color? backgroundColor;
+  final Color? borderColor;
   final String? semanticLabel;
 
   @override
@@ -317,20 +337,24 @@ class _CircularFrostedButton extends StatelessWidget {
     return Semantics(
       label: semanticLabel,
       button: true,
-      child: ClipOval(
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Material(
-            color: Colors.black.withValues(alpha: 0.38),
-            shape: CircleBorder(
-              side: BorderSide(color: Colors.white.withValues(alpha: 0.2), width: 1),
-            ),
-            child: InkWell(
-              onTap: onTap,
-              customBorder: const CircleBorder(),
-              child: SizedBox(
-                width: 42,
-                height: 42,
+      child: TapScaleContainer(
+        onTap: onTap,
+        scaleDown: 0.85,
+        child: ClipOval(
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: backgroundColor ?? Colors.black.withValues(alpha: 0.35),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: borderColor ?? Colors.white.withValues(alpha: 0.4),
+                  width: 1,
+                ),
+              ),
+              child: Center(
                 child: Icon(icon, color: iconColor, size: 20),
               ),
             ),
@@ -355,15 +379,16 @@ class _EventBadgesRow extends StatelessWidget {
     final genre = listing.showtimeAttributes['genre'] as String?;
     final rating = listing.showtimeAttributes['imdb_rating'] as num?;
     final ageRating = listing.eventMetadata['age_rating'] as String? ?? '18+';
+    final isFree = listing.price == null || listing.price == 0;
 
     return Wrap(
       spacing: 8,
       runSpacing: 6,
       children: [
-        // Category pill
+        // Category pill (Dark Primary - bold signature)
         _TagBadge(
           label: listing.category.name.toUpperCase(),
-          accent: true,
+          isPrimary: true,
         ),
 
         // Genre pill if available
@@ -376,11 +401,20 @@ class _EventBadgesRow extends StatelessWidget {
         // Age restriction pill
         _TagBadge(label: ageRating),
 
+        // Free chip if free
+        if (isFree)
+          _TagBadge(
+            label: 'FREE',
+            textColor: AppColors.neonGreen,
+            backgroundColor: AppColors.neonGreen.withValues(alpha: 0.12),
+            borderColor: AppColors.neonGreen.withValues(alpha: 0.35),
+          ),
+
         // Live Rating badge if available
         if (rating != null)
           _TagBadge(
             icon: Icons.star_rounded,
-            iconColor: NsxColors.accent,
+            iconColor: const Color(0xFFF59E0B),
             label: rating.toStringAsFixed(1),
           ),
       ],
@@ -393,41 +427,50 @@ class _TagBadge extends StatelessWidget {
     required this.label,
     this.icon,
     this.iconColor,
-    this.accent = false,
+    this.isPrimary = false,
+    this.textColor,
+    this.backgroundColor,
+    this.borderColor,
   });
 
   final String label;
   final IconData? icon;
   final Color? iconColor;
-  final bool accent;
+  final bool isPrimary;
+  final Color? textColor;
+  final Color? backgroundColor;
+  final Color? borderColor;
 
   @override
   Widget build(BuildContext context) {
+    final bgColor = backgroundColor ??
+        (isPrimary ? AppColors.darkPrimary : AppColors.surfaceSecondary);
+    final fgColor = textColor ??
+        (isPrimary ? Colors.white : AppColors.textPrimary);
+    final bdrColor = borderColor ??
+        (isPrimary ? Colors.transparent : AppColors.borderLight);
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: accent ? NsxColors.accent.withValues(alpha: 0.14) : NsxColors.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: accent ? NsxColors.accent.withValues(alpha: 0.5) : NsxColors.hairline,
-          width: 1,
-        ),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(AppTokens.radiusPill),
+        border: Border.all(color: bdrColor, width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 14, color: iconColor ?? NsxColors.bone),
+            Icon(icon, size: 14, color: iconColor ?? fgColor),
             const SizedBox(width: 4),
           ],
           Text(
             label,
             style: TextStyle(
-              fontFamily: NsxFonts.mono,
               fontSize: 11,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.5,
-              color: accent ? NsxColors.accent : NsxColors.bone,
+              fontWeight: isPrimary ? FontWeight.w900 : FontWeight.w700,
+              letterSpacing: isPrimary ? 0.6 : 0.2,
+              color: fgColor,
             ),
           ),
         ],
@@ -449,7 +492,7 @@ class _ScheduleMetaRow extends StatelessWidget {
   Widget build(BuildContext context) {
     // Date formatting: e.g. "12 October, 7pm"
     final dateStr = DateFormat('d MMMM, ha').format(listing.startTime).toLowerCase();
-    
+
     // Showtime / end time / duration formatting: e.g. "7:30pm" or "180 min"
     String timeOrDuration;
     if (listing.durationMinutes != null && listing.durationMinutes! > 0) {
@@ -461,17 +504,16 @@ class _ScheduleMetaRow extends StatelessWidget {
     } else if (listing.endTime != null) {
       timeOrDuration = DateFormat('ha').format(listing.endTime!).toLowerCase();
     } else {
-      // Default live show start offset or fallback
       final showTime = listing.startTime.add(const Duration(minutes: 30));
       timeOrDuration = DateFormat('h:mma').format(showTime).toLowerCase();
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: NsxColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: NsxColors.hairline),
+        color: AppColors.surfaceSecondary,
+        borderRadius: BorderRadius.circular(AppTokens.radiusButton),
+        border: Border.all(color: AppColors.borderLight),
       ),
       child: Row(
         children: [
@@ -479,22 +521,45 @@ class _ScheduleMetaRow extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
-                const Icon(
-                  Icons.calendar_today_outlined,
-                  size: 18,
-                  color: NsxColors.accent,
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceWhite,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.borderLight),
+                  ),
+                  child: const Icon(
+                    Icons.calendar_today_rounded,
+                    size: 15,
+                    color: AppColors.darkPrimary,
+                  ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 Flexible(
-                  child: Text(
-                    dateStr,
-                    style: const TextStyle(
-                      fontFamily: NsxFonts.mono,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: NsxColors.bone,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'DOORS OPEN',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textMuted,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        dateStr,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -502,9 +567,9 @@ class _ScheduleMetaRow extends StatelessWidget {
           ),
 
           Container(
-            height: 20,
+            height: 28,
             width: 1,
-            color: NsxColors.hairline,
+            color: AppColors.borderLight,
             margin: const EdgeInsets.symmetric(horizontal: 10),
           ),
 
@@ -512,22 +577,45 @@ class _ScheduleMetaRow extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
-                const Icon(
-                  Icons.access_time_rounded,
-                  size: 18,
-                  color: NsxColors.accent,
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceWhite,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.borderLight),
+                  ),
+                  child: const Icon(
+                    Icons.access_time_rounded,
+                    size: 15,
+                    color: AppColors.darkPrimary,
+                  ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 Flexible(
-                  child: Text(
-                    timeOrDuration,
-                    style: const TextStyle(
-                      fontFamily: NsxFonts.mono,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: NsxColors.bone,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'SHOWTIME',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textMuted,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        timeOrDuration,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -559,25 +647,32 @@ class _ExpandableDescription extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const Text(
+          'About Event',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
         AnimatedCrossFade(
           firstChild: Text(
             description,
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontFamily: NsxFonts.display,
-              fontSize: 15,
-              height: 1.5,
-              color: NsxColors.muted,
+              fontSize: 14,
+              height: 1.55,
+              color: AppColors.textSecondary,
             ),
           ),
           secondChild: Text(
             description,
             style: const TextStyle(
-              fontFamily: NsxFonts.display,
-              fontSize: 15,
-              height: 1.5,
-              color: NsxColors.muted,
+              fontSize: 14,
+              height: 1.55,
+              color: AppColors.textSecondary,
             ),
           ),
           crossFadeState: isExpanded
@@ -595,17 +690,18 @@ class _ExpandableDescription extends StatelessWidget {
               Text(
                 isExpanded ? 'Read Less' : 'Read More',
                 style: const TextStyle(
-                  fontFamily: NsxFonts.display,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: NsxColors.bone,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.darkPrimary,
                 ),
               ),
               const SizedBox(width: 4),
               Icon(
-                isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                isExpanded
+                    ? Icons.keyboard_arrow_up_rounded
+                    : Icons.keyboard_arrow_down_rounded,
                 size: 18,
-                color: NsxColors.bone,
+                color: AppColors.darkPrimary,
               ),
             ],
           ),
@@ -651,10 +747,9 @@ class _VenueMapSection extends StatelessWidget {
                   Text(
                     listing.venueName,
                     style: const TextStyle(
-                      fontFamily: NsxFonts.display,
                       fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: NsxColors.bone,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   if (listing.venueAddress != null) ...[
@@ -662,9 +757,8 @@ class _VenueMapSection extends StatelessWidget {
                     Text(
                       listing.venueAddress!,
                       style: const TextStyle(
-                        fontFamily: NsxFonts.mono,
-                        fontSize: 12,
-                        color: NsxColors.muted,
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -673,22 +767,30 @@ class _VenueMapSection extends StatelessWidget {
                 ],
               ),
             ),
-            InkWell(
+            TapScaleContainer(
               onTap: _launchDirections,
-              borderRadius: BorderRadius.circular(8),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                child: Row(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceSecondary,
+                  borderRadius: BorderRadius.circular(AppTokens.radiusPill),
+                  border: Border.all(color: AppColors.borderLight),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.directions_outlined, size: 16, color: NsxColors.accent),
+                    Icon(
+                      Icons.directions_rounded,
+                      size: 15,
+                      color: AppColors.darkPrimary,
+                    ),
                     SizedBox(width: 4),
                     Text(
                       'Directions',
                       style: TextStyle(
-                        fontFamily: NsxFonts.mono,
                         fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: NsxColors.accent,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.darkPrimary,
                       ),
                     ),
                   ],
@@ -702,12 +804,12 @@ class _VenueMapSection extends StatelessWidget {
 
         // Mini Map Card (matching details.png)
         ClipRRect(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(20),
           child: Container(
             height: 160,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: NsxColors.hairline),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.borderLight),
             ),
             child: Stack(
               children: [
@@ -728,25 +830,19 @@ class _VenueMapSection extends StatelessWidget {
                       markers: [
                         Marker(
                           point: point,
-                          width: 44,
-                          height: 44,
+                          width: 42,
+                          height: 42,
                           child: Container(
                             decoration: BoxDecoration(
-                              color: NsxColors.ground,
+                              color: AppColors.darkPrimary,
                               shape: BoxShape.circle,
-                              border: Border.all(color: NsxColors.accent, width: 2),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.4),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
+                              border: Border.all(color: Colors.white, width: 2),
+                              boxShadow: AppTokens.cardShadow,
                             ),
                             child: const Center(
                               child: Icon(
-                                Icons.music_note,
-                                color: NsxColors.accent,
+                                Icons.location_on_rounded,
+                                color: Colors.white,
                                 size: 20,
                               ),
                             ),
@@ -763,7 +859,7 @@ class _VenueMapSection extends StatelessWidget {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: _launchDirections,
-                      splashColor: Colors.white10,
+                      splashColor: Colors.black12,
                     ),
                   ),
                 ),
@@ -777,7 +873,7 @@ class _VenueMapSection extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STICKY BOTTOM ACTION BAR (MATCHING DETAILS.PNG)
+// STICKY BOTTOM ACTION BAR (MATCHING DETAILS.PNG & HOME SCREEN UI KIT)
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _BottomActionBar extends StatelessWidget {
@@ -788,8 +884,9 @@ class _BottomActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Format price: e.g. "$1,250" or "$11" or "Free"
+    final bool isFree = listing.price == null || listing.price == 0;
     final String formattedPrice;
-    if (listing.price != null && listing.price! > 0) {
+    if (!isFree) {
       final formatter = NumberFormat.currency(
         symbol: '\$',
         decimalDigits: listing.price! % 1 == 0 ? 0 : 2,
@@ -804,16 +901,16 @@ class _BottomActionBar extends StatelessWidget {
         filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
         child: Container(
           decoration: BoxDecoration(
-            color: NsxColors.ground.withValues(alpha: 0.92),
-            border: Border(
-              top: BorderSide(color: NsxColors.hairline.withValues(alpha: 0.8), width: 1),
+            color: AppColors.surfaceWhite.withValues(alpha: 0.96),
+            border: const Border(
+              top: BorderSide(color: AppColors.borderLight, width: 1),
             ),
           ),
           padding: EdgeInsets.fromLTRB(
             20,
-            14,
+            12,
             20,
-            14 + MediaQuery.of(context).padding.bottom,
+            12 + MediaQuery.of(context).padding.bottom,
           ),
           child: Row(
             children: [
@@ -825,21 +922,20 @@ class _BottomActionBar extends StatelessWidget {
                   const Text(
                     'From',
                     style: TextStyle(
-                      fontFamily: NsxFonts.mono,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: NsxColors.muted,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textSecondary,
+                      letterSpacing: 0.5,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     formattedPrice,
-                    style: const TextStyle(
-                      fontFamily: NsxFonts.display,
+                    style: TextStyle(
                       fontSize: 24,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w900,
                       letterSpacing: -0.5,
-                      color: NsxColors.bone,
+                      color: isFree ? AppColors.neonGreen : AppColors.textPrimary,
                     ),
                   ),
                 ],
@@ -871,63 +967,54 @@ class _BuyTicketPillButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(36),
-        child: Ink(
-          decoration: BoxDecoration(
-            color: NsxColors.accent,
-            borderRadius: BorderRadius.circular(36),
-            boxShadow: [
-              BoxShadow(
-                color: NsxColors.accent.withValues(alpha: 0.35),
-                blurRadius: 14,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SizedBox(width: 8),
-
-                // Button label
-                Text(
-                  'Buy a ticket',
-                  style: TextStyle(
-                    fontFamily: NsxFonts.display,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.2,
-                    color: NsxColors.accentInk,
-                  ),
-                ),
-
-                // Embedded circular ticket badge (matching details.png)
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: NsxColors.accentInk,
-                    shape: BoxShape.circle,
-                  ),
-                  child: SizedBox(
-                    width: 38,
-                    height: 38,
-                    child: Center(
-                      child: Icon(
-                        Icons.confirmation_number_outlined,
-                        size: 20,
-                        color: NsxColors.accent,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+    return TapScaleContainer(
+      onTap: onTap,
+      scaleDown: 0.96,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.darkPrimary,
+          borderRadius: BorderRadius.circular(AppTokens.radiusPill),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.darkPrimary.withValues(alpha: 0.25),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
             ),
-          ),
+          ],
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const SizedBox(width: 4),
+
+            // Button label
+            const Text(
+              'Buy a ticket',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
+            ),
+
+            // Embedded circular ticket badge (matching details.png)
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.18),
+                shape: BoxShape.circle,
+              ),
+              child: const Center(
+                child: Icon(
+                  Icons.confirmation_number_outlined,
+                  size: 20,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
