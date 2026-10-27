@@ -11,7 +11,7 @@ class TapScaleContainer extends StatefulWidget {
     super.key,
     required this.child,
     this.onTap,
-    this.scaleDown = 0.95,
+    this.scaleDown = 0.94,
     this.duration = const Duration(milliseconds: 120),
   });
 

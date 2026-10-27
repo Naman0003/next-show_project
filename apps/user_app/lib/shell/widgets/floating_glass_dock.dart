@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Icons, Colors;
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -128,6 +129,7 @@ class _FloatingGlassDockState extends State<FloatingGlassDock>
         padding: const EdgeInsets.fromLTRB(
             NsxSpace.gutter, 0, NsxSpace.gutter, NsxSpace.x4),
         child: GlassSurface(
+          fillColor: const Color(0x40FFFFFF),
           blurSigma: 22,
           padding: const EdgeInsets.symmetric(horizontal: _hPad, vertical: 8),
           shadow: const [
@@ -178,7 +180,7 @@ class _FloatingGlassDockState extends State<FloatingGlassDock>
                               width: _blobSize + stretch,
                               height: _blobSize,
                               decoration: BoxDecoration(
-                                color: NsxColors.accent,
+                                color: Colors.white,
                                 borderRadius:
                                     BorderRadius.circular(_blobSize / 2),
                               ),
@@ -237,8 +239,8 @@ class _DockIcon extends StatelessWidget {
             on > 0.5 ? dest.active : dest.icon,
             size: 22,
             color: Color.lerp(
-              NsxColors.bone.withOpacity(0.72),
-              NsxColors.accentInk,
+              Colors.white,
+              const Color(0xFF111111),
               Curves.easeIn.transform(on),
             ),
           ),

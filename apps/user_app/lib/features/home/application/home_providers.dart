@@ -10,10 +10,12 @@ final selectedCityProvider = StateProvider<String>((ref) => 'Berlin');
 
 final selectedCategoryProvider = StateProvider<EventCategory>((ref) => EventCategory.all);
 
+final selectedDateProvider = StateProvider<DateTime?>((ref) => null);
+
 final searchQueryProvider = StateProvider<String>((ref) => '');
 
 class SavedEventsNotifier extends StateNotifier<Set<String>> {
-  SavedEventsNotifier() : super({'evt-1', 'evt-6'}); // Seed initial saved items for demo
+  SavedEventsNotifier() : super({'evt-1', 'evt-3'}); // Pre-saved items for demo
 
   void toggleSave(String eventId) {
     if (state.contains(eventId)) {
@@ -39,28 +41,26 @@ final filteredEventsProvider = Provider<AsyncValue<List<Event>>>((ref) {
   final allEventsAsync = ref.watch(allEventsProvider);
   final city = ref.watch(selectedCityProvider);
   final category = ref.watch(selectedCategoryProvider);
+  final selectedDate = ref.watch(selectedDateProvider);
   final query = ref.watch(searchQueryProvider).trim().toLowerCase();
-  final savedSet = ref.watch(savedEventsProvider);
 
   return allEventsAsync.whenData((events) {
-    return events.map((e) => e.copyWith(isSaved: savedSet.contains(e.id))).where((event) {
+    return events.where((event) {
       final matchesCity = city == 'All Cities' || event.city.toLowerCase() == city.toLowerCase();
       final matchesCategory = category == EventCategory.all || event.category == category;
       final matchesQuery = query.isEmpty ||
           event.title.toLowerCase().contains(query) ||
-          event.subtitle.toLowerCase().contains(query) ||
           event.venueName.toLowerCase().contains(query) ||
           event.city.toLowerCase().contains(query);
 
-      return matchesCity && matchesCategory && matchesQuery;
-    }).toList();
-  });
-});
+      bool matchesDate = true;
+      if (selectedDate != null) {
+        matchesDate = event.startDate.year == selectedDate.year &&
+            event.startDate.month == selectedDate.month &&
+            event.startDate.day == selectedDate.day;
+      }
 
-final trendingEventsProvider = Provider<AsyncValue<List<Event>>>((ref) {
-  final filteredAsync = ref.watch(filteredEventsProvider);
-  return filteredAsync.whenData((events) {
-    final trending = events.where((e) => e.isTrending).toList();
-    return trending.isNotEmpty ? trending : events;
+      return matchesCity && matchesCategory && matchesQuery && matchesDate;
+    }).toList();
   });
 });

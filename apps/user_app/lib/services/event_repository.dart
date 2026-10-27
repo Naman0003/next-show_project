@@ -197,7 +197,6 @@ class EventBuilder {
     return Event(
       id: id,
       title: title,
-      subtitle: genre,
       description: title,
       category: category,
       imageUrl: imageUrl,
