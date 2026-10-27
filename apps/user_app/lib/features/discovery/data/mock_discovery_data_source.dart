@@ -25,6 +25,32 @@ class MockDiscoveryDataSource {
 
   List<Listing> _all() => [
         buildMockListing(
+          showtimeId: 'demo-showtime-ariana',
+          startTime: DateTime.now().add(const Duration(hours: 4)),
+          price: 1250.0,
+          showtimeAttributes: const {
+            'language': 'EN',
+            'format': 'Live Concert',
+            'genre': 'Pop',
+            'imdb_rating': 9.5,
+            'tagline': 'A spectacular live concert experience.',
+          },
+          bookingUrl: 'https://example.com/book/one-night-with-ariana',
+          eventId: 'demo-event-ariana',
+          category: EventCategory.music,
+          venueType: VenueType.club,
+          eventTitle: 'One Night with Ariana',
+          eventDescription:
+              'Ariana Grande brings her dazzling energy and iconic vocals to the stage in a spectacular live performance. Expect a night filled with chart-topping hits, breathtaking choreography, and a production that lights up the Accor Arena like never before.',
+          durationMinutes: 150,
+          venueId: 'demo-venue-accor',
+          venueName: 'Accor Arena',
+          venueAddress: 'Karl-Marx-Allee 33, Berlin',
+          longitude: 13.4235,
+          latitude: 52.5155,
+          imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1000',
+        ),
+        buildMockListing(
           showtimeId: 'demo-showtime-1',
           startTime: DateTime.now().add(const Duration(hours: 6)),
           price: 11.0,

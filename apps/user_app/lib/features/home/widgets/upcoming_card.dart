@@ -37,7 +37,7 @@ class UpcomingCard extends StatelessWidget {
               // Background Image with Gradient Overlay
               Positioned.fill(
                 child: Hero(
-                  tag: 'event-img-${event.id}',
+                  tag: 'upcoming-event-img-${event.id}',
                   child: CachedNetworkImage(
                     imageUrl: event.imageUrl,
                     fit: BoxFit.cover,

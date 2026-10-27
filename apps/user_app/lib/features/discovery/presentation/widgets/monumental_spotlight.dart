@@ -117,6 +117,14 @@ class _MonumentalSpotlightState extends ConsumerState<MonumentalSpotlight>
               ),
             ),
           ),
+          // Full-bleed tap target → detail, kept below the buttons and caption.
+          Positioned.fill(
+            child: SpringTap(
+              pressedScale: 0.985,
+              onTap: () => EventDetailRoute($extra: current).push(context),
+              child: const SizedBox.expand(),
+            ),
+          ),
           Positioned(
             right: NsxSpace.gutter,
             top: NsxSpace.x3,
@@ -132,19 +140,14 @@ class _MonumentalSpotlightState extends ConsumerState<MonumentalSpotlight>
             left: NsxSpace.gutter,
             right: NsxSpace.gutter,
             bottom: NsxSpace.x5,
-            child: _Caption(
-              listing: current,
-              entrance: _entrance,
-              index: _index,
-              count: listings.length,
-            ),
-          ),
-          // Full-bleed tap target → detail, kept below the buttons above.
-          Positioned.fill(
-            child: SpringTap(
-              pressedScale: 0.985,
+            child: GestureDetector(
               onTap: () => EventDetailRoute($extra: current).push(context),
-              child: const SizedBox.expand(),
+              child: _Caption(
+                listing: current,
+                entrance: _entrance,
+                index: _index,
+                count: listings.length,
+              ),
             ),
           ),
         ],

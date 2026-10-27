@@ -41,7 +41,7 @@ class TrendingCard extends StatelessWidget {
                 // Full-bleed Image with Hero animation
                 Positioned.fill(
                   child: Hero(
-                    tag: 'event-img-${event.id}',
+                    tag: 'trending-event-img-${event.id}',
                     child: CachedNetworkImage(
                       imageUrl: event.imageUrl,
                       fit: BoxFit.cover,

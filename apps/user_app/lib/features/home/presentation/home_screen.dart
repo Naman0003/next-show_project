@@ -10,6 +10,7 @@ import '../../../widgets/tap_scale_container.dart';
 import '../application/home_providers.dart';
 import '../widgets/trending_card.dart';
 import '../widgets/upcoming_card.dart';
+import '../../../core/router/app_router.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -338,12 +339,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 event: event,
                                 isCenter: index == _activeTrendingIndex,
                                 onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Opening ${event.title}...'),
-                                      duration: const Duration(seconds: 1),
-                                    ),
-                                  );
+                                  EventDetailRoute($extra: event.toListing()).push(context);
                                 },
                                 onToggleSave: () {
                                   ref.read(savedEventsProvider.notifier).toggleSave(event.id);
@@ -426,12 +422,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               return UpcomingCard(
                                 event: event,
                                 onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Opening ${event.title}...'),
-                                      duration: const Duration(seconds: 1),
-                                    ),
-                                  );
+                                  EventDetailRoute($extra: event.toListing()).push(context);
                                 },
                                 onToggleSave: () {
                                   ref.read(savedEventsProvider.notifier).toggleSave(event.id);
