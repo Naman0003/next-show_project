@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import '../core/theme/app_colors.dart';
-import '../core/theme/glass_decorations.dart';
+import '../core/theme/app_tokens.dart';
 
 class ShimmerSkeletonLoader extends StatelessWidget {
   const ShimmerSkeletonLoader({super.key});
@@ -9,37 +9,19 @@ class ShimmerSkeletonLoader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-      baseColor: const Color(0x1F1E293B),
-      highlightColor: const Color(0x3DFFFFFF),
+      baseColor: const Color(0xFFE5E7EB),
+      highlightColor: const Color(0xFFF3F4F6),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Trending Carousel Skeleton
-          Container(
+        children: List.generate(3, (index) {
+          return Container(
             height: 280,
-            margin: const EdgeInsets.symmetric(vertical: 16),
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: 3,
-              itemBuilder: (context, index) {
-                return Container(
-                  width: 240,
-                  margin: const EdgeInsets.only(right: 16),
-                  decoration: GlassDecorations.card(borderRadius: 24),
-                );
-              },
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceWhite,
+              borderRadius: BorderRadius.circular(AppTokens.radiusCard),
             ),
-          ),
-          const SizedBox(height: 24),
-          // Upcoming List Skeletons
-          ...List.generate(3, (index) {
-            return Container(
-              height: 110,
-              margin: const EdgeInsets.only(bottom: 14),
-              decoration: GlassDecorations.card(borderRadius: 20),
-            );
-          }),
-        ],
+          );
+        }),
       ),
     );
   }

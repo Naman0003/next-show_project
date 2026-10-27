@@ -128,7 +128,8 @@
 | TMDB Dio failover (multi-host, errno 104 fix) | [x] | Failover from `api.themoviedb.org` → `api.tmdb.org` |
 | Remove `_fallbackCatalog` (show empty state instead) | [x] | Returns `NSEmptyState` widget when search yields no results |
 | OTP code length fix (8 digits instead of 6) | [x] | Updated auth screens to accept 8-digit Supabase OTP |
-| Auth sheet: Sign In / Sign Up mode toggle + email-password | [x] | `NSSegmentedToggle` in `ui_kit` + `AuthModeToggle` skin; `_EmailPhase` gains password/confirm fields, `AuthService.signInWithPassword`/`signUpWithPassword`; OTP kept as "email me a code instead" fallback. Needs Email-password provider enabled in Supabase. |
+| Auth: split-panel screen (replaces the dark auth sheet) | [x] | `features/auth/presentation/split_auth_screen.dart` — full-screen royal-blue split panel, curved divider, cover→swap→retract spring transition (ported from `apps/web` `AuthSwitch`). Email+password + Google via `AuthService`; OTP UI retired (methods kept). `ensureSignedIn` now pushes a fullscreen route. `auth_sheet.dart` + `AuthModeToggle` deleted; `NSSegmentedToggle` stays in `ui_kit`. Needs Email-password provider enabled in Supabase. |
+| ~~Auth sheet: Sign In / Sign Up mode toggle + email-password~~ | [x] | Superseded by the split-panel screen above. |
 | Home screen Upcoming Showtimes overflow fix | [x] | Bounded height + scroll on the showtimes box |
 | Quick Actions grid uniform tile sizes | [x] | `Add Venue`, `Create Event`, `New Showtime` equal-width tiles |
 | Showtime card shows movie title (not just time) | [x] | Prevents confusion when multiple movies share a schedule |

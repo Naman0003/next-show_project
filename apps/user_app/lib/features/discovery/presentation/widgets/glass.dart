@@ -19,6 +19,7 @@ class GlassSurface extends StatelessWidget {
     this.padding = EdgeInsets.zero,
     this.glow = true,
     this.shadow,
+    this.fillColor,
   });
 
   /// Fully rounded by default (pill). Pass a small value for a rect.
@@ -29,6 +30,7 @@ class GlassSurface extends StatelessWidget {
   /// The top-edge inner highlight. Turn off for tiny elements.
   final bool glow;
   final List<BoxShadow>? shadow;
+  final Color? fillColor;
   final Widget child;
 
   @override
@@ -43,7 +45,7 @@ class GlassSurface extends StatelessWidget {
           child: Container(
             padding: padding,
             decoration: BoxDecoration(
-              color: NsxColors.glassFill,
+              color: fillColor ?? NsxColors.glassFill,
               borderRadius: radius,
               border: Border.all(color: NsxColors.glassBorder, width: 1),
               gradient: glow
