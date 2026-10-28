@@ -12,6 +12,7 @@ import '../../features/search/presentation/search_screen.dart';
 import '../../features/seat_selection/presentation/seat_matrix_screen.dart';
 import '../../features/watchlist/presentation/watchlist_screen.dart';
 import '../../shell/app_shell.dart';
+import '../bootstrap.dart';
 
 part 'app_router.g.dart';
 
@@ -159,7 +160,7 @@ class SplashRoute extends GoRouteData {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const SplashScreen();
+      SplashScreen(from: state.uri.queryParameters['from']);
 }
 
 /// Lets the splash screen (and anything else) call `context.go('/')` and
@@ -176,4 +177,12 @@ class RootRedirectRoute extends GoRouteData {
 final GoRouter appRouter = GoRouter(
   routes: $appRoutes,
   initialLocation: '/splash',
+  // Screens read Supabase and Hive synchronously, so hold any other entry
+  // point (e.g. a web reload on /feed) on the splash until init is done,
+  // remembering where it was headed.
+  redirect: (context, state) {
+    if (isAppReady || state.matchedLocation == '/splash') return null;
+    return Uri(path: '/splash', queryParameters: {'from': state.uri.toString()})
+        .toString();
+  },
 );

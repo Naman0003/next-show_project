@@ -1,31 +1,16 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:intl/date_symbol_data_local.dart';
-import 'package:supabase_client/supabase_client.dart';
-import 'package:shared/api_keys.dart';
-import 'core/di/core_providers.dart';
+import 'core/bootstrap.dart';
 import 'core/router/app_router.dart';
 import 'theme/app_theme.dart';
 
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Run initializations concurrently to eliminate launch blocking
-  await Future.wait([
-    initializeDateFormatting('de_DE', null),
-    // Also registers the client for the shared NextShowSupabaseClient helpers
-    // (fetchActiveListings, functions.invoke), which throw if left uninitialized.
-    NextShowSupabaseClient.initialize(
-      url: ApiKeys.supabaseUrl,
-      anonKey: ApiKeys.supabaseAnonKey,
-    ),
-    Hive.initFlutter().then((_) => Future.wait([
-      Hive.openBox<Map>(HiveBoxNames.watchlist),
-      Hive.openBox<Map>(HiveBoxNames.listingCache),
-    ])),
-  ]);
+  // Don't block the first frame on initialisation: the splash paints right
+  // away and waits for this to finish before entering the app.
+  ensureAppReady();
 
   runApp(const ProviderScope(child: NextShowApp()));
 }
