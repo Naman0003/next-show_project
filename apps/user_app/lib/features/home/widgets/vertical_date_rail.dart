@@ -3,6 +3,7 @@ import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 
 class VerticalDateRail extends StatefulWidget {
   final DateTime selectedDate;
@@ -175,6 +176,7 @@ class _VerticalDateRailState extends State<VerticalDateRail>
           Expanded(
             child: SingleChildScrollView(
               controller: _scroll,
+              padding: EdgeInsets.only(bottom: AppTokens.dockClearance(context)),
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTapUp: _onTapUp,

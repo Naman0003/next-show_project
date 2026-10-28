@@ -376,7 +376,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                                   return ListView.builder(
                                     physics: const BouncingScrollPhysics(),
-                                    padding: const EdgeInsets.only(bottom: 110),
+                                    padding: EdgeInsets.only(bottom: AppTokens.dockClearance(context)),
                                     itemCount: eventsList.length,
                                     itemBuilder: (context, index) {
                                       final event = eventsList[index];

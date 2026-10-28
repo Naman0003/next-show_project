@@ -10,6 +10,7 @@ import 'widgets/glass.dart';
 import 'widgets/monumental_spotlight.dart';
 import 'widgets/now_showing_rail.dart';
 import 'widgets/spring_tap.dart';
+import '../../../core/theme/app_tokens.dart';
 import 'cinema_theme.dart' show CinemaWordmark;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -158,8 +159,8 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
             ),
             const SliverToBoxAdapter(child: SizedBox(height: NsxSpace.x7)),
             SliverToBoxAdapter(child: NowShowingRail(listings: nowShowing)),
-            const SliverToBoxAdapter(
-              child: SizedBox(height: NsxSpace.dockClearance),
+            SliverToBoxAdapter(
+              child: SizedBox(height: AppTokens.dockClearance(context)),
             ),
           ],
         ),

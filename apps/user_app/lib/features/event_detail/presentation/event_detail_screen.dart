@@ -81,7 +81,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       border: Border.all(color: AppColors.borderLight, width: 1),
                       boxShadow: AppTokens.cardShadow,
                     ),
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+                    padding: EdgeInsets.fromLTRB(20, 16, 20, 120 + MediaQuery.of(context).padding.bottom),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

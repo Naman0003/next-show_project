@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../services/auth_service.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../auth/presentation/split_auth_screen.dart';
 import '../../discovery/presentation/cinema_theme.dart';
 import '../../discovery/presentation/movie_poster_card.dart';
@@ -50,7 +51,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         title: Text('Profile', style: CinemaTextStyles.sectionHeader.copyWith(fontSize: 20)),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.fromLTRB(20, 20, 20, AppTokens.dockClearance(context)),
         children: [
           const _AccountSection(),
           const SizedBox(height: 24),

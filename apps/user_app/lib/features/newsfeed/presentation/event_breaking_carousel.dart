@@ -350,7 +350,7 @@ class _EventBreakingCarouselScreenState extends ConsumerState<EventBreakingCarou
             ),
 
             // Keep the cards clear of the floating glass dock.
-            const SizedBox(height: NsxSpace.dockClearance),
+            SizedBox(height: AppTokens.dockClearance(context)),
           ],
         ),
       ),

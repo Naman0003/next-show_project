@@ -16,6 +16,18 @@ class AppTokens {
   static const double spaceXL = 20.0;
   static const double spaceXXL = 24.0;
 
+  // Dock Clearance
+  // Ensures that scrollable content on each page never gets covered by the
+  // floating glass dock when scrolled all the way to the bottom.
+  // Dock dimensions: 52 (height) + 16 (glass vertical pad) + 16 (dock bottom margin) +
+  // system bottom safe area inset (gesture bar) + 24 (breathing space).
+  static double dockClearance(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+    return 108.0 + bottomInset;
+  }
+
+  static const double dockClearanceBase = 128.0;
+
   // Shadows
   static const List<BoxShadow> cardShadow = [
     BoxShadow(

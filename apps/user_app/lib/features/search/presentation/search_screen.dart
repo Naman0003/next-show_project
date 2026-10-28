@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_kit/ui_kit.dart';
 
 import '../../../core/router/app_router.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../discovery/presentation/cinema_theme.dart';
 import '../application/ai_concierge_controller.dart';
 import 'siri_waveform_widget.dart';
@@ -236,6 +237,7 @@ class _ResultsArea extends StatelessWidget {
           );
         }
         return ListView(
+          padding: EdgeInsets.only(bottom: AppTokens.dockClearance(context)),
           children: [
             for (final listing in state.results)
               Padding(
@@ -256,6 +258,7 @@ class _SuggestionList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      padding: EdgeInsets.only(bottom: AppTokens.dockClearance(context)),
       child: Wrap(
         spacing: 10,
         runSpacing: 10,
