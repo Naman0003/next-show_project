@@ -90,6 +90,7 @@ The following features and structural updates have been completed:
 
 ### 1. Build System & Gradle Upgrades
 - Upgraded both apps to Gradle `8.13` and declarative AGP `8.11.1`.
+- All three apps are now on Gradle `9.3.1`, AGP `8.13.0` and Kotlin `2.4.0` so it builds with Android Studio's bundled Java 25 (Gradle 8.x can't run on Java 25). AGP 9.x is blocked by `flutter_inappwebview_android`, whose build file uses the removed `proguard-android.txt`.
 - Configured Java 17 toolchain compatibility and target configurations.
 - Added `-Xmx4G` memory optimizations and disabled obsolete Jetifier processing to speed up compilation.
 
