@@ -32,6 +32,7 @@
 |------|--------|-------|
 | Setup `hive` and `hive_flutter` initialization in `main.dart` | [x] | Pinned exact versions; boxes `watchlist`/`listing_cache` opened before `runApp`; exposed via `core/di/core_providers.dart` |
 | Build Watchlist & Profile UI | [x] | `WatchlistController` (@riverpod) + `NSEventCard` grid, swipe-to-remove, debug mock-insert button; Profile has placeholder notification toggles + Recently Viewed reading `listing_cache` |
+| Feed tab on live Supabase data | [x] | `feedListingsProvider` (fetchActiveListings + Realtime on events/showtimes/venues, 2s debounce) drives the Breaking Events carousel (2nd tab, opens on launch); cards open real `Listing` detail; map hidden when venue has no coords. Not yet: Hive cache-then-network per architecture_plan §6 |
 
 ### Phase 3: Deep Discovery & Webview (P1)
 | Task | Status | Notes |
@@ -60,7 +61,7 @@
 | Task | Status | Notes |
 |------|--------|-------|
 | Design cinema data adapter architecture (interfaces + normalizers) | [ ] | Adapter layer: each cinema source → standard Supabase schema |
-| Build ingestion script/service (Dart/Node/Python) | [ ] | Fetches from APIs/CSV/feeds → upserts to Supabase |
+| Build ingestion script/service (Dart/Node/Python) | [~] | Fetches from APIs/CSV/feeds → upserts to Supabase. Code written: `supabase/functions/ingest-events` (RSS/HTML → Gemini → venues/events/showtimes, `is_verified=false`) + `ingestion_sources` migration; logic tests pass. Not yet deployed — needs migration push, secrets, real sources (see its README) |
 | Identify & contact 3–5 Berlin independent cinemas | [ ] | Bizdev: need name, address, programme, booking URLs |
 | Seed Supabase with real pilot cinema data | [ ] | Use `v_listings` view structure from schema.sql |
 | Create partner dashboard in Admin App (venue/showtime CRUD) | [ ] | Allows cinemas to self-manage; onboards in minutes |
@@ -146,7 +147,7 @@
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Set up scheduled ingestion (cron: hourly/daily per cinema) | [ ] | Question L: update frequency |
+| Set up scheduled ingestion (cron: hourly/daily per cinema) | [~] | pg_cron job `ingest-events-every-6h` (migration 20261028000000) calls the edge function every 6h; LLM = Gemini `gemini-3.5-flash-lite` (free tier; 3.8-flash timed out). Secret rotated 2026-10-28. First real run 2026-10-28: 15 events/showtimes + 13 venues; venue coords now taken from source JSON-LD (Nominatim fails from Supabase), 13 venues backfilled |
 | Monitoring/alerting for stale data | [ ] | Question O: trust = no outdated info |
 | CI/CD pipeline for all 3 apps | [ ] | Build, test, deploy |
 | Document API keys / secrets management | [ ] | Currently in `shared/api_keys.dart` |

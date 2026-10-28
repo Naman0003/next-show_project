@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/booking/presentation/booking_web_view_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/newsfeed/presentation/event_breaking_carousel.dart';
 import '../../features/discovery/presentation/splash_screen.dart';
 import '../../features/event_detail/presentation/event_detail_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
@@ -19,6 +20,11 @@ part 'app_router.g.dart';
     TypedStatefulShellBranch<DiscoveryBranchData>(
       routes: [
         TypedGoRoute<DiscoveryRouteData>(path: '/discover'),
+      ],
+    ),
+    TypedStatefulShellBranch<FeedBranchData>(
+      routes: [
+        TypedGoRoute<FeedRouteData>(path: '/feed'),
       ],
     ),
     TypedStatefulShellBranch<SearchBranchData>(
@@ -49,6 +55,18 @@ class AppShellRouteData extends StatefulShellRouteData {
   ) {
     return AppShell(navigationShell: navigationShell);
   }
+}
+
+class FeedBranchData extends StatefulShellBranchData {
+  const FeedBranchData();
+}
+
+class FeedRouteData extends GoRouteData {
+  const FeedRouteData();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const EventBreakingCarouselScreen();
 }
 
 class DiscoveryBranchData extends StatefulShellBranchData {
@@ -154,7 +172,7 @@ class RootRedirectRoute extends GoRouteData {
   const RootRedirectRoute();
 
   @override
-  String? redirect(BuildContext context, GoRouterState state) => '/discover';
+  String? redirect(BuildContext context, GoRouterState state) => '/feed';
 }
 
 final GoRouter appRouter = GoRouter(

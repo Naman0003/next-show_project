@@ -7,7 +7,7 @@ part of 'ai_concierge_controller.dart';
 // **************************************************************************
 
 String _$aiConciergeControllerHash() =>
-    r'622dfb23a2360ba1339e027aae1238f5e88858ed';
+    r'2ac655538dfafc5a1f244808b728adfba543feac';
 
 /// Idle -> Listening (voice) -> Fetching -> Success, with Error reachable
 /// from either Listening (mic permission/recognition failure) or Fetching

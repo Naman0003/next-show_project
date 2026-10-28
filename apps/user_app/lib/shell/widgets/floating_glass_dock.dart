@@ -28,6 +28,7 @@ class FloatingGlassDock extends StatefulWidget {
 
   static const _dests = <_Dest>[
     (icon: Icons.explore_outlined, active: Icons.explore, label: 'Discover'),
+    (icon: Icons.dynamic_feed_outlined, active: Icons.dynamic_feed, label: 'Feed'),
     (icon: Icons.search, active: Icons.search, label: 'Search'),
     (icon: Icons.bookmark_border, active: Icons.bookmark, label: 'Watchlist'),
     (icon: Icons.person_outline, active: Icons.person, label: 'Profile'),

@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'widgets/floating_glass_dock.dart';
 
-/// Persistent navigation shell powering the four main tabs. Wired up by the
+/// Persistent navigation shell powering the five main tabs. Wired up by the
 /// [StatefulShellRoute] in `core/router/app_router.dart`.
 ///
 /// The nav sits in a [Stack] as a floating pill over the content rather than

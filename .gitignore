@@ -15,3 +15,6 @@ shared/lib/api_keys.dart
 .impeccable/live/previews/
 .impeccable/live/cache/
 # impeccable-ignore-end
+
+# Dart/Flutter tool cache
+.dart_tool/

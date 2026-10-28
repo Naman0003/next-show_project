@@ -29,6 +29,14 @@ RouteBase get $appShellRouteData => StatefulShellRouteData.$route(
         StatefulShellBranchData.$branch(
           routes: [
             GoRouteData.$route(
+              path: '/feed',
+              factory: $FeedRouteDataExtension._fromState,
+            ),
+          ],
+        ),
+        StatefulShellBranchData.$branch(
+          routes: [
+            GoRouteData.$route(
               path: '/search',
               factory: $SearchRouteDataExtension._fromState,
             ),
@@ -64,6 +72,23 @@ extension $DiscoveryRouteDataExtension on DiscoveryRouteData {
 
   String get location => GoRouteData.$location(
         '/discover',
+      );
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
+}
+
+extension $FeedRouteDataExtension on FeedRouteData {
+  static FeedRouteData _fromState(GoRouterState state) => const FeedRouteData();
+
+  String get location => GoRouteData.$location(
+        '/feed',
       );
 
   void go(BuildContext context) => context.go(location);

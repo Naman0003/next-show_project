@@ -720,10 +720,20 @@ class _VenueMapSection extends StatelessWidget {
 
   final Listing listing;
 
+  /// `v_listings` returns null coordinates for venues without a location,
+  /// which the shared client maps to 0,0 — a pin in the Atlantic. Treat that
+  /// (and anything out of range) as "no location": no map, and directions
+  /// search by address instead.
+  bool get _hasLocation =>
+      !(listing.latitude == 0 && listing.longitude == 0) &&
+      listing.latitude.abs() <= 90 &&
+      listing.longitude.abs() <= 180;
+
   Future<void> _launchDirections() async {
-    final uri = Uri.parse(
-      'https://www.google.com/maps/search/?api=1&query=${listing.latitude},${listing.longitude}',
-    );
+    final query = _hasLocation
+        ? '${listing.latitude},${listing.longitude}'
+        : Uri.encodeComponent(listing.venueAddress ?? listing.venueName);
+    final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
@@ -800,6 +810,7 @@ class _VenueMapSection extends StatelessWidget {
           ],
         ),
 
+        if (_hasLocation) ...[
         const SizedBox(height: 12),
 
         // Mini Map Card (matching details.png)
@@ -867,6 +878,7 @@ class _VenueMapSection extends StatelessWidget {
             ),
           ),
         ),
+        ],
       ],
     );
   }
