@@ -17,6 +17,9 @@ class AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Keep the dock pinned to the bottom when the keyboard opens; each tab's
+      // own Scaffold still sees viewInsets and resizes its content itself.
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           Positioned.fill(child: navigationShell),
