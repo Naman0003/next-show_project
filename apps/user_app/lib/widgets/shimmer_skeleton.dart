@@ -11,7 +11,11 @@ class ShimmerSkeletonLoader extends StatelessWidget {
     return Shimmer.fromColors(
       baseColor: const Color(0xFFE5E7EB),
       highlightColor: const Color(0xFFF3F4F6),
-      child: Column(
+      // A non-scrolling list rather than a Column: it clips placeholder cards
+      // that don't fit the available height instead of overflowing.
+      child: ListView(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.zero,
         children: List.generate(3, (index) {
           return Container(
             height: 280,

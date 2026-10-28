@@ -69,12 +69,19 @@ class _EventBreakingCarouselScreenState extends ConsumerState<EventBreakingCarou
               ),
             ).animate(onPlay: (c) => c.repeat(reverse: true)).fade(begin: 0.3, end: 1.0, duration: 800.ms),
             const SizedBox(width: 8),
-            Text(
-              'Breaking Events',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w900,
-                fontSize: 22,
-                color: AppColors.textPrimary,
+            // Shrinks rather than overflows next to the city pill on narrow phones.
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Breaking Events',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 22,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
               ),
             ),
           ],
@@ -265,11 +272,16 @@ class _EventBreakingCarouselScreenState extends ConsumerState<EventBreakingCarou
                                             Row(
                                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                               children: [
-                                                Column(
+                                                // Expanded so long venue names ellipsize
+                                                // instead of pushing the row off-card.
+                                                Expanded(
+                                                child: Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
                                                       listing.categoryLabel,
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
                                                       style: const TextStyle(
                                                         fontSize: 11,
                                                         fontWeight: FontWeight.w800,
@@ -290,6 +302,8 @@ class _EventBreakingCarouselScreenState extends ConsumerState<EventBreakingCarou
                                                     ),
                                                   ],
                                                 ),
+                                                ),
+                                                const SizedBox(width: 12),
 
                                                 // Organizer Avatar / Icon
                                                 CircleAvatar(
