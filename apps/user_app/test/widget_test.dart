@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:user_app/core/di/core_providers.dart';
+import 'package:user_app/features/discovery/presentation/splash_screen.dart';
 import 'package:user_app/main.dart';
 import 'package:shared/api_keys.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -75,7 +76,7 @@ void main() {
       // crashing. Explicitly unmount it afterwards so its flutter_animate
       // AnimationControllers and bootstrap Timer are disposed/cancelled
       // before the test ends, rather than left ticking mid-animation.
-      expect(find.text('NEXT SHOW'), findsOneWidget);
+      expect(find.byType(SplashWordmark), findsOneWidget);
       expect(find.byType(NavigationBar), findsNothing);
 
       await tester.pumpWidget(const SizedBox.shrink());
