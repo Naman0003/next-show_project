@@ -5,7 +5,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class AuthService {
   static SupabaseClient get _client => Supabase.instance.client;
 
-  static User? get currentUser => _client.auth.currentUser;
+  static User? get currentUser {
+    try {
+      return _client.auth.currentUser;
+    } catch (_) {
+      return null;
+    }
+  }
   static bool get isSignedIn => currentUser != null;
   static Stream<AuthState> get onAuthStateChange => _client.auth.onAuthStateChange;
 
