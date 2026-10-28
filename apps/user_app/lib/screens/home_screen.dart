@@ -7,7 +7,6 @@ import '../theme/app_theme.dart';
 import '../widgets/account_menu_button.dart';
 import '../widgets/voice_search_overlay.dart';
 import 'browse_screen.dart';
-import 'event_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -362,12 +361,8 @@ class _PickCard extends StatelessWidget {
         ),
         isThreeLine: true,
         trailing: const Icon(Icons.chevron_right, color: AppColors.royalBlue),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => EventDetailScreen(event: event)),
-          );
-        },
+        // The old EventDetailScreen this opened has been removed.
+        onTap: null,
       ),
     );
   }

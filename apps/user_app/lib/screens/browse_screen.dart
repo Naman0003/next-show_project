@@ -5,7 +5,6 @@ import '../services/event_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/next_show_logo.dart';
 import '../widgets/account_menu_button.dart';
-import 'event_detail_screen.dart';
 
 class BrowseScreen extends StatefulWidget {
   const BrowseScreen({Key? key}) : super(key: key);
@@ -204,13 +203,8 @@ class EventCard extends StatelessWidget {
         ? event.imageUrl
         : 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500';
 
+    // The old EventDetailScreen this opened has been removed.
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => EventDetailScreen(event: event)),
-        );
-      },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
