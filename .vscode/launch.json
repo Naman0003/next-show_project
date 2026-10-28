@@ -1,0 +1,48 @@
+{
+  // Debug builds compile code on the device as it first runs, so startup and
+  // first taps feel slow (especially over wireless on iOS). Use Profile or
+  // Release to judge real performance; Profile still allows DevTools.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "user_app (debug)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "apps/user_app",
+      "program": "lib/main.dart",
+      "flutterMode": "debug"
+    },
+    {
+      "name": "user_app (profile)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "apps/user_app",
+      "program": "lib/main.dart",
+      "flutterMode": "profile"
+    },
+    {
+      "name": "user_app (release)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "apps/user_app",
+      "program": "lib/main.dart",
+      "flutterMode": "release"
+    },
+    {
+      "name": "admin_app (debug)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "apps/admin_app",
+      "program": "lib/main.dart",
+      "flutterMode": "debug"
+    },
+    {
+      "name": "organizer_app (debug)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "apps/organizer_app",
+      "program": "lib/main.dart",
+      "flutterMode": "debug"
+    }
+  ]
+}
