@@ -1,6 +1,6 @@
 {
-    "name": "user_app",
-    "short_name": "user_app",
+    "name": "Next Show",
+    "short_name": "Next Show",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

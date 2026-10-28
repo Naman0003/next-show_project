@@ -11,7 +11,7 @@
         </intent>
     </queries>
     <application
-        android:label="user_app"
+        android:label="Next Show"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

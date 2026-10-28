@@ -2,4 +2,5 @@
 <resources>
     <!-- White, matching the Flutter splash screen, so launch and splash read as one. -->
     <color name="splash_background">#FFFFFF</color>
+	<color name="ic_launcher_background">#FFFFFF</color>
 </resources>
