@@ -27,11 +27,6 @@ part 'app_router.g.dart';
         TypedGoRoute<FeedRouteData>(path: '/feed'),
       ],
     ),
-    TypedStatefulShellBranch<SearchBranchData>(
-      routes: [
-        TypedGoRoute<SearchRouteData>(path: '/search'),
-      ],
-    ),
     TypedStatefulShellBranch<WatchlistBranchData>(
       routes: [
         TypedGoRoute<WatchlistRouteData>(path: '/watchlist'),
@@ -81,6 +76,9 @@ class DiscoveryRouteData extends GoRouteData {
       const HomeScreen();
 }
 
+// Search tab is unwired from the shell (not registered above) but kept here,
+// along with `features/search/`, so it can be restored by re-adding the
+// branch to [AppShellRouteData] and the dock entry in `FloatingGlassDock`.
 class SearchBranchData extends StatefulShellBranchData {
   const SearchBranchData();
 }
