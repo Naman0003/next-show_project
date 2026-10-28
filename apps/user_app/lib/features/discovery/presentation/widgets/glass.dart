@@ -5,8 +5,7 @@ import 'package:flutter/widgets.dart';
 import '../theme/cinema_tokens.dart';
 import 'spring_tap.dart';
 
-/// The one frosted-glass primitive for the dark surfaces: a backdrop blur, a
-/// faint bone fill, a crisp 1px inner border, and a soft top-edge inner glow.
+/// The one frosted-glass primitive: a backdrop blur, a translucent fill, a crisp 1px inner border, and a soft top-edge inner glow.
 /// Blur sigma is capped low and never animated — `BackdropFilter` is the
 /// expensive effect on this screen, so it stays bounded to small elements
 /// (pills, icon buttons, the nav dock), never a full-bleed layer.
@@ -20,6 +19,7 @@ class GlassSurface extends StatelessWidget {
     this.glow = true,
     this.shadow,
     this.fillColor,
+    this.borderColor,
   });
 
   /// Fully rounded by default (pill). Pass a small value for a rect.
@@ -31,6 +31,9 @@ class GlassSurface extends StatelessWidget {
   final bool glow;
   final List<BoxShadow>? shadow;
   final Color? fillColor;
+
+  /// Defaults to [NsxColors.glassBorder].
+  final Color? borderColor;
   final Widget child;
 
   @override
@@ -47,7 +50,8 @@ class GlassSurface extends StatelessWidget {
             decoration: BoxDecoration(
               color: fillColor ?? NsxColors.glassFill,
               borderRadius: radius,
-              border: Border.all(color: NsxColors.glassBorder, width: 1),
+              border: Border.all(
+                  color: borderColor ?? NsxColors.glassBorder, width: 1),
               gradient: glow
                   ? const LinearGradient(
                       begin: Alignment.topCenter,

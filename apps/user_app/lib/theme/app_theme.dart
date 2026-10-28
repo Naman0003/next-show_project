@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/theme/app_colors.dart';
 
@@ -43,6 +44,9 @@ class AppTheme {
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
+        // Transparent bars would otherwise get light (white) status bar
+        // icons, which vanish on the light canvas.
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.darkPrimary),
         titleTextStyle: GoogleFonts.plusJakartaSans(

@@ -53,7 +53,10 @@ class _FloatingGlassDockState extends State<FloatingGlassDock>
   );
 
   double _slot = 0; // pixel width of one tab, set in LayoutBuilder
-  double _prevValue = 0; // for per-frame velocity → stretch
+  // For per-frame velocity → stretch. Starts at the blob's position so the
+  // first frame (e.g. opening on Feed) doesn't read as a jump from slot 0
+  // and leave the blob stuck stretched.
+  late double _prevValue = _blob.value;
   bool _dragging = false;
 
   int get _count => FloatingGlassDock._dests.length;
@@ -132,6 +135,9 @@ class _FloatingGlassDockState extends State<FloatingGlassDock>
             NsxSpace.gutter, 0, NsxSpace.gutter, NsxSpace.x4),
         child: GlassSurface(
           fillColor: const Color(0x40FFFFFF),
+          // Pinned to the dock's original light hairline so it doesn't follow
+          // the glass token as that changes.
+          borderColor: const Color(0x24EDE9E1),
           blurSigma: 22,
           padding: const EdgeInsets.symmetric(horizontal: _hPad, vertical: 8),
           shadow: const [

@@ -123,7 +123,7 @@ class CinemaWordmark extends StatelessWidget {
   }
 }
 
-/// Shared empty/loading/error message shape for the dark screens.
+/// Shared empty/loading/error message shape for the Nsx-token screens.
 class CinemaEmptyState extends StatelessWidget {
   const CinemaEmptyState({
     super.key,

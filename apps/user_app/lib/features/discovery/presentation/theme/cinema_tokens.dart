@@ -1,44 +1,45 @@
 import 'package:flutter/widgets.dart';
 
-/// "Marquee After Dark" — the dark, near-monochrome design tokens for the
-/// Discovery surface (and, by inheritance, the Search screen that sits beside
-/// it in the shell). Deliberately NOT wired into `MaterialApp.theme`; the rest
-/// of the app stays on `ui_kit`'s light system until it gets its own pass.
+/// Design tokens for the Discovery, Search, Watchlist and Profile surfaces.
+/// Originally the dark "Marquee After Dark" palette; now light, matched to
+/// `AppColors` so every screen in the app shares one light look. Not wired
+/// into `MaterialApp.theme`.
 ///
-/// One warm accent ([NsxColors.accent]) carries the live/selected state and
+/// One accent ([NsxColors.accent]) carries the live/selected state and
 /// nothing else — no rainbow category colors, no gradient surfaces.
 class NsxColors {
   NsxColors._();
 
-  /// Warm near-black. The whole surface sits on this.
-  static const Color ground = Color(0xFF0B0B0C);
+  /// Off-white canvas (AppColors.lightCanvas). The whole surface sits on this.
+  static const Color ground = Color(0xFFF8F9FA);
 
-  /// Raised panels (poster fallbacks, skeletons).
-  static const Color surface = Color(0xFF161615);
-  static const Color surfaceHi = Color(0xFF201F1D);
+  /// Raised panels (cards, poster fallbacks, skeletons).
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color surfaceHi = Color(0xFFF1F3F5);
 
-  /// 1px neo-brutalist borders and dividers.
-  static const Color hairline = Color(0xFF2E2D2A);
+  /// 1px borders and dividers.
+  static const Color hairline = Color(0xFFE5E7EB);
 
-  /// Primary ink — a warm bone white, never pure #FFF (which glares on OLED).
-  static const Color bone = Color(0xFFEDE9E1);
+  /// Primary ink. The name is kept from the dark palette, where it was a
+  /// bone white; it's now near-black (AppColors.textPrimary).
+  static const Color bone = Color(0xFF111827);
 
   /// Secondary ink for mono metadata and captions. Meets 4.5:1 on [ground].
-  static const Color muted = Color(0xFF9B988F);
+  static const Color muted = Color(0xFF6B7280);
 
-  /// The single warm accent. Marquee amber. Used only for the current /
-  /// selected / live state.
-  static const Color accent = Color(0xFFFFA424);
+  /// The single accent (royal blue, matching the logo and switches). Used
+  /// only for the current / selected / live state.
+  static const Color accent = Color(0xFF2563EB);
 
   /// Ink that sits on top of an [accent] fill.
-  static const Color accentInk = Color(0xFF0B0B0C);
+  static const Color accentInk = Color(0xFFFFFFFF);
 
-  /// Glass fill + border, tuned for [BackdropFilter] over the dark ground.
-  static const Color glassFill = Color(0x0FEDE9E1); // bone @ ~6%
-  static const Color glassBorder = Color(0x24EDE9E1); // bone @ ~14%
+  /// Glass fill + border, tuned for [BackdropFilter] over the light ground.
+  static const Color glassFill = Color(0xB3FFFFFF); // white @ 70%
+  static const Color glassBorder = Color(0x14111827); // ink @ ~8%
 
   /// Shimmer sweep for loading skeletons.
-  static const Color shimmer = Color(0xFF2B2A27);
+  static const Color shimmer = Color(0xFFE9ECEF);
 }
 
 /// Font family names — registered in `pubspec.yaml` against the bundled
