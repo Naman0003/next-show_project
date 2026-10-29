@@ -18,7 +18,8 @@ final feedListingsProvider = StreamProvider.autoDispose<List<Listing>>((ref) {
 
   Future<void> load() async {
     try {
-      final listings = await NextShowSupabaseClient.fetchActiveListings(limit: 100);
+      final listings =
+          await NextShowSupabaseClient.fetchActiveListings(limit: 100);
       if (!controller.isClosed) controller.add(listings);
     } catch (e, st) {
       if (!controller.isClosed) controller.addError(e, st);
@@ -54,12 +55,15 @@ final feedListingsProvider = StreamProvider.autoDispose<List<Listing>>((ref) {
 /// [feedListingsProvider] narrowed to the city picked on Home. Ingested
 /// events carry their city in `eventMetadata['city']`; listings without one
 /// are Berlin, the only city with real data so far.
-final feedForCityProvider = Provider.autoDispose<AsyncValue<List<Listing>>>((ref) {
+final feedForCityProvider =
+    Provider.autoDispose<AsyncValue<List<Listing>>>((ref) {
   final city = ref.watch(selectedCityProvider).toLowerCase();
   return ref.watch(feedListingsProvider).whenData((listings) {
     if (city == 'all cities') return listings;
     return listings
-        .where((l) => ((l.eventMetadata['city'] as String?) ?? 'Berlin').toLowerCase() == city)
+        .where((l) =>
+            ((l.eventMetadata['city'] as String?) ?? 'Berlin').toLowerCase() ==
+            city)
         .toList();
   });
 });

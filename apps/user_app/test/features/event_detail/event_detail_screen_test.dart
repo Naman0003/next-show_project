@@ -47,13 +47,64 @@ void main() {
   Widget createHostWidget(Listing listing) {
     return ProviderScope(
       overrides: [
-        watchlistControllerProvider.overrideWith(() => MockWatchlistController()),
+        watchlistControllerProvider
+            .overrideWith(() => MockWatchlistController()),
       ],
       child: MaterialApp(
         home: EventDetailScreen(listing: listing),
       ),
     );
   }
+
+  testWidgets('orders title, date line, schedule, venue, then description',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
+    await tester.pumpWidget(createHostWidget(testListing));
+    await tester.pumpAndSettle();
+
+    double top(Finder f) => tester.getTopLeft(f).dy;
+    final title = top(find.text('One Night with Ariana'));
+    final date = top(find.text('Mon, 12 Oct, 7:00 PM'));
+    final schedule = top(find.text('DOORS OPEN'));
+    final venue = top(find.text('Accor Arena'));
+    final description = top(find.textContaining('Ariana Grande brings').first);
+
+    expect(title, lessThan(date));
+    expect(date, lessThan(schedule));
+    expect(schedule, lessThan(venue));
+    expect(venue, lessThan(description));
+
+    // The doors box shows only the time; the date lives in the line above.
+    expect(find.text('7:00 PM'), findsOneWidget);
+  });
+
+  testWidgets('venue row opens the details sheet instead of a map',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
+    await tester.pumpWidget(createHostWidget(testListing));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Venue details'), findsNothing);
+
+    await tester.ensureVisible(find.text('Accor Arena'));
+    await tester.tap(find.text('Accor Arena'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Venue details'), findsOneWidget);
+    expect(find.text('Get directions'), findsOneWidget);
+    expect(find.bySemanticsLabel('Copy address'), findsOneWidget);
+    expect(find.bySemanticsLabel('Share venue'), findsOneWidget);
+
+    await tester.tap(find.bySemanticsLabel('Close'));
+    await tester.pumpAndSettle();
+    expect(find.text('Venue details'), findsNothing);
+  });
 
   testWidgets('renders title, venue, price and live event details accurately',
       (WidgetTester tester) async {
@@ -127,7 +178,8 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          watchlistControllerProvider.overrideWith(() => MockWatchlistController()),
+          watchlistControllerProvider
+              .overrideWith(() => MockWatchlistController()),
         ],
         child: MaterialApp(
           home: Navigator(
@@ -136,7 +188,8 @@ void main() {
               return route.didPop(result);
             },
             pages: [
-              const MaterialPage(child: Scaffold(body: Text('Previous Screen'))),
+              const MaterialPage(
+                  child: Scaffold(body: Text('Previous Screen'))),
               MaterialPage(child: EventDetailScreen(listing: testListing)),
             ],
           ),
@@ -222,10 +275,71 @@ class _FakeHttpClientResponse extends Fake implements HttpClientResponse {
 }
 
 final _kTransparentImage = Uint8List.fromList(<int>[
-  0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49,
-  0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x06,
-  0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44,
-  0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00, 0x05, 0x00, 0x01, 0x0D,
-  0x0A, 0x2D, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42,
-  0x60, 0x82,
+  0x89,
+  0x50,
+  0x4E,
+  0x47,
+  0x0D,
+  0x0A,
+  0x1A,
+  0x0A,
+  0x00,
+  0x00,
+  0x00,
+  0x0D,
+  0x49,
+  0x48,
+  0x44,
+  0x52,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x08,
+  0x06,
+  0x00,
+  0x00,
+  0x00,
+  0x1F,
+  0x15,
+  0xC4,
+  0x89,
+  0x00,
+  0x00,
+  0x00,
+  0x0A,
+  0x49,
+  0x44,
+  0x41,
+  0x54,
+  0x78,
+  0x9C,
+  0x63,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x05,
+  0x00,
+  0x01,
+  0x0D,
+  0x0A,
+  0x2D,
+  0xB4,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x49,
+  0x45,
+  0x4E,
+  0x44,
+  0xAE,
+  0x42,
+  0x60,
+  0x82,
 ]);

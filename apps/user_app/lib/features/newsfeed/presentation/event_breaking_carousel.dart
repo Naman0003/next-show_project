@@ -19,19 +19,26 @@ extension on Listing {
 
   /// The source's own label ("Workshop", "Stand-up") reads better than the
   /// four coarse app categories it was mapped onto.
-  String get categoryLabel => ((eventMetadata['original_category'] as String?) ?? category.name).toUpperCase();
+  String get categoryLabel =>
+      ((eventMetadata['original_category'] as String?) ?? category.name)
+          .toUpperCase();
 
-  String get blurb => eventDescription ?? (eventMetadata['breaking_headline'] as String?) ?? venueName;
+  String get blurb =>
+      eventDescription ??
+      (eventMetadata['breaking_headline'] as String?) ??
+      venueName;
 }
 
 class EventBreakingCarouselScreen extends ConsumerStatefulWidget {
   const EventBreakingCarouselScreen({super.key});
 
   @override
-  ConsumerState<EventBreakingCarouselScreen> createState() => _EventBreakingCarouselScreenState();
+  ConsumerState<EventBreakingCarouselScreen> createState() =>
+      _EventBreakingCarouselScreenState();
 }
 
-class _EventBreakingCarouselScreenState extends ConsumerState<EventBreakingCarouselScreen> {
+class _EventBreakingCarouselScreenState
+    extends ConsumerState<EventBreakingCarouselScreen> {
   late final PageController _pageController;
   int _activeCardIndex = 0;
 
@@ -67,7 +74,9 @@ class _EventBreakingCarouselScreenState extends ConsumerState<EventBreakingCarou
                 color: AppColors.error,
                 shape: BoxShape.circle,
               ),
-            ).animate(onPlay: (c) => c.repeat(reverse: true)).fade(begin: 0.3, end: 1.0, duration: 800.ms),
+            )
+                .animate(onPlay: (c) => c.repeat(reverse: true))
+                .fade(begin: 0.3, end: 1.0, duration: 800.ms),
             const SizedBox(width: 8),
             // Shrinks rather than overflows next to the city pill on narrow phones.
             Flexible(
@@ -77,10 +86,10 @@ class _EventBreakingCarouselScreenState extends ConsumerState<EventBreakingCarou
                 child: Text(
                   'Breaking Events',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 22,
-                    color: AppColors.textPrimary,
-                  ),
+                        fontWeight: FontWeight.w900,
+                        fontSize: 22,
+                        color: AppColors.textPrimary,
+                      ),
                 ),
               ),
             ),
@@ -97,7 +106,8 @@ class _EventBreakingCarouselScreenState extends ConsumerState<EventBreakingCarou
             ),
             child: Row(
               children: [
-                const Icon(Icons.location_on_rounded, size: 14, color: AppColors.darkPrimary),
+                const Icon(Icons.location_on_rounded,
+                    size: 14, color: AppColors.darkPrimary),
                 const SizedBox(width: 4),
                 Text(
                   selectedCity,
@@ -138,22 +148,28 @@ class _EventBreakingCarouselScreenState extends ConsumerState<EventBreakingCarou
                 data: (events) {
                   if (events.isEmpty) {
                     return const Center(
-                      child: Text('No events in this city right now — check back soon.', style: TextStyle(color: AppColors.textMuted)),
+                      child: Text(
+                          'No events in this city right now — check back soon.',
+                          style: TextStyle(color: AppColors.textMuted)),
                     );
                   }
 
                   return PageView.builder(
                     controller: _pageController,
                     itemCount: events.length,
-                    onPageChanged: (idx) => setState(() => _activeCardIndex = idx),
+                    onPageChanged: (idx) =>
+                        setState(() => _activeCardIndex = idx),
                     itemBuilder: (context, index) {
                       final listing = events[index];
                       final isActive = index == _activeCardIndex;
-                      final dateStr = DateFormat('d. MMM, HH:mm', 'de_DE').format(listing.startTime.toLocal());
-                      final imageUrl = listing.imageUrl ?? listing.showtimeImageUrl;
+                      final dateStr = DateFormat('d. MMM, HH:mm', 'de_DE')
+                          .format(listing.startTime.toLocal());
+                      final imageUrl =
+                          listing.imageUrl ?? listing.showtimeImageUrl;
 
                       return TapScaleContainer(
-                        onTap: () => EventDetailRoute($extra: listing).push(context),
+                        onTap: () =>
+                            EventDetailRoute($extra: listing).push(context),
                         child: AnimatedScale(
                           scale: isActive ? 1.0 : 0.93,
                           duration: const Duration(milliseconds: 250),
@@ -162,7 +178,8 @@ class _EventBreakingCarouselScreenState extends ConsumerState<EventBreakingCarou
                             opacity: isActive ? 1.0 : 0.75,
                             duration: const Duration(milliseconds: 250),
                             child: Container(
-                              margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 12, horizontal: 6),
                               decoration: BoxDecoration(
                                 color: AppColors.surfaceWhite,
                                 borderRadius: BorderRadius.circular(28),
@@ -181,50 +198,77 @@ class _EventBreakingCarouselScreenState extends ConsumerState<EventBreakingCarou
                                           Positioned.fill(
                                             child: imageUrl == null
                                                 ? Container(
-                                                    color: AppColors.surfaceSecondary,
-                                                    child: const Icon(Icons.event_rounded, size: 48, color: AppColors.textMuted),
+                                                    color: AppColors
+                                                        .surfaceSecondary,
+                                                    child: const Icon(
+                                                        Icons.event_rounded,
+                                                        size: 48,
+                                                        color: AppColors
+                                                            .textMuted),
                                                   )
                                                 : CachedNetworkImage(
                                                     imageUrl: imageUrl,
                                                     fit: BoxFit.cover,
                                                     memCacheWidth: 600,
                                                     memCacheHeight: 600,
-                                                    placeholder: (context, url) => Container(
-                                                      color: AppColors.surfaceSecondary,
+                                                    placeholder:
+                                                        (context, url) =>
+                                                            Container(
+                                                      color: AppColors
+                                                          .surfaceSecondary,
                                                       child: const Center(
-                                                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.darkPrimary),
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                                strokeWidth: 2,
+                                                                color: AppColors
+                                                                    .darkPrimary),
                                                       ),
                                                     ),
-                                                    errorWidget: (context, url, error) => Container(
-                                                      color: AppColors.surfaceSecondary,
-                                                      child: const Icon(Icons.broken_image, color: AppColors.textMuted),
+                                                    errorWidget:
+                                                        (context, url, error) =>
+                                                            Container(
+                                                      color: AppColors
+                                                          .surfaceSecondary,
+                                                      child: const Icon(
+                                                          Icons.broken_image,
+                                                          color: AppColors
+                                                              .textMuted),
                                                     ),
                                                   ),
                                           ),
 
                                           // Translucent FREE Badge
                                           if (listing.isFree)
-                                          Positioned(
-                                            top: 16,
-                                            left: 16,
-                                            child: Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                              decoration: BoxDecoration(
-                                                color: Colors.black.withValues(alpha: 0.45),
-                                                borderRadius: BorderRadius.circular(AppTokens.radiusPill),
-                                                border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
-                                              ),
-                                              child: const Text(
-                                                'FREE',
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w900,
-                                                  color: Colors.white,
-                                                  letterSpacing: 0.8,
+                                            Positioned(
+                                              top: 16,
+                                              left: 16,
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 6),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black
+                                                      .withValues(alpha: 0.45),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          AppTokens.radiusPill),
+                                                  border: Border.all(
+                                                      color: Colors.white
+                                                          .withValues(
+                                                              alpha: 0.4)),
+                                                ),
+                                                child: const Text(
+                                                  'FREE',
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w900,
+                                                    color: Colors.white,
+                                                    letterSpacing: 0.8,
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
                                         ],
                                       ),
                                     ),
@@ -236,11 +280,14 @@ class _EventBreakingCarouselScreenState extends ConsumerState<EventBreakingCarou
                                         padding: const EdgeInsets.all(20),
                                         color: AppColors.darkPrimary,
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
                                             Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Text(
                                                   listing.eventTitle,
@@ -251,7 +298,8 @@ class _EventBreakingCarouselScreenState extends ConsumerState<EventBreakingCarou
                                                     height: 1.2,
                                                   ),
                                                   maxLines: 2,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                                 const SizedBox(height: 8),
                                                 Text(
@@ -259,56 +307,71 @@ class _EventBreakingCarouselScreenState extends ConsumerState<EventBreakingCarou
                                                   style: TextStyle(
                                                     fontSize: 13,
                                                     fontWeight: FontWeight.w400,
-                                                    color: Colors.white.withValues(alpha: 0.75),
+                                                    color: Colors.white
+                                                        .withValues(
+                                                            alpha: 0.75),
                                                     height: 1.35,
                                                   ),
                                                   maxLines: 3,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ],
                                             ),
 
                                             // Bottom Row: Category + Time + Avatar
                                             Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
                                               children: [
                                                 // Expanded so long venue names ellipsize
                                                 // instead of pushing the row off-card.
                                                 Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      listing.categoryLabel,
-                                                      maxLines: 1,
-                                                      overflow: TextOverflow.ellipsis,
-                                                      style: const TextStyle(
-                                                        fontSize: 11,
-                                                        fontWeight: FontWeight.w800,
-                                                        color: AppColors.skyBlue,
-                                                        letterSpacing: 0.5,
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        listing.categoryLabel,
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        style: const TextStyle(
+                                                          fontSize: 11,
+                                                          fontWeight:
+                                                              FontWeight.w800,
+                                                          color:
+                                                              AppColors.skyBlue,
+                                                          letterSpacing: 0.5,
+                                                        ),
                                                       ),
-                                                    ),
-                                                    const SizedBox(height: 2),
-                                                    Text(
-                                                      '$dateStr · ${listing.venueName}',
-                                                      maxLines: 1,
-                                                      overflow: TextOverflow.ellipsis,
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        fontWeight: FontWeight.w500,
-                                                        color: Colors.white.withValues(alpha: 0.6),
+                                                      const SizedBox(height: 2),
+                                                      Text(
+                                                        '$dateStr · ${listing.venueName}',
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                          color: Colors.white
+                                                              .withValues(
+                                                                  alpha: 0.6),
+                                                        ),
                                                       ),
-                                                    ),
-                                                  ],
-                                                ),
+                                                    ],
+                                                  ),
                                                 ),
                                                 const SizedBox(width: 12),
 
                                                 // Organizer Avatar / Icon
                                                 CircleAvatar(
                                                   radius: 18,
-                                                  backgroundColor: Colors.white.withValues(alpha: 0.15),
+                                                  backgroundColor: Colors.white
+                                                      .withValues(alpha: 0.15),
                                                   child: const Icon(
                                                     Icons.arrow_forward_rounded,
                                                     color: Colors.white,
@@ -332,13 +395,15 @@ class _EventBreakingCarouselScreenState extends ConsumerState<EventBreakingCarou
                   );
                 },
                 loading: () => const Center(
-                  child: CircularProgressIndicator(color: AppColors.darkPrimary),
+                  child:
+                      CircularProgressIndicator(color: AppColors.darkPrimary),
                 ),
                 error: (err, stack) => Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text("Couldn't load events.", style: TextStyle(color: AppColors.error)),
+                      const Text("Couldn't load events.",
+                          style: TextStyle(color: AppColors.error)),
                       TextButton(
                         onPressed: () => ref.invalidate(feedListingsProvider),
                         child: const Text('Try again'),

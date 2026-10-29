@@ -90,7 +90,8 @@ class _BookingWebViewScreenState extends State<BookingWebViewScreen> {
       body: Stack(
         children: [
           if (!_loadFailed) WebViewWidget(controller: _controller),
-          if (_isLoading && !_loadFailed) const NSLoading(message: 'Loading booking page…'),
+          if (_isLoading && !_loadFailed)
+            const NSLoading(message: 'Loading booking page…'),
           if (_loadFailed)
             Center(
               child: Padding(

@@ -23,7 +23,8 @@ class HeroEventCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // German date & time format: "12. Okt, 19:30"
-    final dateStr = DateFormat('d. MMM, HH:mm', 'de_DE').format(event.startDate);
+    final dateStr =
+        DateFormat('d. MMM, HH:mm', 'de_DE').format(event.startDate);
 
     return TapScaleContainer(
       onTap: onTap,
@@ -50,12 +51,14 @@ class HeroEventCard extends StatelessWidget {
                     placeholder: (context, url) => Container(
                       color: AppColors.surfaceSecondary,
                       child: const Center(
-                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.darkPrimary),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: AppColors.darkPrimary),
                       ),
                     ),
                     errorWidget: (context, url, error) => Container(
                       color: AppColors.surfaceSecondary,
-                      child: const Icon(Icons.broken_image, color: AppColors.textMuted, size: 32),
+                      child: const Icon(Icons.broken_image,
+                          color: AppColors.textMuted, size: 32),
                     ),
                   ),
                 ),
@@ -84,11 +87,13 @@ class HeroEventCard extends StatelessWidget {
                 top: 16,
                 left: 16,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.4),
                     borderRadius: BorderRadius.circular(AppTokens.radiusPill),
-                    border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.0),
+                    border: Border.all(
+                        color: Colors.white.withOpacity(0.4), width: 1.0),
                   ),
                   child: const Text(
                     'FREE',
@@ -117,12 +122,16 @@ class HeroEventCard extends StatelessWidget {
                           : Colors.black.withOpacity(0.35),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isSaved ? AppColors.heartRed : Colors.white.withOpacity(0.4),
+                        color: isSaved
+                            ? AppColors.heartRed
+                            : Colors.white.withOpacity(0.4),
                         width: 1.0,
                       ),
                     ),
                     child: Icon(
-                      isSaved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                      isSaved
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
                       color: isSaved ? AppColors.heartRed : Colors.white,
                       size: 20,
                     ),

@@ -73,8 +73,7 @@ class DiscoveryRouteData extends GoRouteData {
   const DiscoveryRouteData();
 
   @override
-  Widget build(BuildContext context, GoRouterState state) =>
-      const HomeScreen();
+  Widget build(BuildContext context, GoRouterState state) => const HomeScreen();
 }
 
 // Search tab is unwired from the shell (not registered above) but kept here,
@@ -174,6 +173,16 @@ class RootRedirectRoute extends GoRouteData {
   String? redirect(BuildContext context, GoRouterState state) => '/feed';
 }
 
+/// Whether [uri] is the Supabase auth redirect (`nextshow://login-callback`),
+/// however the engine hands it over: with its host, as a path, or reduced to
+/// just the PKCE `code` / `error` query.
+@visibleForTesting
+bool isAuthCallback(Uri uri) =>
+    uri.host == 'login-callback' ||
+    uri.path.contains('login-callback') ||
+    uri.queryParameters.containsKey('code') ||
+    uri.queryParameters.containsKey('error_description');
+
 final GoRouter appRouter = GoRouter(
   routes: $appRoutes,
   initialLocation: '/splash',
@@ -181,6 +190,14 @@ final GoRouter appRouter = GoRouter(
   // point (e.g. a web reload on /feed) on the splash until init is done,
   // remembering where it was headed.
   redirect: (context, state) {
+    // The auth deep link (nextshow://login-callback?code=…) also reaches the
+    // router; supabase_flutter exchanges the code, the user lands on Discover.
+    if (isAuthCallback(state.uri)) {
+      return isAppReady
+          ? '/discover'
+          : Uri(path: '/splash', queryParameters: {'from': '/discover'})
+              .toString();
+    }
     if (isAppReady || state.matchedLocation == '/splash') return null;
     return Uri(path: '/splash', queryParameters: {'from': state.uri.toString()})
         .toString();

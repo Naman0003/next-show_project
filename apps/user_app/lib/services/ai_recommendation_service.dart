@@ -47,7 +47,8 @@ class AiRecommendationService {
             })
         .toList();
 
-    final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: ApiKeys.gemini);
+    final model =
+        GenerativeModel(model: 'gemini-1.5-flash', apiKey: ApiKeys.gemini);
 
     final prompt = '''
 You are the Next Show concierge for Berlin. A user describes what they're in
@@ -74,10 +75,12 @@ in exactly this shape:
 
     final response = await model.generateContent([Content.text(prompt)]);
     final rawText = response.text ?? "";
-    final cleanJson = rawText.replaceAll("```json", "").replaceAll("```", "").trim();
+    final cleanJson =
+        rawText.replaceAll("```json", "").replaceAll("```", "").trim();
     final decoded = json.decode(cleanJson);
 
-    final String intro = decoded['intro']?.toString() ?? "Here's what's on that matches your mood:";
+    final String intro = decoded['intro']?.toString() ??
+        "Here's what's on that matches your mood:";
     final List<dynamic> rawPicks = decoded['picks'] ?? [];
 
     final eventsById = {for (final e in candidates) e.id: e};

@@ -3,48 +3,52 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:user_app/features/auth/presentation/split_auth_screen.dart';
 import 'package:user_app/theme/app_theme.dart';
 
-Widget _host({AuthMode mode = AuthMode.signIn}) {
-  return MediaQuery(
-    // disableAnimations -> the switch takes the instant path, no spring/timers.
-    data: const MediaQueryData(
-      size: Size(390, 844),
-      disableAnimations: true,
-    ),
-    child: MaterialApp(
-      theme: AppTheme.light,
-      home: SplitAuthScreen(initialMode: mode),
-    ),
+Future<void> _pumpScreen(WidgetTester tester) async {
+  tester.view.physicalSize = const Size(390, 844);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  await tester.pumpWidget(
+    MaterialApp(theme: AppTheme.light, home: const SplitAuthScreen()),
   );
+  await tester.pumpAndSettle();
 }
 
 void main() {
-  testWidgets('renders the sign-in side and its invitation to sign up',
+  testWidgets('starts on the email step with no password field',
       (tester) async {
-    await tester.pumpWidget(_host());
-    await tester.pumpAndSettle();
+    await _pumpScreen(tester);
 
-    expect(find.text('New here?'), findsOneWidget);
-    expect(find.text('One of us?'), findsNothing);
-    expect(find.widgetWithText(OutlinedButton, 'SIGN UP'), findsOneWidget);
+    expect(find.text('Continue with email'), findsOneWidget);
+    expect(find.widgetWithText(ElevatedButton, 'SEND CODE'), findsOneWidget);
+    expect(find.text('Continue with Google'), findsOneWidget);
+    expect(find.text('Password'), findsNothing);
   });
 
-  testWidgets('the panel ghost button switches to the sign-up side',
-      (tester) async {
-    await tester.pumpWidget(_host());
-    await tester.pumpAndSettle();
+  testWidgets('rejects an invalid email before sending a code', (tester) async {
+    await _pumpScreen(tester);
 
-    await tester.tap(find.widgetWithText(OutlinedButton, 'SIGN UP'));
-    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'not-an-email');
+    await tester.tap(find.widgetWithText(ElevatedButton, 'SEND CODE'));
+    await tester.pump();
 
-    expect(find.text('One of us?'), findsOneWidget);
-    expect(find.text('New here?'), findsNothing);
-    expect(find.widgetWithText(OutlinedButton, 'SIGN IN'), findsOneWidget);
+    expect(find.text('Enter a valid email address.'), findsOneWidget);
+    expect(find.text('Check your email'), findsNothing);
   });
 
-  testWidgets('starts on the sign-up side when asked', (tester) async {
-    await tester.pumpWidget(_host(mode: AuthMode.signUp));
+  testWidgets('field stays visible above the keyboard', (tester) async {
+    await _pumpScreen(tester);
+
+    // Simulate the iOS keyboard (336 logical px on a 390x844 phone).
+    tester.view.viewInsets = const FakeViewPadding(bottom: 336);
+    addTearDown(tester.view.resetViewInsets);
     await tester.pumpAndSettle();
 
-    expect(find.text('One of us?'), findsOneWidget);
+    final field = tester.getRect(find.byType(TextField));
+    expect(field.bottom, lessThanOrEqualTo(844 - 336));
+    // Not hidden under the brand banner: the field itself receives taps.
+    WidgetController.hitTestWarningShouldBeFatal = true;
+    addTearDown(() => WidgetController.hitTestWarningShouldBeFatal = false);
+    await tester.tap(find.byType(TextField));
+    expect(tester.takeException(), isNull);
   });
 }

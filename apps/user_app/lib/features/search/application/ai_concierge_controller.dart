@@ -67,7 +67,8 @@ class AiConciergeController extends _$AiConciergeController {
         state = state.copyWith(transcript: transcript);
       },
       onSoundLevelChange: (level) {
-        state = state.copyWith(soundLevel: VoiceInputService.normalizeSoundLevel(level));
+        state = state.copyWith(
+            soundLevel: VoiceInputService.normalizeSoundLevel(level));
       },
       onDone: (reason) {
         if (state.status != AiConciergeStatus.listening) return;
@@ -123,10 +124,12 @@ class AiConciergeController extends _$AiConciergeController {
   void reset() => state = const AiConciergeState();
 
   Future<void> _runSearch(String query) async {
-    state = state.copyWith(status: AiConciergeStatus.fetching, transcript: query);
+    state =
+        state.copyWith(status: AiConciergeStatus.fetching, transcript: query);
     try {
       final results = await _service.search(query);
-      state = state.copyWith(status: AiConciergeStatus.success, results: results);
+      state =
+          state.copyWith(status: AiConciergeStatus.success, results: results);
     } catch (_) {
       state = state.copyWith(
         status: AiConciergeStatus.error,

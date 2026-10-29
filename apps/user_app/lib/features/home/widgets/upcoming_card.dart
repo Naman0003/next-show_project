@@ -41,8 +41,10 @@ class UpcomingCard extends StatelessWidget {
                   child: CachedNetworkImage(
                     imageUrl: event.imageUrl,
                     fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(color: AppColors.surfaceCard),
-                    errorWidget: (context, url, error) => Container(color: AppColors.surfaceCard),
+                    placeholder: (context, url) =>
+                        Container(color: AppColors.surfaceCard),
+                    errorWidget: (context, url, error) =>
+                        Container(color: AppColors.surfaceCard),
                   ),
                 ),
               ),
@@ -69,7 +71,8 @@ class UpcomingCard extends StatelessWidget {
                   children: [
                     // Left Date Box
                     GlassDecorations.glassContainer(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
                       borderRadius: 16,
                       backgroundColor: Colors.white.withOpacity(0.08),
                       child: Column(
@@ -109,7 +112,8 @@ class UpcomingCard extends StatelessWidget {
                             children: [
                               // Category Tag
                               GlassDecorations.glassContainer(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 3),
                                 borderRadius: 8,
                                 backgroundColor: accentColor.withOpacity(0.2),
                                 borderColor: accentColor.withOpacity(0.6),
@@ -125,11 +129,13 @@ class UpcomingCard extends StatelessWidget {
                               const SizedBox(width: 6),
                               // FREE Tag
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
                                   color: AppColors.neonGreen.withOpacity(0.2),
                                   borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: AppColors.neonGreen, width: 0.8),
+                                  border: Border.all(
+                                      color: AppColors.neonGreen, width: 0.8),
                                 ),
                                 child: const Text(
                                   'FREE',
@@ -156,7 +162,8 @@ class UpcomingCard extends StatelessWidget {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              const Icon(Icons.location_on_rounded, size: 12, color: AppColors.skyBlue),
+                              const Icon(Icons.location_on_rounded,
+                                  size: 12, color: AppColors.skyBlue),
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
@@ -183,8 +190,12 @@ class UpcomingCard extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.all(4.0),
                         child: Icon(
-                          event.isSaved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                          color: event.isSaved ? AppColors.error : AppColors.textMuted,
+                          event.isSaved
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
+                          color: event.isSaved
+                              ? AppColors.error
+                              : AppColors.textMuted,
                           size: 22,
                         ),
                       ),

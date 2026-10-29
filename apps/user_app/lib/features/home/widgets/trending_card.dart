@@ -48,12 +48,14 @@ class TrendingCard extends StatelessWidget {
                       placeholder: (context, url) => Container(
                         color: AppColors.surfaceCard,
                         child: const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.skyBlue),
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: AppColors.skyBlue),
                         ),
                       ),
                       errorWidget: (context, url, error) => Container(
                         color: AppColors.surfaceCard,
-                        child: const Icon(Icons.broken_image, color: AppColors.textMuted),
+                        child: const Icon(Icons.broken_image,
+                            color: AppColors.textMuted),
                       ),
                     ),
                   ),
@@ -81,14 +83,16 @@ class TrendingCard extends StatelessWidget {
                     children: [
                       // Category Pill
                       GlassDecorations.glassContainer(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
                         borderRadius: 100,
                         backgroundColor: accentColor.withOpacity(0.25),
                         borderColor: accentColor,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(event.category.icon, size: 14, color: accentColor),
+                            Icon(event.category.icon,
+                                size: 14, color: accentColor),
                             const SizedBox(width: 4),
                             Text(
                               event.category.label,
@@ -105,7 +109,8 @@ class TrendingCard extends StatelessWidget {
 
                       // FREE Badge
                       GlassDecorations.glassContainer(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
                         borderRadius: 100,
                         backgroundColor: AppColors.neonGreen.withOpacity(0.25),
                         borderColor: AppColors.neonGreen,
@@ -124,7 +129,8 @@ class TrendingCard extends StatelessWidget {
 
                       // Date Badge (Day + Month)
                       GlassDecorations.glassContainer(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
                         borderRadius: 14,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -204,10 +210,16 @@ class TrendingCard extends StatelessWidget {
                               backgroundColor: event.isSaved
                                   ? AppColors.error.withOpacity(0.25)
                                   : AppColors.glassSurface,
-                              borderColor: event.isSaved ? AppColors.error : AppColors.glassBorder,
+                              borderColor: event.isSaved
+                                  ? AppColors.error
+                                  : AppColors.glassBorder,
                               child: Icon(
-                                event.isSaved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                                color: event.isSaved ? AppColors.error : AppColors.textPrimary,
+                                event.isSaved
+                                    ? Icons.favorite_rounded
+                                    : Icons.favorite_border_rounded,
+                                color: event.isSaved
+                                    ? AppColors.error
+                                    : AppColors.textPrimary,
                                 size: 20,
                               ),
                             ),
@@ -220,7 +232,8 @@ class TrendingCard extends StatelessWidget {
                       // Location & City
                       Row(
                         children: [
-                          const Icon(Icons.location_on_rounded, size: 14, color: AppColors.skyBlue),
+                          const Icon(Icons.location_on_rounded,
+                              size: 14, color: AppColors.skyBlue),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(

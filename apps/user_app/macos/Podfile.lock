@@ -1,47 +1,28 @@
 PODS:
-  - app_links (1.0.0):
+  - flutter_inappwebview_macos (0.0.1):
     - FlutterMacOS
+    - OrderedSet (~> 6.0.3)
   - FlutterMacOS (1.0.0)
-  - path_provider_foundation (0.0.1):
-    - Flutter
-    - FlutterMacOS
-  - share_plus_macos (0.0.1):
-    - FlutterMacOS
-  - shared_preferences_foundation (0.0.1):
-    - Flutter
-    - FlutterMacOS
-  - speech_to_text_macos (0.0.1):
-    - FlutterMacOS
+  - OrderedSet (6.0.3)
 
 DEPENDENCIES:
-  - app_links (from `Flutter/ephemeral/.symlinks/plugins/app_links/macos`)
+  - flutter_inappwebview_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
-  - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
-  - share_plus_macos (from `Flutter/ephemeral/.symlinks/plugins/share_plus_macos/macos`)
-  - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
-  - speech_to_text_macos (from `Flutter/ephemeral/.symlinks/plugins/speech_to_text_macos/macos`)
+
+SPEC REPOS:
+  trunk:
+    - OrderedSet
 
 EXTERNAL SOURCES:
-  app_links:
-    :path: Flutter/ephemeral/.symlinks/plugins/app_links/macos
+  flutter_inappwebview_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
-  path_provider_foundation:
-    :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
-  share_plus_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/share_plus_macos/macos
-  shared_preferences_foundation:
-    :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin
-  speech_to_text_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/speech_to_text_macos/macos
 
 SPEC CHECKSUMS:
-  app_links: 9028728e32c83a0831d9db8cf91c526d16cc5468
+  flutter_inappwebview_macos: c2d68649f9f8f1831bfcd98d73fd6256366d9d1d
   FlutterMacOS: c232990155153907050900a2e175c7773903ba4e
-  path_provider_foundation: 608fcb11be570ce83519b076ab6a1fffe2474f05
-  share_plus_macos: bad864466cc8d3edc440a2dec8befc781bf002e4
-  shared_preferences_foundation: 0b09b969fb36da5551c0bc4a2dbd9d0ff9387478
-  speech_to_text_macos: cb920dff8288c218a7e8c96c8c931b17e801dae7
+  OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
 
 PODFILE CHECKSUM: 1e95c36afbfd1cb6423ceca4de7a8e1b256fb6ac
 

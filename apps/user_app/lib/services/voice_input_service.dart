@@ -17,16 +17,19 @@ class VoiceInputService {
   /// itself start listening or necessarily prompt for permission.
   static Future<bool> isAvailable() async {
     if (_initialized) return true;
-    _initialized = await _speech.initialize(onError: _handleError, onStatus: (_) {});
+    _initialized =
+        await _speech.initialize(onError: _handleError, onStatus: (_) {});
     return _initialized;
   }
 
   static void _handleError(SpeechRecognitionError error) {
     // "not-allowed" is the Web Speech API's mic-permission-denied code;
     // "error_permission" is the native Android/iOS equivalent.
-    final isPermissionDenied =
-        error.errorMsg.contains('not-allowed') || error.errorMsg == 'error_permission';
-    _activeOnDone?.call(isPermissionDenied ? VoiceStopReason.permissionDenied : VoiceStopReason.error);
+    final isPermissionDenied = error.errorMsg.contains('not-allowed') ||
+        error.errorMsg == 'error_permission';
+    _activeOnDone?.call(isPermissionDenied
+        ? VoiceStopReason.permissionDenied
+        : VoiceStopReason.error);
     _activeOnDone = null;
   }
 
@@ -84,5 +87,6 @@ class VoiceInputService {
   /// into a 0..1 range suitable for driving a reactive waveform/pulse — an
   /// approximation, not real frequency analysis, but consistent across every
   /// caller that visualizes it.
-  static double normalizeSoundLevel(double level) => ((level + 2) / 12).clamp(0.0, 1.0);
+  static double normalizeSoundLevel(double level) =>
+      ((level + 2) / 12).clamp(0.0, 1.0);
 }

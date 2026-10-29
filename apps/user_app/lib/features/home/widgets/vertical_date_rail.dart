@@ -28,7 +28,7 @@ class _VerticalDateRailState extends State<VerticalDateRail>
   static const _slot = _itemH + _gap;
   static const _maxStretch = 28.0;
   static const _spring =
-  SpringDescription(mass: 1, stiffness: 320, damping: 22);
+      SpringDescription(mass: 1, stiffness: 320, damping: 22);
 
   late final List<DateTime> _days;
   late final AnimationController _blob; // fractional slot position, 0…N-1
@@ -51,8 +51,8 @@ class _VerticalDateRailState extends State<VerticalDateRail>
   void initState() {
     super.initState();
     final now = DateTime.now();
-    _days = List.generate(
-        10, (i) => DateTime(now.year, now.month, now.day + i));
+    _days =
+        List.generate(10, (i) => DateTime(now.year, now.month, now.day + i));
     _target = _indexOf(widget.selectedDate);
     _prevValue = _target.toDouble();
     _blob = AnimationController.unbounded(
@@ -80,8 +80,7 @@ class _VerticalDateRailState extends State<VerticalDateRail>
     final reduced = MediaQuery.disableAnimationsOf(context);
     if (reduced) {
       _blob.animateTo(index.toDouble(),
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOut);
+          duration: const Duration(milliseconds: 150), curve: Curves.easeOut);
     } else {
       _blob.animateWith(SpringSimulation(
         _spring,
@@ -140,8 +139,8 @@ class _VerticalDateRailState extends State<VerticalDateRail>
   void _onScrubEnd(LongPressEndDetails d) {
     _dragging = false;
     final vy = d.velocity.pixelsPerSecond.dy;
-    final projected = (_blob.value + (vy / _slot) * 0.12)
-        .clamp(0.0, (_count - 1).toDouble());
+    final projected =
+        (_blob.value + (vy / _slot) * 0.12).clamp(0.0, (_count - 1).toDouble());
     final i = projected.round();
     _snapTo(i, vy);
     if (i != _indexOf(widget.selectedDate)) {
@@ -176,7 +175,8 @@ class _VerticalDateRailState extends State<VerticalDateRail>
           Expanded(
             child: SingleChildScrollView(
               controller: _scroll,
-              padding: EdgeInsets.only(bottom: AppTokens.dockClearance(context)),
+              padding:
+                  EdgeInsets.only(bottom: AppTokens.dockClearance(context)),
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTapUp: _onTapUp,
@@ -195,10 +195,9 @@ class _VerticalDateRailState extends State<VerticalDateRail>
                       final stretch = reduced
                           ? 0.0
                           : (frameV.abs() * _slot * 2.2)
-                          .clamp(0.0, _maxStretch);
+                              .clamp(0.0, _maxStretch);
                       final movingUp = frameV < 0;
-                      final blobTop =
-                          p * _slot - (movingUp ? stretch : 0);
+                      final blobTop = p * _slot - (movingUp ? stretch : 0);
 
                       return Stack(
                         clipBehavior: Clip.none,
@@ -213,7 +212,7 @@ class _VerticalDateRailState extends State<VerticalDateRail>
                               decoration: BoxDecoration(
                                 color: AppColors.darkPrimary,
                                 borderRadius:
-                                BorderRadius.circular(_blobWidth / 2),
+                                    BorderRadius.circular(_blobWidth / 2),
                                 boxShadow: const [
                                   BoxShadow(
                                     color: Color(0x29000000),
@@ -293,8 +292,7 @@ class _RailItem extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: Color.lerp(
-                      AppColors.textMuted, Colors.white70, t),
+                  color: Color.lerp(AppColors.textMuted, Colors.white70, t),
                 ),
               ),
             ],

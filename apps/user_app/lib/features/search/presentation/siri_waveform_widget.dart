@@ -71,8 +71,9 @@ class _SiriWaveformPainter extends CustomPainter {
       List.generate(_barCount, (i) => i / (_barCount - 1));
   static final List<double> _centerBoost =
       _t.map((t) => 1 - (2 * (t - 0.5)).abs()).toList();
-  static final List<Color> _barColors =
-      _t.map((t) => Color.lerp(NSColors.royalBlue, NSColors.skyBlue, t)!).toList();
+  static final List<Color> _barColors = _t
+      .map((t) => Color.lerp(NSColors.royalBlue, NSColors.skyBlue, t)!)
+      .toList();
   static final Paint _paint = Paint()
     ..strokeCap = StrokeCap.round
     ..strokeWidth = 3;

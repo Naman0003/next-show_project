@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/router/app_router.dart';
-import '../../../auth/presentation/split_auth_screen.dart';
 import '../../../watchlist/application/watchlist_controller.dart';
 import '../theme/cinema_tokens.dart';
 import '../theme/nsx_motion.dart';
@@ -64,8 +63,6 @@ class _MonumentalSpotlightState extends ConsumerState<MonumentalSpotlight>
   }
 
   Future<void> _toggleSaved(Listing listing, bool isSaved) async {
-    final signedIn = await ensureSignedIn(context);
-    if (!signedIn || !mounted) return;
     final notifier = ref.read(watchlistControllerProvider.notifier);
     if (isSaved) {
       await notifier.remove(listing.showtimeId);

@@ -5,6 +5,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class AuthService {
   static SupabaseClient get _client => Supabase.instance.client;
 
+  /// Where Supabase sends the user back after an emailed link or Google
+  /// consent. On mobile this deep-links into the app (scheme registered in
+  /// Info.plist / AndroidManifest); without it Supabase falls back to the
+  /// project's Site URL (localhost). Must be in the project's Redirect URLs.
+  static const mobileRedirectUrl = 'nextshow://login-callback';
+  static String? get _redirectUrl => kIsWeb ? null : mobileRedirectUrl;
+
   static User? get currentUser {
     try {
       return _client.auth.currentUser;
@@ -12,41 +19,27 @@ class AuthService {
       return null;
     }
   }
-  static bool get isSignedIn => currentUser != null;
-  static Stream<AuthState> get onAuthStateChange => _client.auth.onAuthStateChange;
 
-  /// Sends a one-time code to [email]. Throws [AuthException] on failure.
+  static bool get isSignedIn => currentUser != null;
+  static Stream<AuthState> get onAuthStateChange =>
+      _client.auth.onAuthStateChange;
+
+  /// Emails a one-time code to [email], creating the account if it's new —
+  /// sign-in and sign-up are the same call. Throws [AuthException] on failure.
+  /// The Supabase "Magic Link" and "Confirm signup" email templates must
+  /// include `{{ .Token }}` for the code to appear in the email.
   static Future<void> sendOtp(String email) {
-    return _client.auth.signInWithOtp(email: email, shouldCreateUser: true);
+    return _client.auth.signInWithOtp(
+      email: email,
+      shouldCreateUser: true,
+      emailRedirectTo: _redirectUrl,
+    );
   }
 
   /// Verifies the [code] sent to [email]. Throws [AuthException] on failure.
   static Future<void> verifyOtp({required String email, required String code}) {
-    return _client.auth.verifyOTP(email: email, token: code, type: OtpType.email);
-  }
-
-  /// Signs an existing user in with an email + password pair. Throws
-  /// [AuthException] on bad credentials. Requires the Email provider's password
-  /// sign-in to be enabled in the Supabase project.
-  static Future<AuthResponse> signInWithPassword({
-    required String email,
-    required String password,
-  }) {
-    return _client.auth.signInWithPassword(email: email, password: password);
-  }
-
-  /// Creates an account from an email + password pair. Optional [data] is
-  /// stored on the user's `user_metadata` (e.g. `{'username': ...}`). Throws
-  /// [AuthException] on failure. When "Confirm email" is on for the project,
-  /// the returned [AuthResponse.session] is null until the user clicks the
-  /// confirmation link — callers should check for that rather than assume a
-  /// live session.
-  static Future<AuthResponse> signUpWithPassword({
-    required String email,
-    required String password,
-    Map<String, dynamic>? data,
-  }) {
-    return _client.auth.signUp(email: email, password: password, data: data);
+    return _client.auth
+        .verifyOTP(email: email, token: code, type: OtpType.email);
   }
 
   static Future<void> signOut() {
@@ -59,12 +52,21 @@ class AuthService {
     return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value);
   }
 
-  /// Redirects to Google's consent screen (web only for now). Throws
-  /// [AuthException] on failure to even start the redirect.
+  /// Opens Google's consent screen. On mobile it runs in the system browser:
+  /// the in-app Safari sheet doesn't reliably hand the `nextshow://` redirect
+  /// back and never closes itself. The returning deep link is exchanged for a
+  /// session by supabase_flutter. Throws [AuthException] on failure to even
+  /// start the redirect.
   static Future<void> signInWithGoogle() {
     return _client.auth.signInWithOAuth(
       OAuthProvider.google,
-      redirectTo: kIsWeb ? Uri.base.origin : null,
+      redirectTo: kIsWeb ? Uri.base.origin : mobileRedirectUrl,
+      authScreenLaunchMode:
+          kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
+      // Always show Google's account chooser. Without it Google silently
+      // reuses whichever account the browser is signed into, which can sign
+      // the user in as a different email than the one they meant.
+      queryParams: const {'prompt': 'select_account'},
     );
   }
 }

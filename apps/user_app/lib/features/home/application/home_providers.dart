@@ -1,43 +1,26 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../data/event_repository.dart';
 import '../../../models/event_model.dart';
-
-final eventRepositoryProvider = Provider<EventRepository>((ref) {
-  return MockEventRepository();
-});
+import '../../newsfeed/application/feed_providers.dart';
 
 final selectedCityProvider = StateProvider<String>((ref) => 'Berlin');
 
-final selectedCategoryProvider = StateProvider<EventCategory>((ref) => EventCategory.all);
+final selectedCategoryProvider =
+    StateProvider<EventCategory>((ref) => EventCategory.all);
 
 final selectedDateProvider = StateProvider<DateTime?>((ref) => null);
 
 final searchQueryProvider = StateProvider<String>((ref) => '');
 
-class SavedEventsNotifier extends StateNotifier<Set<String>> {
-  SavedEventsNotifier() : super({'evt-1', 'evt-3'}); // Pre-saved items for demo
-
-  void toggleSave(String eventId) {
-    if (state.contains(eventId)) {
-      state = {...state}..remove(eventId);
-    } else {
-      state = {...state, eventId};
-    }
-  }
-
-  bool isSaved(String eventId) => state.contains(eventId);
-}
-
-final savedEventsProvider = StateNotifierProvider<SavedEventsNotifier, Set<String>>((ref) {
-  return SavedEventsNotifier();
+/// Real upcoming events, shared with the Feed tab's live `v_listings` stream
+/// (one fetch + one Realtime subscription for both tabs).
+final allEventsProvider = Provider.autoDispose<AsyncValue<List<Event>>>((ref) {
+  return ref
+      .watch(feedListingsProvider)
+      .whenData((listings) => listings.map(Event.fromListing).toList());
 });
 
-final allEventsProvider = FutureProvider<List<Event>>((ref) async {
-  final repository = ref.watch(eventRepositoryProvider);
-  return repository.getEvents();
-});
-
-final filteredEventsProvider = Provider<AsyncValue<List<Event>>>((ref) {
+final filteredEventsProvider =
+    Provider.autoDispose<AsyncValue<List<Event>>>((ref) {
   final allEventsAsync = ref.watch(allEventsProvider);
   final city = ref.watch(selectedCityProvider);
   final category = ref.watch(selectedCategoryProvider);
@@ -46,8 +29,10 @@ final filteredEventsProvider = Provider<AsyncValue<List<Event>>>((ref) {
 
   return allEventsAsync.whenData((events) {
     return events.where((event) {
-      final matchesCity = city == 'All Cities' || event.city.toLowerCase() == city.toLowerCase();
-      final matchesCategory = category == EventCategory.all || event.category == category;
+      final matchesCity = city == 'All Cities' ||
+          event.city.toLowerCase() == city.toLowerCase();
+      final matchesCategory =
+          category == EventCategory.all || event.category == category;
       final matchesQuery = query.isEmpty ||
           event.title.toLowerCase().contains(query) ||
           event.venueName.toLowerCase().contains(query) ||

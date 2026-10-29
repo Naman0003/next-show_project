@@ -8,9 +8,12 @@ import 'cinema_theme.dart';
 /// A single "Now Showing" poster card — 2:3 poster, glass rating badge,
 /// title and genre below.
 class MoviePosterCard extends StatelessWidget {
-  const MoviePosterCard({super.key, required this.listing});
+  const MoviePosterCard({super.key, required this.listing, this.width = 140});
 
   final Listing listing;
+
+  /// Card width; the poster keeps its 2:3 ratio within it.
+  final double width;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +26,7 @@ class MoviePosterCard extends StatelessWidget {
       child: GestureDetector(
         onTap: () => EventDetailRoute($extra: listing).push(context),
         child: SizedBox(
-          width: 140,
+          width: width,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,7 +43,8 @@ class MoviePosterCard extends StatelessWidget {
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) => Container(
                           color: CinemaColors.surfaceElevated,
-                          child: const Icon(Icons.movie, color: CinemaColors.textMuted, size: 32),
+                          child: const Icon(Icons.movie,
+                              color: CinemaColors.textMuted, size: 32),
                         ),
                       ),
                       if (rating != null)

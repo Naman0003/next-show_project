@@ -42,14 +42,16 @@ class BookingService {
 
     // 2. Open external browser or cinema app
     try {
-      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final launched =
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
       if (!launched) {
         await launchUrl(uri, mode: LaunchMode.platformDefault);
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not open cinema booking link: $cleanUrl')),
+          SnackBar(
+              content: Text('Could not open cinema booking link: $cleanUrl')),
         );
       }
     }

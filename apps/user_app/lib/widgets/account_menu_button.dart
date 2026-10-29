@@ -1,6 +1,6 @@
 // lib/widgets/account_menu_button.dart
 import 'package:flutter/material.dart';
-import '../screens/auth/login_screen.dart';
+import '../features/auth/presentation/split_auth_screen.dart';
 import '../services/auth_service.dart';
 
 /// Account icon for an AppBar's actions. Shows sign-in state and opens
@@ -24,8 +24,10 @@ class _AccountMenuButtonState extends State<AccountMenuButton> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Signed in as", style: Theme.of(context).textTheme.bodySmall),
-                Text(AuthService.currentUser?.email ?? '', style: Theme.of(context).textTheme.titleMedium),
+                Text("Signed in as",
+                    style: Theme.of(context).textTheme.bodySmall),
+                Text(AuthService.currentUser?.email ?? '',
+                    style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
@@ -54,8 +56,11 @@ class _AccountMenuButtonState extends State<AccountMenuButton> {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(AuthService.isSignedIn ? Icons.account_circle : Icons.account_circle_outlined),
-      tooltip: AuthService.isSignedIn ? AuthService.currentUser?.email : "Sign in",
+      icon: Icon(AuthService.isSignedIn
+          ? Icons.account_circle
+          : Icons.account_circle_outlined),
+      tooltip:
+          AuthService.isSignedIn ? AuthService.currentUser?.email : "Sign in",
       onPressed: _handleTap,
     );
   }

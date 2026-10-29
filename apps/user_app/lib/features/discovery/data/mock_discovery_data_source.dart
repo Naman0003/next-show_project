@@ -12,11 +12,12 @@ class MockDiscoveryDataSource {
 
   /// Top picks for the "In the spotlight" peek-carousel, highest-rated first.
   List<Listing> getSpotlight() {
-    final all = _all()..sort((a, b) {
-      final ratingA = a.showtimeAttributes['imdb_rating'] as double? ?? 0;
-      final ratingB = b.showtimeAttributes['imdb_rating'] as double? ?? 0;
-      return ratingB.compareTo(ratingA);
-    });
+    final all = _all()
+      ..sort((a, b) {
+        final ratingA = a.showtimeAttributes['imdb_rating'] as double? ?? 0;
+        final ratingB = b.showtimeAttributes['imdb_rating'] as double? ?? 0;
+        return ratingB.compareTo(ratingA);
+      });
     return all.take(3).toList();
   }
 
@@ -48,7 +49,8 @@ class MockDiscoveryDataSource {
           venueAddress: 'Karl-Marx-Allee 33, Berlin',
           longitude: 13.4235,
           latitude: 52.5155,
-          imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1000',
+          imageUrl:
+              'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1000',
         ),
         buildMockListing(
           showtimeId: 'demo-showtime-1',
@@ -125,7 +127,8 @@ class MockDiscoveryDataSource {
           venueAddress: 'Friedrichstraße 107, Berlin',
           longitude: 13.3879,
           latitude: 52.5219,
-          imageUrl: 'https://picsum.photos/seed/late-night-circuit-poster/800/1200',
+          imageUrl:
+              'https://picsum.photos/seed/late-night-circuit-poster/800/1200',
         ),
         buildMockListing(
           showtimeId: 'demo-showtime-4',
@@ -176,7 +179,8 @@ class MockDiscoveryDataSource {
           venueAddress: 'Nalepastraße 18, Berlin',
           longitude: 13.5027,
           latitude: 52.4589,
-          imageUrl: 'https://picsum.photos/seed/nocturne-funkhaus-poster/800/1200',
+          imageUrl:
+              'https://picsum.photos/seed/nocturne-funkhaus-poster/800/1200',
         ),
         buildMockListing(
           showtimeId: 'demo-showtime-6',
@@ -202,7 +206,8 @@ class MockDiscoveryDataSource {
           venueAddress: 'Linienstraße 227, Berlin',
           longitude: 13.4022,
           latitude: 52.5288,
-          imageUrl: 'https://picsum.photos/seed/glass-menagerie-poster/800/1200',
+          imageUrl:
+              'https://picsum.photos/seed/glass-menagerie-poster/800/1200',
         ),
         buildMockListing(
           showtimeId: 'demo-showtime-7',

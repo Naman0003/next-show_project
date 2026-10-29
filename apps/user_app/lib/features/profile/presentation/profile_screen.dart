@@ -53,7 +53,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         final bottomInset = MediaQuery.of(ctx).padding.bottom;
         return Material(
           color: AppColors.surfaceWhite,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppTokens.radiusCard)),
+          borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppTokens.radiusCard)),
           clipBehavior: Clip.antiAlias,
           child: ConstrainedBox(
             constraints: BoxConstraints(
@@ -97,20 +98,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           contentPadding: EdgeInsets.zero,
                           leading: Icon(
                             Icons.location_on_rounded,
-                            color: city == currentCity ? AppColors.darkPrimary : AppColors.textMuted,
+                            color: city == currentCity
+                                ? AppColors.darkPrimary
+                                : AppColors.textMuted,
                           ),
                           title: Text(
                             city,
                             style: TextStyle(
-                              fontWeight: city == currentCity ? FontWeight.w800 : FontWeight.w500,
-                              color: city == currentCity ? AppColors.darkPrimary : AppColors.textPrimary,
+                              fontWeight: city == currentCity
+                                  ? FontWeight.w800
+                                  : FontWeight.w500,
+                              color: city == currentCity
+                                  ? AppColors.darkPrimary
+                                  : AppColors.textPrimary,
                             ),
                           ),
                           trailing: city == currentCity
-                              ? const Icon(Icons.check_circle_rounded, color: AppColors.darkPrimary)
+                              ? const Icon(Icons.check_circle_rounded,
+                                  color: AppColors.darkPrimary)
                               : null,
                           onTap: () {
-                            ref.read(selectedCityProvider.notifier).state = city;
+                            ref.read(selectedCityProvider.notifier).state =
+                                city;
                             Navigator.pop(ctx);
                           },
                         );
@@ -136,7 +145,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         final bottomInset = MediaQuery.of(ctx).padding.bottom;
         return Material(
           color: AppColors.surfaceWhite,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppTokens.radiusCard)),
+          borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppTokens.radiusCard)),
           clipBehavior: Clip.antiAlias,
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
@@ -220,12 +230,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surfaceWhite,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-        content: Text(message, style: const TextStyle(color: AppColors.textSecondary, height: 1.4)),
+        title: Text(title,
+            style: const TextStyle(
+                fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+        content: Text(message,
+            style:
+                const TextStyle(color: AppColors.textSecondary, height: 1.4)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close', style: TextStyle(color: AppColors.darkPrimary, fontWeight: FontWeight.w800)),
+            child: const Text('Close',
+                style: TextStyle(
+                    color: AppColors.darkPrimary, fontWeight: FontWeight.w800)),
           ),
         ],
       ),
@@ -260,7 +276,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             child: TapScaleContainer(
               onTap: () => _showCityPicker(context, selectedCity),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.surfaceWhite,
                   borderRadius: BorderRadius.circular(AppTokens.radiusPill),
@@ -268,7 +285,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.location_on_rounded, size: 14, color: AppColors.darkPrimary),
+                    const Icon(Icons.location_on_rounded,
+                        size: 14, color: AppColors.darkPrimary),
                     const SizedBox(width: 4),
                     Text(
                       selectedCity,
@@ -287,7 +305,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
       body: ListView(
         physics: const BouncingScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(20, 12, 20, AppTokens.dockClearance(context)),
+        padding:
+            EdgeInsets.fromLTRB(20, 12, 20, AppTokens.dockClearance(context)),
         children: [
           // 1. Account Header Card
           _AccountHeader(
@@ -331,7 +350,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              for (final cat in EventCategory.values.where((c) => c != EventCategory.all))
+              for (final cat
+                  in EventCategory.values.where((c) => c != EventCategory.all))
                 TapScaleContainer(
                   onTap: () {
                     setState(() {
@@ -345,7 +365,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
                       color: _selectedCategories.contains(cat)
                           ? AppColors.darkPrimary
@@ -415,7 +436,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   value: _doorsAlertsEnabled,
                   onChanged: (val) => setState(() => _doorsAlertsEnabled = val),
                 ),
-                const Divider(height: 1, indent: 56, color: AppColors.borderLight),
+                const Divider(
+                    height: 1, indent: 56, color: AppColors.borderLight),
                 _NotificationToggleRow(
                   icon: Icons.bolt_rounded,
                   title: 'Free Ticket Drops',
@@ -423,13 +445,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   value: _freeDropsEnabled,
                   onChanged: (val) => setState(() => _freeDropsEnabled = val),
                 ),
-                const Divider(height: 1, indent: 56, color: AppColors.borderLight),
+                const Divider(
+                    height: 1, indent: 56, color: AppColors.borderLight),
                 _NotificationToggleRow(
                   icon: Icons.newspaper_rounded,
                   title: 'Weekend Gig Digest',
                   subtitle: 'Top curated nightlife and concerts every Thursday',
                   value: _weeklyDigestEnabled,
-                  onChanged: (val) => setState(() => _weeklyDigestEnabled = val),
+                  onChanged: (val) =>
+                      setState(() => _weeklyDigestEnabled = val),
                 ),
               ],
             ),
@@ -457,7 +481,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               child: const Column(
                 children: [
-                  Icon(Icons.history_rounded, size: 36, color: AppColors.textMuted),
+                  Icon(Icons.history_rounded,
+                      size: 36, color: AppColors.textMuted),
                   SizedBox(height: 8),
                   Text(
                     'No Recently Viewed Events',
@@ -522,7 +547,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     'Concierge',
                   ),
                 ),
-                const Divider(height: 1, indent: 56, color: AppColors.borderLight),
+                const Divider(
+                    height: 1, indent: 56, color: AppColors.borderLight),
                 _SettingsTile(
                   icon: Icons.privacy_tip_outlined,
                   title: 'Privacy Policy',
@@ -532,7 +558,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     'NextShow Privacy Policy',
                   ),
                 ),
-                const Divider(height: 1, indent: 56, color: AppColors.borderLight),
+                const Divider(
+                    height: 1, indent: 56, color: AppColors.borderLight),
                 _SettingsTile(
                   icon: Icons.description_outlined,
                   title: 'Terms of Service',
@@ -543,7 +570,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                 ),
                 if (isSignedIn) ...[
-                  const Divider(height: 1, indent: 56, color: AppColors.borderLight),
+                  const Divider(
+                      height: 1, indent: 56, color: AppColors.borderLight),
                   _SettingsTile(
                     icon: Icons.logout_rounded,
                     title: 'Sign Out',
@@ -555,17 +583,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         context: context,
                         builder: (ctx) => AlertDialog(
                           backgroundColor: AppColors.surfaceWhite,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                          title: const Text('Sign Out', style: TextStyle(fontWeight: FontWeight.w800)),
-                          content: const Text('Are you sure you want to sign out of NextShow?'),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20)),
+                          title: const Text('Sign Out',
+                              style: TextStyle(fontWeight: FontWeight.w800)),
+                          content: const Text(
+                              'Are you sure you want to sign out of NextShow?'),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(ctx, false),
-                              child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+                              child: const Text('Cancel',
+                                  style: TextStyle(
+                                      color: AppColors.textSecondary)),
                             ),
                             TextButton(
                               onPressed: () => Navigator.pop(ctx, true),
-                              child: const Text('Sign Out', style: TextStyle(color: AppColors.heartRed, fontWeight: FontWeight.w800)),
+                              child: const Text('Sign Out',
+                                  style: TextStyle(
+                                      color: AppColors.heartRed,
+                                      fontWeight: FontWeight.w800)),
                             ),
                           ],
                         ),
@@ -702,7 +738,8 @@ class _AccountHeader extends StatelessWidget {
       );
     }
 
-    final initial = email != null && email!.isNotEmpty ? email![0].toUpperCase() : 'U';
+    final initial =
+        email != null && email!.isNotEmpty ? email![0].toUpperCase() : 'U';
     final username = email != null ? email!.split('@').first : 'Attendee';
 
     return Container(
@@ -764,16 +801,19 @@ class _AccountHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     color: AppColors.neonGreen.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppTokens.radiusPill),
-                    border: Border.all(color: AppColors.neonGreen.withValues(alpha: 0.4)),
+                    border: Border.all(
+                        color: AppColors.neonGreen.withValues(alpha: 0.4)),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.verified_rounded, size: 12, color: AppColors.neonGreen),
+                      Icon(Icons.verified_rounded,
+                          size: 12, color: AppColors.neonGreen),
                       SizedBox(width: 4),
                       Text(
                         'Verified Attendee',

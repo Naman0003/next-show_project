@@ -33,6 +33,7 @@
 | Setup `hive` and `hive_flutter` initialization in `main.dart` | [x] | Pinned exact versions; boxes `watchlist`/`listing_cache` opened before `runApp`; exposed via `core/di/core_providers.dart` |
 | Build Watchlist & Profile UI | [x] | `WatchlistController` (@riverpod) + `NSEventCard` grid, swipe-to-remove, debug mock-insert button; Profile has placeholder notification toggles + Recently Viewed reading `listing_cache` |
 | Feed tab on live Supabase data | [x] | `feedListingsProvider` (fetchActiveListings + Realtime on events/showtimes/venues, 2s debounce) drives the Breaking Events carousel (2nd tab, opens on launch); cards open real `Listing` detail; map hidden when venue has no coords. Not yet: Hive cache-then-network per architecture_plan §6 |
+| Discover (Home) on live Supabase data | [x] | Mock `MockEventRepository` removed; `allEventsProvider` maps the shared `feedListingsProvider` stream via `Event.fromListing` (keeps the real Listing for detail/booking; source labels → Home's 9 categories). Tests: `test/models/event_from_listing_test.dart`, `test/features/home/home_screen_real_data_test.dart` |
 
 ### Phase 3: Deep Discovery & Webview (P1)
 | Task | Status | Notes |

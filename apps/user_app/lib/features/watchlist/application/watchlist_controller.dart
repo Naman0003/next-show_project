@@ -3,7 +3,6 @@ import 'package:hive/hive.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/di/core_providers.dart';
-import '../../../core/mocks/mock_listing_factory.dart';
 import '../../../core/storage/hive_json.dart';
 
 part 'watchlist_controller.g.dart';
@@ -13,6 +12,10 @@ class WatchlistController extends _$WatchlistController {
   @override
   List<Listing> build() {
     final box = ref.watch(watchlistBoxProvider);
+    // Drop entries left by the removed "Insert mock (debug)" button.
+    final mockKeys =
+        box.keys.where((k) => k.toString().startsWith('mock-showtime-'));
+    if (mockKeys.isNotEmpty) box.deleteAll(mockKeys.toList());
     return _readAll(box);
   }
 
@@ -31,10 +34,6 @@ class WatchlistController extends _$WatchlistController {
       ..sort((a, b) => a.startTime.compareTo(b.startTime));
   }
 
-  /// Debug-only helper (Phase 2) that proves the Hive cache persists across
-  /// hot restarts without any network/Supabase dependency.
-  Future<void> addMockEntry() => add(_buildMockListing());
-
   Future<void> remove(String showtimeId) async {
     final box = ref.read(watchlistBoxProvider);
     await box.delete(showtimeId);
@@ -43,20 +42,5 @@ class WatchlistController extends _$WatchlistController {
 
   bool contains(String showtimeId) {
     return state.any((l) => l.showtimeId == showtimeId);
-  }
-
-  Listing _buildMockListing() {
-    final id = DateTime.now().microsecondsSinceEpoch.toString();
-    return buildMockListing(
-      showtimeId: 'mock-showtime-$id',
-      eventId: 'mock-event-$id',
-      venueId: 'mock-venue-$id',
-      eventTitle: 'Mock Movie #$id',
-      eventDescription: 'Inserted by the Phase 2 debug button.',
-      venueName: 'Kino Debug Berlin',
-      venueAddress: 'Karl-Marx-Allee 1, Berlin',
-      longitude: 13.4050,
-      latitude: 52.5200,
-    );
   }
 }

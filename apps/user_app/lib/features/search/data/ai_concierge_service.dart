@@ -58,7 +58,8 @@ class MockAiConciergeService implements AiConciergeService {
       bookingUrl: 'https://example.com/book/mock-concierge-1',
       eventId: 'mock-concierge-event-1',
       eventTitle: 'Past Lives',
-      eventDescription: 'A tender, quietly devastating one — a good pick for a reflective mood.',
+      eventDescription:
+          'A tender, quietly devastating one — a good pick for a reflective mood.',
       durationMinutes: 105,
       venueId: 'mock-concierge-venue-1',
       venueName: 'Il Kino',
@@ -75,7 +76,8 @@ class MockAiConciergeService implements AiConciergeService {
       eventId: 'mock-concierge-event-2',
       category: EventCategory.comedy,
       eventTitle: 'Late Night Improv',
-      eventDescription: 'Loose, fast, and very silly — good for a lighter mood.',
+      eventDescription:
+          'Loose, fast, and very silly — good for a lighter mood.',
       durationMinutes: 75,
       venueId: 'mock-concierge-venue-2',
       venueName: 'Quatsch Comedy Club',
@@ -93,7 +95,8 @@ class MockAiConciergeService implements AiConciergeService {
       eventId: 'mock-concierge-event-3',
       category: EventCategory.music,
       eventTitle: 'Late Session: Berlin Strings',
-      eventDescription: 'Small-room acoustic set — good for winding a night down.',
+      eventDescription:
+          'Small-room acoustic set — good for winding a night down.',
       durationMinutes: 90,
       venueId: 'mock-concierge-venue-3',
       venueName: 'Villa Neukölln',

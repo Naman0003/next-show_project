@@ -39,6 +39,11 @@ class Event {
   final bool isFree;
   final String organizer;
 
+  /// The real `v_listings` row this event was built from, if any. Kept so
+  /// [toListing] hands the detail screen the true booking URL, venue and
+  /// coordinates instead of reconstructing approximations.
+  final core.Listing? listing;
+
   const Event({
     required this.id,
     required this.title,
@@ -50,7 +55,50 @@ class Event {
     required this.city,
     this.isFree = true,
     required this.organizer,
+    this.listing,
   });
+
+  /// Adapts a real listing to the Home cards' model. Ingested events keep
+  /// extras with no schema column (city, free flag, organizer, the source's
+  /// own category label) in `eventMetadata`.
+  factory Event.fromListing(core.Listing l) {
+    final meta = l.eventMetadata;
+    return Event(
+      id: l.showtimeId,
+      title: l.eventTitle,
+      description: l.eventDescription ?? (meta['breaking_headline'] as String?) ?? '',
+      category: _categoryFor(l),
+      imageUrl: l.imageUrl ?? l.showtimeImageUrl ?? '',
+      startDate: l.startTime.toLocal(),
+      venueName: l.venueName,
+      city: (meta['city'] as String?) ?? 'Berlin',
+      isFree: meta['is_free'] == true || l.price == 0,
+      organizer: (meta['organizer'] as String?) ?? l.venueName,
+      listing: l,
+    );
+  }
+
+  /// Home filters on nine categories but `core_models` has only four, so
+  /// prefer the source's own label (e.g. "Workshop", "Stand-up") when present.
+  static EventCategory _categoryFor(core.Listing l) {
+    final label = ((l.eventMetadata['original_category'] as String?) ?? '').toLowerCase();
+    // Match at word starts so e.g. "art" doesn't fire inside "Startup".
+    bool has(List<String> words) => words.any((w) => RegExp('\\b${RegExp.escape(w)}').hasMatch(label));
+    if (has(['festival'])) return EventCategory.festivals;
+    if (has(['comedy', 'stand-up', 'standup', 'party', 'parties', 'club', 'nightlife'])) return EventCategory.nightlife;
+    if (has(['film', 'movie', 'kino', 'cinema', 'screening'])) return EventCategory.film;
+    if (has(['concert', 'konzert', 'music', 'musik'])) return EventCategory.concerts;
+    if (has(['exhibition', 'ausstellung', 'art', 'kunst', 'museum', 'gallery', 'theat', 'perform'])) return EventCategory.exhibitions;
+    if (has(['sport', 'yoga', 'fitness'])) return EventCategory.sports;
+    if (has(['food', 'market', 'markt', 'dinner', 'wine', 'beer'])) return EventCategory.food;
+    if (label.isNotEmpty) return EventCategory.community;
+    return switch (l.category) {
+      core.EventCategory.movie => EventCategory.film,
+      core.EventCategory.music => EventCategory.concerts,
+      core.EventCategory.comedy => EventCategory.nightlife,
+      core.EventCategory.theatre => EventCategory.exhibitions,
+    };
+  }
 
   // Legacy getters
   String get subtitle => description;
@@ -66,6 +114,7 @@ class Event {
   List<dynamic> get cinemas => const [];
 
   core.Listing toListing() {
+    if (listing != null) return listing!;
     final (lat, lng) = _getCityCoordinates(city);
     return core.Listing(
       showtimeId: 'showtime_$id',
@@ -172,6 +221,7 @@ class Event {
       city: city ?? this.city,
       isFree: isFree ?? this.isFree,
       organizer: organizer ?? this.organizer,
+      listing: listing,
     );
   }
 }

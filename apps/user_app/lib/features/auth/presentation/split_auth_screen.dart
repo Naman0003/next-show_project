@@ -1,73 +1,54 @@
 import 'dart:async';
-import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/physics.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart'
     show AuthChangeEvent, AuthException;
 
 import '../../../services/auth_service.dart';
 import '../../../theme/app_theme.dart';
 
-/// Which form the auth screen is showing.
-enum AuthMode { signIn, signUp }
-
 /// Returns true once the user is authenticated, false if they backed out.
-/// Screens that need identity (saving to the watchlist, the concierge) await
-/// this before continuing.
-Future<bool> ensureSignedIn(
-  BuildContext context, {
-  AuthMode initialMode = AuthMode.signIn,
-}) async {
+/// Screens that need identity (the concierge, the profile) await this before
+/// continuing.
+Future<bool> ensureSignedIn(BuildContext context) async {
   if (AuthService.isSignedIn) return true;
   final result = await Navigator.of(context, rootNavigator: true).push<bool>(
     MaterialPageRoute(
       fullscreenDialog: true,
-      builder: (_) => SplitAuthScreen(initialMode: initialMode),
+      builder: (_) => const SplitAuthScreen(),
     ),
   );
   return result ?? false;
 }
 
-/// Split-panel auth screen. A solid brand panel and a white form panel share
-/// the screen along its long axis (side-by-side on wide layouts, stacked on
-/// phones). Switching between Sign In and Sign Up is a three-step move on the
-/// panel: it **expands until it covers the whole screen**, both sides swap
-/// while hidden, then it **retracts to the opposite half** on a physics spring.
+/// Passwordless auth: email -> one-time code -> signed in. Sign-in and
+/// sign-up are the same flow — Supabase creates the account on first verify.
+///
+/// A solid brand panel and a white form panel share the screen along its long
+/// axis (side-by-side on wide layouts, stacked on phones), split by a curve.
 class SplitAuthScreen extends StatefulWidget {
-  const SplitAuthScreen({super.key, this.initialMode = AuthMode.signIn});
-
-  final AuthMode initialMode;
+  const SplitAuthScreen({super.key});
 
   @override
   State<SplitAuthScreen> createState() => _SplitAuthScreenState();
 }
 
-class _SplitAuthScreenState extends State<SplitAuthScreen>
-    with SingleTickerProviderStateMixin {
-  /// 0 = panel resting on one half, 1 = panel covering the whole screen.
-  late final AnimationController _cover = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 320),
-  );
-
-  late AuthMode _mode = widget.initialMode;
-
-  /// Whether the panel currently rests on the right/bottom half. Flipped
-  /// between the expand and retract halves of a switch.
-  late bool _panelOnRight = _mode == AuthMode.signUp;
-
-  bool _busy = false;
+class _SplitAuthScreenState extends State<SplitAuthScreen> {
   StreamSubscription<dynamic>? _authSub;
+  bool _popped = false;
 
   @override
   void initState() {
     super.initState();
     try {
+      // Covers both a verified code and the Google OAuth return.
       _authSub = AuthService.onAuthStateChange.listen((state) {
         if (state.event == AuthChangeEvent.signedIn &&
             AuthService.isSignedIn &&
-            mounted) {
+            mounted &&
+            !_popped) {
+          _popped = true;
           Navigator.of(context).pop(true);
         }
       });
@@ -79,113 +60,71 @@ class _SplitAuthScreenState extends State<SplitAuthScreen>
   @override
   void dispose() {
     _authSub?.cancel();
-    _cover.dispose();
     super.dispose();
-  }
-
-  bool get _reduceMotion =>
-      MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-
-  Future<void> _switch(AuthMode next) async {
-    if (_busy || next == _mode) return;
-    _busy = true;
-    FocusScope.of(context).unfocus();
-
-    if (_reduceMotion) {
-      setState(() {
-        _mode = next;
-        _panelOnRight = next == AuthMode.signUp;
-      });
-      _busy = false;
-      return;
-    }
-
-    // 1 — grow the panel until it covers the whole screen.
-    await _cover.animateTo(1, curve: Curves.easeInOutCubic);
-    if (!mounted) return;
-
-    // 2 — swap both sides while they're completely hidden.
-    setState(() => _mode = next);
-    await Future<void>.delayed(const Duration(milliseconds: 60));
-    if (!mounted) return;
-    _panelOnRight = next == AuthMode.signUp;
-
-    // 3 — retract to the opposite half on the characterful spring.
-    await _cover.animateWith(
-      SpringSimulation(
-        const SpringDescription(mass: 1, stiffness: 100, damping: 20),
-        1,
-        0,
-        0,
-      ),
-    );
-    _busy = false;
   }
 
   @override
   Widget build(BuildContext context) {
-    final media = MediaQuery.sizeOf(context);
-    final wide = media.width >= 700;
-    // On a phone the panel is a banner, not a true half — the form needs the room.
-    final restFrac = wide ? 0.5 : 0.38;
+    // While the keyboard is up the phone banner shrinks so the field stays
+    // visible above it.
+    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
+    final topInset = MediaQuery.paddingOf(context).top;
 
     return Scaffold(
       backgroundColor: Colors.white,
-      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
-          // --- Form layer: both forms mounted, faded by which is active. ---
-          _FormSide(
-            wide: wide,
-            restFrac: restFrac,
-            side: AuthMode.signUp,
-            active: _mode == AuthMode.signUp,
-            child:
-                const _AuthForm(key: ValueKey('signup'), mode: AuthMode.signUp),
-          ),
-          _FormSide(
-            wide: wide,
-            restFrac: restFrac,
-            side: AuthMode.signIn,
-            active: _mode == AuthMode.signIn,
-            child:
-                const _AuthForm(key: ValueKey('signin'), mode: AuthMode.signIn),
-          ),
-
-          // --- Expanding brand panel. ---
-          AnimatedBuilder(
-            animation: _cover,
-            builder: (context, _) {
-              final t = _cover.value.clamp(0.0, 1.0);
-              final axis = wide ? media.width : media.height;
-              final solid = lerpDouble(axis * restFrac, axis, t)!;
-              final span = solid + _kCurveDepth;
-
-              return Positioned(
-                left: wide ? (_panelOnRight ? null : 0) : 0,
-                right: wide ? (_panelOnRight ? 0 : null) : 0,
-                top: wide ? 0 : (_panelOnRight ? null : 0),
-                bottom: wide ? 0 : (_panelOnRight ? 0 : null),
-                width: wide ? span : null,
-                height: wide ? null : span,
-                child: ClipPath(
-                  clipper: _PanelClipper(
-                    wide: wide,
-                    panelOnRight: _panelOnRight,
+          LayoutBuilder(
+            builder: (context, box) {
+              final wide = box.maxWidth >= 700;
+              final form = SafeArea(
+                top: wide,
+                child: const SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(24, 16, 24, 24),
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: _OtpForm(),
                   ),
-                  child: ColoredBox(
-                    color: AppColors.royalBlue,
-                    child: _PanelContent(
-                      wide: wide,
-                      mode: _mode,
-                      onSwitch: () => _switch(
-                        _mode == AuthMode.signIn
-                            ? AuthMode.signUp
-                            : AuthMode.signIn,
+                ),
+              );
+
+              if (wide) {
+                return Row(
+                  children: [
+                    SizedBox(
+                      width: box.maxWidth * 0.5,
+                      child: ClipPath(
+                        clipper: _PanelClipper(wide: true),
+                        child: const ColoredBox(
+                          color: AppColors.royalBlue,
+                          child: _PanelContent(compact: false),
+                        ),
+                      ),
+                    ),
+                    Expanded(child: Center(child: form)),
+                  ],
+                );
+              }
+
+              // Phone: banner on top, form below — never overlapping.
+              return Column(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeOut,
+                    height: keyboardOpen
+                        ? topInset + 72 + _kCurveDepth
+                        : box.maxHeight * 0.34 + _kCurveDepth,
+                    child: ClipPath(
+                      clipper: _PanelClipper(wide: false),
+                      child: ColoredBox(
+                        color: AppColors.royalBlue,
+                        child: _PanelContent(compact: keyboardOpen),
                       ),
                     ),
                   ),
-                ),
+                  Expanded(child: form),
+                ],
               );
             },
           ),
@@ -195,11 +134,7 @@ class _SplitAuthScreenState extends State<SplitAuthScreen>
             top: MediaQuery.paddingOf(context).top + 4,
             left: 4,
             child: IconButton(
-              icon: Icon(
-                Icons.close_rounded,
-                // The panel covers the top-left corner in sign-in mode.
-                color: _panelOnRight ? AppColors.textSecondary : Colors.white,
-              ),
+              icon: const Icon(Icons.close_rounded, color: Colors.white),
               onPressed: () => Navigator.of(context).maybePop(false),
             ),
           ),
@@ -218,10 +153,9 @@ const double _kCurveDepth = 44;
 /// Clips the brand panel so its inner edge (the one facing the form) is a
 /// single sweeping curve rather than a straight line.
 class _PanelClipper extends CustomClipper<Path> {
-  _PanelClipper({required this.wide, required this.panelOnRight});
+  _PanelClipper({required this.wide});
 
   final bool wide;
-  final bool panelOnRight;
 
   @override
   Path getClip(Size size) {
@@ -230,26 +164,14 @@ class _PanelClipper extends CustomClipper<Path> {
     final h = size.height;
     const d = _kCurveDepth;
 
-    if (wide && panelOnRight) {
-      // Flat right edge, curved left edge bulging toward the form.
-      p.moveTo(w, 0);
-      p.lineTo(d, 0);
-      p.cubicTo(-6, h * 0.28, -6, h * 0.72, d, h);
-      p.lineTo(w, h);
-    } else if (wide) {
+    if (wide) {
       // Flat left edge, curved right edge.
       p.moveTo(0, 0);
       p.lineTo(w - d, 0);
       p.cubicTo(w + 6, h * 0.28, w + 6, h * 0.72, w - d, h);
       p.lineTo(0, h);
-    } else if (panelOnRight) {
-      // Panel on the bottom: flat bottom edge, curved top edge.
-      p.moveTo(0, h);
-      p.lineTo(0, d);
-      p.cubicTo(w * 0.28, -6, w * 0.72, -6, w, d);
-      p.lineTo(w, h);
     } else {
-      // Panel on the top: flat top edge, curved bottom edge.
+      // Flat top edge, curved bottom edge.
       p.moveTo(0, 0);
       p.lineTo(0, h - d);
       p.cubicTo(w * 0.28, h + 6, w * 0.72, h + 6, w, h - d);
@@ -260,72 +182,49 @@ class _PanelClipper extends CustomClipper<Path> {
   }
 
   @override
-  bool shouldReclip(_PanelClipper old) =>
-      old.wide != wide || old.panelOnRight != panelOnRight;
+  bool shouldReclip(_PanelClipper old) => old.wide != wide;
 }
 
 class _PanelContent extends StatelessWidget {
-  const _PanelContent({
-    required this.wide,
-    required this.mode,
-    required this.onSwitch,
-  });
+  const _PanelContent({required this.compact});
 
-  final bool wide;
-  final AuthMode mode;
-  final VoidCallback onSwitch;
+  /// Title only — used while the keyboard has shrunk the banner.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
-    final signIn = mode == AuthMode.signIn;
-    // The panel copy invites you to the *other* side.
-    final title = signIn ? 'New here?' : 'One of us?';
-    final body = signIn
-        ? 'Join us today and discover a world of possibilities. Create your account in seconds!'
-        : 'Welcome back! Sign in to continue your journey with us.';
-    final cta = signIn ? 'Sign up' : 'Sign in';
-
     return SafeArea(
-      child: Center(
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          transitionBuilder: (child, anim) => FadeTransition(
-            opacity: anim,
-            child: SlideTransition(
-              position: Tween(
-                begin: const Offset(0, 0.06),
-                end: Offset.zero,
-              ).animate(anim),
-              child: child,
-            ),
-          ),
-          child: Padding(
-            key: ValueKey(mode),
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(48, 8, 48, _kCurveDepth),
+        child: Center(
+          // Scales down rather than overflowing while the banner animates.
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 320),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    title,
+                    'Welcome to Next Show',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineMedium!.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w800,
                         ),
                   ),
-                  const SizedBox(height: 14),
-                  Text(
-                    body,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                          color: Colors.white.withValues(alpha: 0.9),
-                          height: 1.5,
-                        ),
-                  ),
-                  const SizedBox(height: 28),
-                  _GhostButton(label: cta, onPressed: onSwitch),
+                  if (!compact) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      "No passwords. We'll email you a code to sign in — "
+                      'new here? That creates your account too.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            height: 1.5,
+                          ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -337,113 +236,69 @@ class _PanelContent extends StatelessWidget {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Form side                                                          */
+/*  The form                                                           */
 /* ------------------------------------------------------------------ */
 
-class _FormSide extends StatelessWidget {
-  const _FormSide({
-    required this.wide,
-    required this.restFrac,
-    required this.side,
-    required this.active,
-    required this.child,
-  });
-
-  final bool wide;
-  final double restFrac;
-
-  /// Which mode's form this is. Sign Up lives on the left/top half, Sign In on
-  /// the right/bottom half — the panel covers whichever one is inactive.
-  final AuthMode side;
-  final bool active;
-  final Widget child;
+class _OtpForm extends StatefulWidget {
+  const _OtpForm();
 
   @override
-  Widget build(BuildContext context) {
-    final onLeftOrTop = side == AuthMode.signUp;
-    final media = MediaQuery.sizeOf(context);
-    // Keep the fields clear of the curved lip on the edge facing the panel.
-    const lip = _kCurveDepth - 8;
-    final pad = EdgeInsets.fromLTRB(
-      wide && !onLeftOrTop ? lip : 24,
-      !wide && !onLeftOrTop ? lip : 24,
-      wide && onLeftOrTop ? lip : 24,
-      !wide && onLeftOrTop ? lip : 24,
-    );
-
-    return Positioned(
-      left: wide ? (onLeftOrTop ? 0 : null) : 0,
-      right: wide ? (onLeftOrTop ? null : 0) : 0,
-      top: wide ? 0 : (onLeftOrTop ? 0 : null),
-      bottom: wide ? 0 : (onLeftOrTop ? null : 0),
-      width: wide ? media.width * (1 - restFrac) : null,
-      height: wide ? null : media.height * (1 - restFrac),
-      child: IgnorePointer(
-        ignoring: !active,
-        child: AnimatedOpacity(
-          opacity: active ? 1 : 0,
-          duration: const Duration(milliseconds: 220),
-          child: SafeArea(
-            child: Padding(
-              padding: pad,
-              child: Align(
-                alignment: wide ? Alignment.center : Alignment.topCenter,
-                child: SingleChildScrollView(child: child),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  State<_OtpForm> createState() => _OtpFormState();
 }
 
-/* ------------------------------------------------------------------ */
-/*  The forms                                                          */
-/* ------------------------------------------------------------------ */
+class _OtpFormState extends State<_OtpForm> {
+  /// Supabase's minimum gap between emails to the same address.
+  static const _resendCooldown = 60;
 
-class _AuthForm extends StatefulWidget {
-  const _AuthForm({super.key, required this.mode});
-
-  final AuthMode mode;
-
-  @override
-  State<_AuthForm> createState() => _AuthFormState();
-}
-
-class _AuthFormState extends State<_AuthForm> {
-  final _username = TextEditingController();
   final _email = TextEditingController();
-  final _password = TextEditingController();
+  final _code = TextEditingController();
 
+  /// Null until a code has been sent; then the address it went to.
+  String? _sentTo;
   bool _working = false;
   bool _googleWorking = false;
   String? _error;
   String? _notice;
 
-  bool get _isSignUp => widget.mode == AuthMode.signUp;
+  int _cooldown = 0;
+  Timer? _cooldownTimer;
 
   @override
   void dispose() {
-    _username.dispose();
+    _cooldownTimer?.cancel();
     _email.dispose();
-    _password.dispose();
+    _code.dispose();
     super.dispose();
   }
 
-  Future<void> _submit() async {
+  void _startCooldown() {
+    _cooldownTimer?.cancel();
+    setState(() => _cooldown = _resendCooldown);
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) return t.cancel();
+      setState(() => _cooldown--);
+      if (_cooldown <= 0) t.cancel();
+    });
+  }
+
+  String _messageFor(AuthException e) {
+    switch (e.code) {
+      case 'over_email_send_rate_limit':
+        return 'Too many codes sent. Wait a bit and try again.';
+      case 'otp_expired':
+        return 'That code is wrong or has expired. Try again or resend.';
+      case 'otp_disabled':
+      case 'signup_disabled':
+        return 'Email sign-in is turned off right now.';
+      default:
+        return e.message;
+    }
+  }
+
+  Future<void> _sendCode() async {
     final email = _email.text.trim();
-    final password = _password.text;
     if (!AuthService.isValidEmail(email)) {
       setState(() => _error = 'Enter a valid email address.');
-      return;
-    }
-    if (password.length < 8) {
-      setState(() => _error = 'Password must be at least 8 characters.');
-      return;
-    }
-    if (_isSignUp && _username.text.trim().isEmpty) {
-      setState(() => _error = 'Pick a username.');
       return;
     }
     setState(() {
@@ -452,37 +307,56 @@ class _AuthFormState extends State<_AuthForm> {
       _notice = null;
     });
     try {
-      if (_isSignUp) {
-        final res = await AuthService.signUpWithPassword(
-          email: email,
-          password: password,
-          data: {'username': _username.text.trim()},
-        );
-        // A signed-in session pops the screen via the auth-state listener.
-        if (res.session == null && mounted) {
-          setState(() {
-            _working = false;
-            _notice = 'Check your email to confirm your account, then sign in.';
-          });
-        }
-      } else {
-        await AuthService.signInWithPassword(email: email, password: password);
-      }
+      await AuthService.sendOtp(email);
+      if (!mounted) return;
+      final resend = _sentTo == email;
+      setState(() {
+        _sentTo = email;
+        _code.clear();
+        _notice = resend ? 'New code sent.' : null;
+      });
+      _startCooldown();
     } on AuthException catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.message;
-          _working = false;
-        });
-      }
+      if (mounted) setState(() => _error = _messageFor(e));
     } catch (_) {
-      if (mounted) {
-        setState(() {
-          _error = 'Something went wrong. Try again.';
-          _working = false;
-        });
-      }
+      if (mounted) setState(() => _error = 'Something went wrong. Try again.');
+    } finally {
+      if (mounted) setState(() => _working = false);
     }
+  }
+
+  Future<void> _verify() async {
+    final code = _code.text.trim();
+    if (code.length < 6) {
+      setState(() => _error = 'Enter the code from the email.');
+      return;
+    }
+    setState(() {
+      _working = true;
+      _error = null;
+      _notice = null;
+    });
+    try {
+      // On success the screen pops via the auth-state listener.
+      await AuthService.verifyOtp(email: _sentTo!, code: code);
+    } on AuthException catch (e) {
+      if (mounted) setState(() => _error = _messageFor(e));
+    } catch (_) {
+      if (mounted) setState(() => _error = 'Something went wrong. Try again.');
+    } finally {
+      if (mounted) setState(() => _working = false);
+    }
+  }
+
+  void _changeEmail() {
+    _cooldownTimer?.cancel();
+    setState(() {
+      _sentTo = null;
+      _cooldown = 0;
+      _code.clear();
+      _error = null;
+      _notice = null;
+    });
   }
 
   Future<void> _google() async {
@@ -506,6 +380,8 @@ class _AuthFormState extends State<_AuthForm> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final codeStep = _sentTo != null;
+
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 360),
       child: Column(
@@ -513,36 +389,47 @@ class _AuthFormState extends State<_AuthForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            _isSignUp ? 'Sign up' : 'Sign in',
+            codeStep ? 'Check your email' : 'Continue with email',
             textAlign: TextAlign.center,
-            style: text.headlineMedium!.copyWith(fontWeight: FontWeight.w800),
+            style: text.headlineSmall!.copyWith(fontWeight: FontWeight.w800),
           ),
-          const SizedBox(height: 18),
-          if (_isSignUp) ...[
-            _AuthField(
-              controller: _username,
-              hint: 'Username',
-              icon: Icons.person_outline,
-              textInputAction: TextInputAction.next,
+          if (codeStep) ...[
+            const SizedBox(height: 8),
+            Text(
+              'We sent a code to $_sentTo',
+              textAlign: TextAlign.center,
+              style: text.bodyMedium!.copyWith(color: AppColors.textSecondary),
             ),
-            const SizedBox(height: 10),
           ],
-          _AuthField(
-            controller: _email,
-            hint: 'Email',
-            icon: Icons.mail_outline,
-            keyboardType: TextInputType.emailAddress,
-            textInputAction: TextInputAction.next,
-          ),
-          const SizedBox(height: 10),
-          _AuthField(
-            controller: _password,
-            hint: 'Password',
-            icon: Icons.lock_outline,
-            obscure: true,
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _submit(),
-          ),
+          const SizedBox(height: 18),
+          if (!codeStep)
+            _AuthField(
+              key: const ValueKey('email'),
+              controller: _email,
+              hint: 'Email',
+              icon: Icons.mail_outline,
+              keyboardType: TextInputType.emailAddress,
+              autofillHints: const [AutofillHints.email],
+              textInputAction: TextInputAction.go,
+              onSubmitted: (_) => _sendCode(),
+            )
+          else
+            _AuthField(
+              key: const ValueKey('code'),
+              controller: _code,
+              hint: 'Code',
+              icon: Icons.pin_outlined,
+              keyboardType: TextInputType.number,
+              autofillHints: const [AutofillHints.oneTimeCode],
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(10),
+              ],
+              letterSpacing: 6,
+              autofocus: true,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _verify(),
+            ),
           if (_error != null) ...[
             const SizedBox(height: 10),
             Text(
@@ -561,12 +448,24 @@ class _AuthFormState extends State<_AuthForm> {
           ],
           const SizedBox(height: 16),
           _PrimaryButton(
-            label: _isSignUp ? 'Sign up' : 'Login',
+            label: codeStep ? 'Verify' : 'Send code',
             loading: _working,
-            onPressed: _submit,
+            onPressed: codeStep ? _verify : _sendCode,
           ),
           const SizedBox(height: 10),
-          _GoogleButton(loading: _googleWorking, onPressed: _google),
+          if (codeStep) ...[
+            TextButton(
+              onPressed: _working || _cooldown > 0 ? null : _sendCode,
+              child: Text(
+                _cooldown > 0 ? 'Resend code in ${_cooldown}s' : 'Resend code',
+              ),
+            ),
+            TextButton(
+              onPressed: _working ? null : _changeEmail,
+              child: const Text('Use a different email'),
+            ),
+          ] else
+            _GoogleButton(loading: _googleWorking, onPressed: _google),
         ],
       ),
     );
@@ -577,13 +476,17 @@ class _AuthFormState extends State<_AuthForm> {
 /*  Controls                                                           */
 /* ------------------------------------------------------------------ */
 
-class _AuthField extends StatefulWidget {
+class _AuthField extends StatelessWidget {
   const _AuthField({
+    super.key,
     required this.controller,
     required this.hint,
     required this.icon,
-    this.obscure = false,
     this.keyboardType,
+    this.autofillHints,
+    this.inputFormatters,
+    this.letterSpacing,
+    this.autofocus = false,
     this.textInputAction,
     this.onSubmitted,
   });
@@ -591,17 +494,13 @@ class _AuthField extends StatefulWidget {
   final TextEditingController controller;
   final String hint;
   final IconData icon;
-  final bool obscure;
   final TextInputType? keyboardType;
+  final Iterable<String>? autofillHints;
+  final List<TextInputFormatter>? inputFormatters;
+  final double? letterSpacing;
+  final bool autofocus;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onSubmitted;
-
-  @override
-  State<_AuthField> createState() => _AuthFieldState();
-}
-
-class _AuthFieldState extends State<_AuthField> {
-  late bool _hidden = widget.obscure;
 
   @override
   Widget build(BuildContext context) {
@@ -613,22 +512,28 @@ class _AuthFieldState extends State<_AuthField> {
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Row(
         children: [
-          Icon(widget.icon, size: 18, color: AppColors.textSecondary),
+          Icon(icon, size: 18, color: AppColors.textSecondary),
           const SizedBox(width: 12),
           Expanded(
             child: TextField(
-              controller: widget.controller,
-              obscureText: _hidden,
-              keyboardType: widget.keyboardType,
-              textInputAction: widget.textInputAction,
-              onSubmitted: widget.onSubmitted,
+              controller: controller,
+              keyboardType: keyboardType,
+              autofillHints: autofillHints,
+              inputFormatters: inputFormatters,
+              autofocus: autofocus,
+              autocorrect: false,
+              textInputAction: textInputAction,
+              onSubmitted: onSubmitted,
               cursorColor: AppColors.royalBlue,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium!
+                  .copyWith(letterSpacing: letterSpacing),
               decoration: InputDecoration(
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 16),
                 border: InputBorder.none,
-                hintText: widget.hint,
+                hintText: hint,
                 hintStyle: Theme.of(context)
                     .textTheme
                     .bodyMedium!
@@ -636,17 +541,6 @@ class _AuthFieldState extends State<_AuthField> {
               ),
             ),
           ),
-          if (widget.obscure)
-            GestureDetector(
-              onTap: () => setState(() => _hidden = !_hidden),
-              child: Icon(
-                _hidden
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
-                size: 18,
-                color: AppColors.textSecondary,
-              ),
-            ),
         ],
       ),
     );
@@ -694,38 +588,6 @@ class _PrimaryButton extends StatelessWidget {
                   fontSize: 13,
                 ),
               ),
-      ),
-    );
-  }
-}
-
-class _GhostButton extends StatelessWidget {
-  const _GhostButton({required this.label, required this.onPressed});
-
-  final String label;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 44,
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.white,
-          side: const BorderSide(color: Colors.white70),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-        ),
-        child: Text(
-          label.toUpperCase(),
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.6,
-            fontSize: 12,
-          ),
-        ),
       ),
     );
   }

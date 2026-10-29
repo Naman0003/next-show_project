@@ -33,7 +33,8 @@ class SeatMatrixState {
       .whereType<Seat>()
       .fold(0.0, (sum, seat) => sum + (seat.price ?? 0));
 
-  SeatMatrixState copyWith({VenueLayout? layout, List<String>? selectedSeatIds}) {
+  SeatMatrixState copyWith(
+      {VenueLayout? layout, List<String>? selectedSeatIds}) {
     return SeatMatrixState(
       layout: layout ?? this.layout,
       selectedSeatIds: selectedSeatIds ?? this.selectedSeatIds,

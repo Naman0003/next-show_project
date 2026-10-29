@@ -3,10 +3,9 @@ import 'dart:ui' as ui;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:core_models/core_models.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -14,7 +13,6 @@ import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../widgets/tap_scale_container.dart';
-import '../../auth/presentation/split_auth_screen.dart';
 import '../../watchlist/application/watchlist_controller.dart';
 
 /// Live Event Details Screen styled with the Home Screen's clean light UI kit
@@ -51,8 +49,6 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   listing: listing,
                   isSaved: isSaved,
                   onSave: () async {
-                    final signedIn = await ensureSignedIn(context);
-                    if (!signedIn || !mounted) return;
                     final controller =
                         ref.read(watchlistControllerProvider.notifier);
                     if (isSaved) {
@@ -78,10 +74,12 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(AppTokens.radiusCard),
                       ),
-                      border: Border.all(color: AppColors.borderLight, width: 1),
+                      border:
+                          Border.all(color: AppColors.borderLight, width: 1),
                       boxShadow: AppTokens.cardShadow,
                     ),
-                    padding: EdgeInsets.fromLTRB(20, 16, 20, 120 + MediaQuery.of(context).padding.bottom),
+                    padding: EdgeInsets.fromLTRB(20, 16, 20,
+                        120 + MediaQuery.of(context).padding.bottom),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -106,11 +104,11 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                         Text(
                           listing.eventTitle,
                           style: const TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.5,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.2,
                             color: AppColors.textPrimary,
-                            height: 1.15,
+                            height: 1.3,
                           ),
                         ),
 
@@ -127,12 +125,30 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           ),
                         ],
 
+                        const SizedBox(height: 12),
+
+                        // Date & time, e.g. "Sat, 31 Oct, 8:00 PM"
+                        Text(
+                          DateFormat('EEE, d MMM, h:mm a')
+                              .format(listing.startTime),
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+
                         const SizedBox(height: 18),
 
                         // Schedule row (Date & Doors, Showtime / Duration)
                         _ScheduleMetaRow(listing: listing),
 
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 14),
+
+                        // Venue row -> details sheet (no map)
+                        _VenueRow(listing: listing),
+
+                        const SizedBox(height: 18),
 
                         // Expandable Description
                         _ExpandableDescription(
@@ -145,11 +161,6 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                             });
                           },
                         ),
-
-                        const SizedBox(height: 26),
-
-                        // Venue info & Map section
-                        _VenueMapSection(listing: listing),
                       ],
                     ),
                   ),
@@ -268,7 +279,8 @@ class _HeroBanner extends StatelessWidget {
             child: SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -286,7 +298,8 @@ class _HeroBanner extends StatelessWidget {
                           icon: isSaved
                               ? Icons.favorite_rounded
                               : Icons.favorite_border_rounded,
-                          iconColor: isSaved ? AppColors.heartRed : Colors.white,
+                          iconColor:
+                              isSaved ? AppColors.heartRed : Colors.white,
                           backgroundColor: isSaved
                               ? AppColors.heartRed.withValues(alpha: 0.2)
                               : Colors.black.withValues(alpha: 0.35),
@@ -294,7 +307,8 @@ class _HeroBanner extends StatelessWidget {
                               ? AppColors.heartRed
                               : Colors.white.withValues(alpha: 0.4),
                           onTap: onSave,
-                          semanticLabel: isSaved ? 'Saved' : 'Save to Watchlist',
+                          semanticLabel:
+                              isSaved ? 'Saved' : 'Save to Watchlist',
                         ),
                         const SizedBox(width: 10),
                         _CircularFrostedButton(
@@ -392,8 +406,7 @@ class _EventBadgesRow extends StatelessWidget {
         ),
 
         // Genre pill if available
-        if (genre != null && genre.isNotEmpty)
-          _TagBadge(label: genre),
+        if (genre != null && genre.isNotEmpty) _TagBadge(label: genre),
 
         // Venue Type pill
         _TagBadge(label: listing.venueType.name.toUpperCase()),
@@ -445,10 +458,10 @@ class _TagBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final bgColor = backgroundColor ??
         (isPrimary ? AppColors.darkPrimary : AppColors.surfaceSecondary);
-    final fgColor = textColor ??
-        (isPrimary ? Colors.white : AppColors.textPrimary);
-    final bdrColor = borderColor ??
-        (isPrimary ? Colors.transparent : AppColors.borderLight);
+    final fgColor =
+        textColor ?? (isPrimary ? Colors.white : AppColors.textPrimary);
+    final bdrColor =
+        borderColor ?? (isPrimary ? Colors.transparent : AppColors.borderLight);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -490,10 +503,11 @@ class _ScheduleMetaRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Date formatting: e.g. "12 October, 7pm"
-    final dateStr = DateFormat('d MMMM, ha').format(listing.startTime).toLowerCase();
+    // Time only — the date sits in its own line under the title.
+    final time = DateFormat('h:mm a');
+    final doorsStr = time.format(listing.startTime);
 
-    // Showtime / end time / duration formatting: e.g. "7:30pm" or "180 min"
+    // Showtime / end time / duration formatting: e.g. "7:30 PM" or "2h 30m"
     String timeOrDuration;
     if (listing.durationMinutes != null && listing.durationMinutes! > 0) {
       final hours = listing.durationMinutes! ~/ 60;
@@ -502,10 +516,10 @@ class _ScheduleMetaRow extends StatelessWidget {
           ? (minutes > 0 ? '${hours}h ${minutes}m' : '${hours}h')
           : '$minutes min';
     } else if (listing.endTime != null) {
-      timeOrDuration = DateFormat('ha').format(listing.endTime!).toLowerCase();
+      timeOrDuration = time.format(listing.endTime!);
     } else {
       final showTime = listing.startTime.add(const Duration(minutes: 30));
-      timeOrDuration = DateFormat('h:mma').format(showTime).toLowerCase();
+      timeOrDuration = time.format(showTime);
     }
 
     return Container(
@@ -551,7 +565,7 @@ class _ScheduleMetaRow extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        dateStr,
+                        doorsStr,
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w800,
@@ -675,9 +689,8 @@ class _ExpandableDescription extends StatelessWidget {
               color: AppColors.textSecondary,
             ),
           ),
-          crossFadeState: isExpanded
-              ? CrossFadeState.showSecond
-              : CrossFadeState.showFirst,
+          crossFadeState:
+              isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 240),
         ),
         const SizedBox(height: 8),
@@ -712,44 +725,64 @@ class _ExpandableDescription extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// VENUE LOCATION & MINI MAP PREVIEW
+// VENUE ROW & DETAILS SHEET
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _VenueMapSection extends StatelessWidget {
-  const _VenueMapSection({required this.listing});
+/// Venue helpers shared by the row and its details sheet.
+extension on Listing {
+  /// `v_listings` returns null coordinates for venues without a location,
+  /// which the shared client maps to 0,0 — a pin in the Atlantic. Treat that
+  /// (and anything out of range) as "no location": directions then search by
+  /// address instead.
+  bool get hasVenueLocation =>
+      !(latitude == 0 && longitude == 0) &&
+      latitude.abs() <= 90 &&
+      longitude.abs() <= 180;
+
+  String get venueTypeLabel => switch (venueType) {
+        VenueType.cinema => 'Cinema',
+        VenueType.club => 'Club',
+        VenueType.theatre => 'Theatre',
+      };
+
+  Uri get directionsUri {
+    final query = hasVenueLocation
+        ? '$latitude,$longitude'
+        : Uri.encodeComponent(venueAddress ?? venueName);
+    return Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
+  }
+}
+
+/// Compact venue row; tapping it opens [_VenueDetailsSheet].
+class _VenueRow extends StatelessWidget {
+  const _VenueRow({required this.listing});
 
   final Listing listing;
 
-  /// `v_listings` returns null coordinates for venues without a location,
-  /// which the shared client maps to 0,0 — a pin in the Atlantic. Treat that
-  /// (and anything out of range) as "no location": no map, and directions
-  /// search by address instead.
-  bool get _hasLocation =>
-      !(listing.latitude == 0 && listing.longitude == 0) &&
-      listing.latitude.abs() <= 90 &&
-      listing.longitude.abs() <= 180;
-
-  Future<void> _launchDirections() async {
-    final query = _hasLocation
-        ? '${listing.latitude},${listing.longitude}'
-        : Uri.encodeComponent(listing.venueAddress ?? listing.venueName);
-    final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final point = LatLng(listing.latitude, listing.longitude);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Venue Title & Address
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return TapScaleContainer(
+      onTap: () => _VenueDetailsSheet.show(context, listing),
+      child: Container(
+        color: Colors.transparent,
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
           children: [
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceSecondary,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.borderLight),
+              ),
+              child: const Icon(
+                Icons.storefront_outlined,
+                size: 22,
+                color: AppColors.darkPrimary,
+              ),
+            ),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -757,129 +790,284 @@ class _VenueMapSection extends StatelessWidget {
                   Text(
                     listing.venueName,
                     style: const TextStyle(
-                      fontSize: 17,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    listing.venueAddress ?? listing.venueTypeLabel,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.textSecondary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom sheet with the venue card, full address and actions: directions,
+/// copy address, share.
+class _VenueDetailsSheet extends StatelessWidget {
+  const _VenueDetailsSheet({required this.listing});
+
+  final Listing listing;
+
+  static Future<void> show(BuildContext context, Listing listing) {
+    return showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: AppColors.surfaceWhite,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (_) => _VenueDetailsSheet(listing: listing),
+    );
+  }
+
+  String get _address => listing.venueAddress ?? listing.venueName;
+
+  Future<void> _directions() async {
+    final uri = listing.directionsUri;
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> _copyAddress(BuildContext context) async {
+    await Clipboard.setData(ClipboardData(text: _address));
+    if (!context.mounted) return;
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      const SnackBar(content: Text('Address copied')),
+    );
+  }
+
+  void _share() {
+    Share.share(
+      '${listing.venueName}\n$_address\n${listing.directionsUri}',
+      subject: listing.venueName,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final image = listing.venueImageUrl;
+
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Venue details',
+                    style: TextStyle(
+                      fontSize: 22,
                       fontWeight: FontWeight.w800,
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  if (listing.venueAddress != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      listing.venueAddress!,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            TapScaleContainer(
-              onTap: _launchDirections,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceSecondary,
-                  borderRadius: BorderRadius.circular(AppTokens.radiusPill),
-                  border: Border.all(color: AppColors.borderLight),
                 ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.directions_rounded,
-                      size: 15,
-                      color: AppColors.darkPrimary,
-                    ),
-                    SizedBox(width: 4),
-                    Text(
-                      'Directions',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.darkPrimary,
-                      ),
-                    ),
-                  ],
+                _SheetIconButton(
+                  icon: Icons.close_rounded,
+                  semanticLabel: 'Close',
+                  onTap: () => Navigator.of(context).pop(),
                 ),
+              ],
+            ),
+            const SizedBox(height: 18),
+
+            // Venue card
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceSecondary,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.borderLight),
               ),
-            ),
-          ],
-        ),
-
-        if (_hasLocation) ...[
-        const SizedBox(height: 12),
-
-        // Mini Map Card (matching details.png)
-        ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            height: 160,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.borderLight),
-            ),
-            child: Stack(
-              children: [
-                FlutterMap(
-                  options: MapOptions(
-                    initialCenter: point,
-                    initialZoom: 14.2,
-                    interactionOptions: const InteractionOptions(
-                      flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: SizedBox(
+                      width: 64,
+                      height: 64,
+                      child: image != null
+                          ? CachedNetworkImage(
+                              imageUrl: image,
+                              fit: BoxFit.cover,
+                              errorWidget: (_, __, ___) => const _VenueIcon(),
+                            )
+                          : const _VenueIcon(),
                     ),
                   ),
-                  children: [
-                    TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.nextshow.user_app',
-                    ),
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          point: point,
-                          width: 42,
-                          height: 42,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.darkPrimary,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                              boxShadow: AppTokens.cardShadow,
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.location_on_rounded,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          listing.venueName,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          listing.venueTypeLabel,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary,
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
 
-                // Tap overlay to open directions
-                Positioned.fill(
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: _launchDirections,
-                      splashColor: Colors.black12,
+            // Full address
+            Text(
+              _address,
+              style: const TextStyle(
+                fontSize: 15,
+                height: 1.4,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 18),
+
+            // Actions
+            Row(
+              children: [
+                TapScaleContainer(
+                  onTap: _directions,
+                  child: Container(
+                    height: 50,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: AppColors.darkPrimary,
+                      borderRadius: BorderRadius.circular(AppTokens.radiusPill),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.directions_rounded,
+                            size: 20, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text(
+                          'Get directions',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
+                const SizedBox(width: 12),
+                _SheetIconButton(
+                  icon: Icons.copy_rounded,
+                  semanticLabel: 'Copy address',
+                  size: 50,
+                  onTap: () => _copyAddress(context),
+                ),
+                const SizedBox(width: 12),
+                _SheetIconButton(
+                  icon: Icons.ios_share_rounded,
+                  semanticLabel: 'Share venue',
+                  size: 50,
+                  onTap: _share,
+                ),
               ],
             ),
-          ),
+          ],
         ),
-        ],
-      ],
+      ),
+    );
+  }
+}
+
+class _VenueIcon extends StatelessWidget {
+  const _VenueIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return const ColoredBox(
+      color: AppColors.surfaceWhite,
+      child: Center(
+        child: Icon(
+          Icons.storefront_outlined,
+          size: 28,
+          color: AppColors.darkPrimary,
+        ),
+      ),
+    );
+  }
+}
+
+class _SheetIconButton extends StatelessWidget {
+  const _SheetIconButton({
+    required this.icon,
+    required this.semanticLabel,
+    required this.onTap,
+    this.size = 40,
+  });
+
+  final IconData icon;
+  final String semanticLabel;
+  final VoidCallback onTap;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      child: TapScaleContainer(
+        onTap: onTap,
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: AppColors.surfaceSecondary,
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.borderLight),
+          ),
+          child: Icon(icon, size: size * 0.42, color: AppColors.darkPrimary),
+        ),
+      ),
     );
   }
 }
@@ -947,7 +1135,8 @@ class _BottomActionBar extends StatelessWidget {
                       fontSize: 24,
                       fontWeight: FontWeight.w900,
                       letterSpacing: -0.5,
-                      color: isFree ? AppColors.neonGreen : AppColors.textPrimary,
+                      color:
+                          isFree ? AppColors.neonGreen : AppColors.textPrimary,
                     ),
                   ),
                 ],

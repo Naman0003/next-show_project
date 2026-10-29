@@ -76,7 +76,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (state.status == AiConciergeStatus.idle) ...[
-              Text('👋 What are you in the mood for?', style: CinemaTextStyles.sectionHeader),
+              Text('👋 What are you in the mood for?',
+                  style: CinemaTextStyles.sectionHeader),
               const SizedBox(height: 6),
               Text(
                 'Tell NextShow what you\'re up for, and it\'ll find the best options nearby.',
@@ -160,7 +161,8 @@ class _GlassSearchBar extends StatelessWidget {
                   controller: controller,
                   readOnly: isListening,
                   onSubmitted: onSubmitted,
-                  style: CinemaTextStyles.meta.copyWith(color: CinemaColors.textPrimary, fontSize: 15),
+                  style: CinemaTextStyles.meta
+                      .copyWith(color: CinemaColors.textPrimary, fontSize: 15),
                   cursorColor: NSColors.skyBlue,
                   decoration: InputDecoration(
                     isDense: true,
@@ -207,7 +209,9 @@ class _ResultsArea extends StatelessWidget {
         return CinemaEmptyState(
           icon: Icons.hearing,
           title: 'Listening…',
-          subtitle: state.transcript.isEmpty ? 'Say what you\'re in the mood for.' : state.transcript,
+          subtitle: state.transcript.isEmpty
+              ? 'Say what you\'re in the mood for.'
+              : state.transcript,
         );
       case AiConciergeStatus.fetching:
         return ListView.separated(
@@ -244,7 +248,10 @@ class _ResultsArea extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: _ResultCard(listing: listing),
               ),
-          ].animate(interval: 70.ms).fadeIn(duration: 350.ms).slideY(begin: 0.06, end: 0),
+          ]
+              .animate(interval: 70.ms)
+              .fadeIn(duration: 350.ms)
+              .slideY(begin: 0.06, end: 0),
         );
     }
   }
@@ -268,7 +275,8 @@ class _SuggestionList extends StatelessWidget {
               child: GestureDetector(
                 onTap: () => onTap(suggestion),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: CinemaColors.surfaceElevated,
                     borderRadius: BorderRadius.circular(20),
@@ -276,7 +284,8 @@ class _SuggestionList extends StatelessWidget {
                   ),
                   child: Text(
                     suggestion,
-                    style: CinemaTextStyles.meta.copyWith(color: CinemaColors.textPrimary),
+                    style: CinemaTextStyles.meta
+                        .copyWith(color: CinemaColors.textPrimary),
                   ),
                 ),
               ),
@@ -320,7 +329,8 @@ class _ResultCard extends StatelessWidget {
                       width: 56,
                       height: 78,
                       color: CinemaColors.background,
-                      child: const Icon(Icons.event, color: CinemaColors.textMuted, size: 20),
+                      child: const Icon(Icons.event,
+                          color: CinemaColors.textMuted, size: 20),
                     ),
                   ),
                 ),
