@@ -28,6 +28,20 @@ Object? _deepConvert(Object? value) {
 /// Reads and parses every entry in a Hive box of `Listing.toJson()` maps.
 /// Shared by every box that stores `Listing`s so they don't each hand-roll
 /// the same map/parse.
+///
+/// An entry that no longer parses (e.g. saved by an older app version before
+/// `Listing` changed) is dropped from the box instead of failing the whole
+/// read, which would take Home and the Watchlist down with it.
 List<Listing> readListingsFromBox(Box<Map> box) {
-  return box.values.map((raw) => Listing.fromJson(deepMapFromHive(raw))).toList();
+  final listings = <Listing>[];
+  final unreadable = <dynamic>[];
+  for (final key in box.keys) {
+    try {
+      listings.add(Listing.fromJson(deepMapFromHive(box.get(key))));
+    } catch (_) {
+      unreadable.add(key);
+    }
+  }
+  if (unreadable.isNotEmpty) box.deleteAll(unreadable);
+  return listings;
 }

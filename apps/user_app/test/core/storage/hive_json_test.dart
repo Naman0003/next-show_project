@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:core_models/core_models.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
+import 'package:user_app/core/mocks/mock_listing_factory.dart';
 import 'package:user_app/core/storage/hive_json.dart';
 
 void main() {
@@ -33,6 +37,41 @@ void main() {
       expect(listing.eventTitle, 'Test Movie');
       expect(listing.showtimeAttributes, {'language': 'OV'});
       expect(listing.eventMetadata, {'runtimeMinutes': 120});
+    });
+  });
+
+  group('readListingsFromBox', () {
+    late Directory dir;
+    setUp(() async {
+      dir = await Directory.systemTemp.createTemp('hive_json_test');
+      Hive.init(dir.path);
+    });
+    tearDown(() async {
+      await Hive.close();
+      await dir.delete(recursive: true);
+    });
+
+    test('skips and removes an entry that no longer parses, keeps the rest', () async {
+      final box = await Hive.openBox<Map>('listings');
+      final good = buildMockListing(
+        showtimeId: 's1',
+        eventTitle: 'Good one',
+        eventDescription: '',
+        venueName: 'Venue',
+        venueAddress: 'Berlin',
+        longitude: 13.4,
+        latitude: 52.5,
+      );
+      await box.put('s1', good.toJson());
+      // Shaped like an entry from an older app version: required fields missing.
+      await box.put('old', {'showtimeId': 'old', 'category': 'opera'});
+
+      final listings = readListingsFromBox(box);
+
+      expect(listings.map((l) => l.eventTitle), ['Good one']);
+      await Future<void>.delayed(Duration.zero);
+      expect(box.containsKey('old'), isFalse);
+      expect(box.containsKey('s1'), isTrue);
     });
   });
 }
