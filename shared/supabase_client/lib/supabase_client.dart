@@ -307,9 +307,8 @@ class NextShowSupabaseClient {
   }) async {
     dynamic query = client.from('v_listings').select();
 
-    // Only future showtimes
+    // v_listings already hides shows that are over and keeps ones in progress.
     final now = DateTime.now().toUtc().toIso8601String();
-    query = query.gte('start_time', now);
 
     if (from != null) {
       query = query.gte('start_time', from.toUtc().toIso8601String());

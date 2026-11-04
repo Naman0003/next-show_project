@@ -1,4 +1,4 @@
--- Security regression tests for security_fixes.md (S1, S2, S3, S4, S12).
+-- Security regression tests (S1-S4, S6, S9-S12, S23, A3, account deletion).
 -- Run on a THROWAWAY database only (see supabase/tests/README.md). Everything rolls back.
 -- Prints one row per check; any `FAIL` row means a vulnerability or a broken legit flow.
 
@@ -289,6 +289,56 @@ end $$;
 delete from auth.users where id = (select id from t.ids where name = 'orphan');
 select t.chk('hard-deleting the auth user removes its pending-deletion row',
   (select count(*) = 0 from public.account_deletions));
+
+---------------------------------------------------------------- S11 / A3 / S10 / S6: listings and venues
+select t.become('super');
+insert into public.events (id, category, title, status) values
+  ('00000000-0000-0000-0000-0000000000e1', 'comedy', 'Live now', 'published'),
+  ('00000000-0000-0000-0000-0000000000e2', 'comedy', 'Long over', 'published'),
+  ('00000000-0000-0000-0000-0000000000e3', 'comedy', 'Cancelled event', 'cancelled'),
+  ('00000000-0000-0000-0000-0000000000e4', 'comedy', 'Long show', 'published');
+insert into public.showtimes (venue_id, event_id, start_time, end_time, booking_url)
+select v.id, x.event_id::uuid, now() + x.start_off, now() + x.end_off, 'https://tickets.example/x'
+from public.venues v,
+  (values ('00000000-0000-0000-0000-0000000000e1', interval '-30 minutes', null::interval),
+          ('00000000-0000-0000-0000-0000000000e2', interval '-3 hours', null),
+          ('00000000-0000-0000-0000-0000000000e3', interval '1 day', null),
+          ('00000000-0000-0000-0000-0000000000e4', interval '-4 hours', interval '1 hour')) as x(event_id, start_off, end_off)
+where v.name = 'Venue owner';
+
+select t.chk('S11 v_listings runs with the caller''s rights (security_invoker)',
+  (select 'security_invoker=on' = any(reloptions) from pg_class where oid = 'public.v_listings'::regclass));
+
+do $$ declare titles text[]; c1 text; c2 text; c3 text; begin
+  perform t.become('anon');
+  select array_agg(event_title order by event_title) into titles from public.v_listings
+  where event_title in ('Live now', 'Long over', 'Cancelled event', 'Long show');
+  begin perform owner_id from public.venues limit 1; c1 := 'ok'; exception when others then c1 := sqlstate; end;
+  begin perform partner_notes from public.venues limit 1; c2 := 'ok'; exception when others then c2 := sqlstate; end;
+  begin perform name, venue_type, address, location from public.venues limit 1; c3 := 'ok'; exception when others then c3 := sqlstate; end;
+  perform t.become('super');
+  perform t.chk('A3 anon sees a show that started 30 min ago and one still running; not one over (got ' || coalesce(array_to_string(titles, ', '), '-') || ')',
+    titles = array['Live now', 'Long show']);
+  perform t.chk('S11 a cancelled event is hidden even when its showtime is published',
+    not ('Cancelled event' = any(coalesce(titles, '{}'))));
+  perform t.chk('S10 anon cannot read venues.owner_id or partner_notes (got ' || c1 || '/' || c2 || ')',
+    c1 = '42501' and c2 = '42501');
+  perform t.chk('S10 anon can still read public venue columns (got ' || c3 || ')', c3 = 'ok');
+end $$;
+
+do $$ declare c1 text; c2 text; begin
+  begin
+    insert into public.showtimes (venue_id, event_id, start_time, booking_url)
+    select id, '00000000-0000-0000-0000-0000000000e1', now() + interval '1 day', 'http://phish.example' from public.venues limit 1;
+    c1 := 'ok';
+  exception when others then c1 := sqlstate; end;
+  begin
+    update public.showtimes set booking_url = 'javascript:alert(1)' where event_id = '00000000-0000-0000-0000-0000000000e1';
+    c2 := 'ok';
+  exception when others then c2 := sqlstate; end;
+  perform t.chk('S6 http and javascript: booking links are rejected (got ' || c1 || '/' || c2 || ')',
+    c1 = '23514' and c2 = '23514');
+end $$;
 
 select t.become('super');
 

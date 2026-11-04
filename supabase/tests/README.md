@@ -1,6 +1,6 @@
 # Supabase security tests
 
-SQL regression tests for `security_fixes.md`. They run in a transaction and roll back, but only ever
+SQL regression tests for the security fixes (see the migrations). They run in a transaction and roll back, but only ever
 run them on a **throwaway local Postgres, never on production** (they insert into `auth.users`).
 
 Files
@@ -19,7 +19,7 @@ $P < supabase/tests/00_local_harness.sql
 $P < supabase/tests/baseline_prod_2026-11-04.sql
 $P < supabase/tests/05_auth_trigger.sql
 $P < supabase/tests/10_security.test.sql                 # expect failures
-for f in supabase/migrations/20261104*.sql supabase/migrations/20261105000000_*.sql; do $P < $f; done   # not the cron one
+for f in supabase/migrations/20261104*.sql supabase/migrations/20261105000000_*.sql supabase/migrations/20261106*.sql; do $P < $f; done   # not the cron one
 $P < supabase/tests/10_security.test.sql                 # expect 0 failures
 
 # 2. check docs/schema.sql: wipe public, load it, run the tests

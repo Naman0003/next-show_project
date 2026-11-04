@@ -309,7 +309,7 @@ CREATE TABLE public.venues (
 --
 -- Name: v_listings; Type: VIEW; Schema: public; Owner: -
 --
-CREATE VIEW public.v_listings AS
+CREATE VIEW public.v_listings with (security_invoker = on) as
  SELECT s.id AS showtime_id,
     s.start_time,
     s.end_time,
@@ -333,7 +333,10 @@ CREATE VIEW public.v_listings AS
    FROM ((public.showtimes s
      JOIN public.events e ON ((s.event_id = e.id)))
      JOIN public.venues v ON ((s.venue_id = v.id)))
-  WHERE ((s.start_time >= now()) AND (s.status = 'published'::public.event_status) AND (v.is_active = true))
+  WHERE coalesce(s.end_time, s.start_time + interval '2 hours') >= now()
+    AND s.status = 'published'::public.event_status
+    AND e.status = 'published'::public.event_status
+    AND v.is_active = true
   ORDER BY s.start_time;
 --
 -- Name: events events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
@@ -695,3 +698,26 @@ $$ language plpgsql security definer set search_path = public;
 
 revoke execute on function public.restore_account() from public, anon;
 grant execute on function public.restore_account() to authenticated;
+
+-- From 20261106000000_listings_venue_privacy.sql (S10, S6)
+-- S10: column grants instead of a table grant for anon. Signed-in partners and admins keep
+-- full access (the organizer and admin apps read these columns); the user app never reads
+-- venues directly, only through v_listings.
+-- Policies are checked with the caller's column rights, so a policy that reads venues.owner_id
+-- would make every anon read of showtimes or v_listings fail. These four only ever match a
+-- verified partner (is_partner()), so scoping them to signed-in users changes nothing else.
+alter policy "Partners can manage their own venues" on public.venues to authenticated;
+alter policy "Partners can manage showtimes for their venues" on public.showtimes to authenticated;
+alter policy "Partners read clicks on their venues" on public.outbound_clicks to authenticated;
+alter policy "Venue owners can manage invites" on public.organizer_invites to authenticated;
+
+revoke select on table public.venues from anon;
+grant select (id, created_at, updated_at, name, venue_type, address, location, website_url,
+              image_url, is_active)
+  on table public.venues to anon;
+
+-- S6: NOT VALID enforces the rule on every new or changed row without re-checking old ones
+-- (all 50 rows on production were https on 2026-11-04).
+alter table public.showtimes drop constraint if exists showtimes_booking_url_https;
+alter table public.showtimes add constraint showtimes_booking_url_https
+  check (booking_url is null or booking_url ~* '^https://[^/]') not valid;
