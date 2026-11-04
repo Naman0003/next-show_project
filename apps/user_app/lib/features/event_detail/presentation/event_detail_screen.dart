@@ -59,10 +59,11 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       await controller.add(listing);
                     }
                   },
-                  onShare: () => Share.share(
-                    'Check out ${listing.eventTitle} at ${listing.venueName} on NextShow: ${listing.bookingUrl}',
+                  onShare: () => SharePlus.instance.share(ShareParams(
+                    text:
+                        'Check out ${listing.eventTitle} at ${listing.venueName} on NextShow: ${listing.bookingUrl}',
                     subject: listing.eventTitle,
-                  ),
+                  )),
                 ),
               ),
 
@@ -859,10 +860,10 @@ class _VenueDetailsSheet extends StatelessWidget {
   }
 
   void _share() {
-    Share.share(
-      '${listing.venueName}\n$_address\n${listing.directionsUri}',
+    SharePlus.instance.share(ShareParams(
+      text: '${listing.venueName}\n$_address\n${listing.directionsUri}',
       subject: listing.venueName,
-    );
+    ));
   }
 
   @override

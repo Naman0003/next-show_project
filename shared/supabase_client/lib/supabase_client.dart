@@ -7,17 +7,22 @@ import 'package:core_models/core_models.dart';
 class NextShowSupabaseClient {
   static SupabaseClient? _client;
 
-  /// Initialize Supabase (call from main.dart before runApp)
+  /// Initialize Supabase (call from main.dart before runApp).
+  /// [sessionStorage] replaces the default SharedPreferences session store.
   static Future<void> initialize({
     required String url,
     required String anonKey,
+    LocalStorage? sessionStorage,
   }) async {
     // PKCE (the 2.x default, pinned here): an auth code caught by another app that
     // registered nextshow:// is useless without the verifier kept in this app (N2).
     await Supabase.initialize(
       url: url,
       anonKey: anonKey,
-      authOptions: const FlutterAuthClientOptions(authFlowType: AuthFlowType.pkce),
+      authOptions: FlutterAuthClientOptions(
+        authFlowType: AuthFlowType.pkce,
+        localStorage: sessionStorage,
+      ),
     );
     _client = Supabase.instance.client;
   }

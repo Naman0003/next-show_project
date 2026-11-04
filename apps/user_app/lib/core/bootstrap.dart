@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared/api_keys.dart';
 import 'package:supabase_client/supabase_client.dart';
 
 import 'di/core_providers.dart';
+import 'storage/secure_session_storage.dart';
 
 Future<void>? _ready;
 bool _isReady = false;
@@ -23,6 +25,9 @@ Future<void> ensureAppReady() => _ready ??= Future.wait([
       NextShowSupabaseClient.initialize(
         url: ApiKeys.supabaseUrl,
         anonKey: ApiKeys.supabaseAnonKey,
+        // Web keeps the default store: browser "secure storage" holds its key in the same localStorage.
+        sessionStorage:
+            kIsWeb ? null : SecureSessionStorage.forUrl(ApiKeys.supabaseUrl),
       ),
       Hive.initFlutter().then((_) => Future.wait([
             Hive.openBox<Map>(HiveBoxNames.watchlist),
