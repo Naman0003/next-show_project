@@ -20,10 +20,25 @@ class WatchlistController extends _$WatchlistController {
   }
 
   List<Listing> _readAll(Box<Map> box) {
-    final listings = readListingsFromBox(box);
+    // Saved events that are over are dropped, so the list starts with what's next.
+    final now = DateTime.now();
+    final listings = <Listing>[];
+    final over = <String>[];
+    for (final l in readListingsFromBox(box)) {
+      if (isOver(l, now)) {
+        over.add(l.showtimeId);
+      } else {
+        listings.add(l);
+      }
+    }
+    if (over.isNotEmpty) box.deleteAll(over);
     listings.sort((a, b) => a.startTime.compareTo(b.startTime));
     return listings;
   }
+
+  /// Same rule as `v_listings`: listed until it ends, or 2 hours after the start.
+  static bool isOver(Listing l, DateTime now) =>
+      (l.endTime ?? l.startTime.add(const Duration(hours: 2))).isBefore(now);
 
   Future<void> add(Listing listing) async {
     final box = ref.read(watchlistBoxProvider);
