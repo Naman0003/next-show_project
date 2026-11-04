@@ -253,7 +253,7 @@ async function insertEvent(
   const venueId = await findOrCreateVenue(db, event);
 
   // Same title at the same venue a few minutes apart: the AI read another time for an
-  // event we already list (from any source, partner listings included). Keep the first.
+  // event we already list at this (unowned) venue, from any source. Keep the first.
   const startMs = new Date(event.start_time).getTime();
   const { data: nearby } = await db.from("showtimes").select("start_time, events!inner(title)")
     .eq("venue_id", venueId)
@@ -317,8 +317,10 @@ async function findOrCreateVenue(db: SupabaseClient, event: ValidEvent): Promise
     ? { lat: event.venue_lat, lng: event.venue_lng }
     : null;
 
-  const { data: found } = await db.from("venues").select("id, location").ilike("name", pattern).limit(1)
-    .maybeSingle();
+  // Never attach crawled showtimes to a partner's venue (S8): a crawled page could otherwise
+  // plant listings under a real venue's name. Partner venues get a separate unowned twin.
+  const { data: found } = await db.from("venues").select("id, location").ilike("name", pattern)
+    .is("owner_id", null).limit(1).maybeSingle();
   if (found) {
     // Backfill a venue created before we had coordinates for it.
     if (found.location === null && pageCoords) {

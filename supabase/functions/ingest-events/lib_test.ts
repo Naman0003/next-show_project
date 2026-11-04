@@ -157,3 +157,9 @@ test("prompt asks for the event's own page as fallback link, never the listing p
   assert.match(p, /event's own page/);
   assert.match(p, /Never the listing page/);
 });
+
+test("validateEvent keeps only https links", () => {
+  const e = validateEvent({ ...validRaw, registration_url: "http://example.org/jazz", image_url: "http://img.example/a.jpg" }, NOW)!;
+  assert.equal(e.registration_url, null);
+  assert.equal(e.image_url, null);
+});

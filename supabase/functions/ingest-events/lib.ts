@@ -348,10 +348,10 @@ export function validateEvent(raw: unknown, now: Date): ValidEvent | null {
     city,
     is_free: r.is_free === true,
     price_eur: r.is_free === true ? 0 : price,
-    registration_url: httpUrl(r.registration_url),
-    image_url: displayableImageUrl(httpUrl(r.image_url)),
+    registration_url: httpsUrl(r.registration_url),
+    image_url: displayableImageUrl(httpsUrl(r.image_url)),
     organizer: str(r.organizer, 200),
-    organizer_avatar: httpUrl(r.organizer_avatar),
+    organizer_avatar: httpsUrl(r.organizer_avatar),
   };
 }
 
@@ -391,11 +391,12 @@ export function parseCoords(lat: unknown, lng: unknown): { lat: number; lng: num
   return { lat: la, lng: ln };
 }
 
-function httpUrl(v: unknown): string | null {
+/** https only: the booking screen refuses anything else, and the DB rejects other booking links. */
+function httpsUrl(v: unknown): string | null {
   if (typeof v !== "string") return null;
   try {
     const u = new URL(v.trim());
-    return u.protocol === "https:" || u.protocol === "http:" ? u.toString() : null;
+    return u.protocol === "https:" ? u.toString() : null;
   } catch {
     return null;
   }
