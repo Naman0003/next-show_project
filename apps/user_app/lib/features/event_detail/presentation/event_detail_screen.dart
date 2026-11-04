@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:supabase_client/supabase_client.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/router/app_router.dart';
@@ -1147,10 +1149,16 @@ class _BottomActionBar extends StatelessWidget {
               // Right: Big "Buy a ticket" pill button with right badge icon
               Expanded(
                 child: _BuyTicketPillButton(
-                  onTap: () => BookingWebViewRoute(
-                    url: listing.bookingUrl,
-                    eventTitle: listing.eventTitle,
-                  ).push(context),
+                  onTap: () {
+                    // Referral count for venues; never block or fail the booking on it.
+                    unawaited(NextShowSupabaseClient.recordClick(
+                            showtimeId: listing.showtimeId)
+                        .catchError((_) {}));
+                    BookingWebViewRoute(
+                      url: listing.bookingUrl,
+                      eventTitle: listing.eventTitle,
+                    ).push(context);
+                  },
                 ),
               ),
             ],
