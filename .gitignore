@@ -2,6 +2,7 @@
 shared/lib/api_keys.dart
 .claude
 .idea
+.vscode
 
 # impeccable-ignore-start
 # Ephemeral Impeccable output; shared artifacts (design.json, config.json,
