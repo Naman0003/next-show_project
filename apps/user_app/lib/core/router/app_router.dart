@@ -1,4 +1,5 @@
 import 'package:core_models/core_models.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -147,6 +148,11 @@ class BookingWebViewRoute extends GoRouteData {
 @TypedGoRoute<DebugSeatMatrixRoute>(path: '/debug/seat-matrix')
 class DebugSeatMatrixRoute extends GoRouteData {
   const DebugSeatMatrixRoute();
+
+  // Dev-only: release builds bounce to the app root.
+  @override
+  String? redirect(BuildContext context, GoRouterState state) =>
+      kDebugMode ? null : '/';
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
