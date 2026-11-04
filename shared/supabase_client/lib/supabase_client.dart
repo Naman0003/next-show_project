@@ -12,7 +12,13 @@ class NextShowSupabaseClient {
     required String url,
     required String anonKey,
   }) async {
-    await Supabase.initialize(url: url, anonKey: anonKey);
+    // PKCE (the 2.x default, pinned here): an auth code caught by another app that
+    // registered nextshow:// is useless without the verifier kept in this app (N2).
+    await Supabase.initialize(
+      url: url,
+      anonKey: anonKey,
+      authOptions: const FlutterAuthClientOptions(authFlowType: AuthFlowType.pkce),
+    );
     _client = Supabase.instance.client;
   }
 
