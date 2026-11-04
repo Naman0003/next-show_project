@@ -100,19 +100,6 @@ class Event {
     };
   }
 
-  // Legacy getters
-  String get subtitle => description;
-  String get genre => category.name.toUpperCase();
-  String get date => 'Showing Today';
-  String get venue => venueName;
-  double get price => 0.0;
-  double get rating => 8.5;
-  String get imdbRating => 'Free Event';
-  bool get isSaved => false;
-  bool get isTrending => true;
-  List<String> get cast => const [];
-  List<dynamic> get cinemas => const [];
-
   core.Listing toListing() {
     if (listing != null) return listing!;
     final (lat, lng) = _getCityCoordinates(city);
@@ -120,9 +107,9 @@ class Event {
       showtimeId: 'showtime_$id',
       startTime: startDate,
       endTime: startDate.add(const Duration(hours: 3)),
-      price: isFree ? 0.0 : price,
+      price: 0.0, // events built without a listing carry no price
       showtimeAttributes: {
-        if (subtitle.isNotEmpty) 'tagline': subtitle,
+        if (description.isNotEmpty) 'tagline': description,
         'genre': category.label,
         'city': city,
         if (isFree) 'entry': 'Free Admission',
@@ -224,48 +211,4 @@ class Event {
       listing: listing,
     );
   }
-}
-
-
-class CastMember {
-  final String name;
-  final String role;
-  final String imageUrl;
-
-  CastMember({required this.name, required this.role, required this.imageUrl});
-}
-
-class ShowFormatOption {
-  final String language;
-  final List<String> formats;
-
-  ShowFormatOption({required this.language, required this.formats});
-}
-
-class ShowTime {
-  final String id;
-  final String time;
-  final String format;
-  final double price;
-  final String bookingUrl;
-
-  ShowTime({
-    required this.id,
-    required this.time,
-    required this.format,
-    required this.price,
-    required this.bookingUrl,
-  });
-}
-
-class CinemaHall {
-  final String cinemaName;
-  final String distance;
-  final List<ShowTime> showtimes;
-
-  CinemaHall({
-    required this.cinemaName,
-    required this.distance,
-    required this.showtimes,
-  });
 }
