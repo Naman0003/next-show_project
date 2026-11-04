@@ -1,449 +1,654 @@
+-- Next Show: schema of the Supabase `public` schema (project waqyoiheasnmtaqqayma).
+--
+-- GENERATED from the live production schema (pulled 2026-11-04) with the security
+-- migrations applied: supabase/migrations/20261104000000_security_s1_s2_s4_s12.sql and
+-- supabase/migrations/20261104000100_security_s3_events.sql and
+-- supabase/migrations/20261104000200_security_s9_s23_partner_verification.sql. See security_fixes.md.
+--
+-- Fresh-project bootstrap ONLY. Existing projects evolve through supabase/migrations/;
+-- never re-run this on a live database. Regenerate after schema changes instead of hand-editing:
+--   supabase db dump --remote -s public -f <file>     (pre-fix baseline lives in supabase/tests/)
+-- Tests: supabase/tests/README.md.
+
 create extension if not exists postgis;
 
--- Custom Types
-do $$ begin
-  create type user_role as enum ('user', 'partner', 'admin');
-exception when duplicate_object then null;
-end $$;
-
-do $$ begin
-  create type event_status as enum ('draft', 'published', 'cancelled', 'archived');
-exception when duplicate_object then null;
-end $$;
-
----------------------------------------------------------
--- HELPER FUNCTIONS (SECURITY DEFINER)
----------------------------------------------------------
-create or replace function public.is_admin()
-returns boolean as $$
-  select exists (
-    select 1 from public.profiles 
-    where id = auth.uid() and role = 'admin'
-  );
-$$ language sql security definer set search_path = public;
-
-create or replace function public.is_partner()
-returns boolean as $$
-  select exists (
-    select 1 from public.profiles 
-    where id = auth.uid() 
-      and (role = 'admin' or (role = 'partner' and is_verified = true))
-  );
-$$ language sql security definer set search_path = public;
-
----------------------------------------------------------
--- TABLES
----------------------------------------------------------
-
--- 1. Profiles (Extended Auth User)
-create table if not exists public.profiles (
-    id uuid primary key references auth.users(id) on delete cascade,
-    created_at timestamptz default now() not null,
-    updated_at timestamptz default now() not null,
-    email text not null,
-    full_name text,
-    role user_role default 'user'::user_role not null,
-    favorite_venue_ids uuid[] default '{}'::uuid[],
-    preferred_categories text[] default '{}'::text[],
-    is_verified boolean default false not null
+--
+--
+\restrict NlsT1beFUKOqVC3bRywdSygzd700WBoht1n6avj3QR28ufi6NRsn2Yx0i4RKVEu
+SET transaction_timeout = 0;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+--
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+--
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: -
+--
+--
+-- Name: event_status; Type: TYPE; Schema: public; Owner: -
+--
+CREATE TYPE public.event_status AS ENUM (
+    'draft',
+    'published',
+    'cancelled'
 );
-
--- 2. Venues
-create table if not exists public.venues (
-    id uuid primary key default gen_random_uuid(),
-    created_at timestamptz default now() not null,
-    updated_at timestamptz default now() not null,
-    owner_id uuid references public.profiles(id) on delete restrict,
-    name text not null,
-    venue_type text not null, -- 'cinema', 'club', 'theatre'
-    address text,
-    location geography(point, 4326),
-    website_url text,
-    image_url text,
-    partner_notes text,
-    is_active boolean default true
+--
+-- Name: user_role; Type: TYPE; Schema: public; Owner: -
+--
+CREATE TYPE public.user_role AS ENUM (
+    'user',
+    'partner',
+    'admin'
 );
-
--- 3. Events (Movies, Concerts, etc.)
-create table if not exists public.events (
-    id uuid primary key default gen_random_uuid(),
-    created_at timestamptz default now() not null,
-    updated_at timestamptz default now() not null,
-    category text not null, -- 'movie', 'comedy', 'music'
-    title text not null,
-    description text,
-    image_url text,
-    duration_minutes integer,
-    external_ids jsonb default '{}'::jsonb,
-    metadata jsonb default '{}'::jsonb,
-    status event_status default 'published'::event_status not null,
-    is_verified boolean default true not null
-);
-
--- Prevent duplicate movies by enforcing unique TMDB IDs
-create unique index if not exists idx_unique_tmdb_event on public.events ((external_ids->>'tmdb_id'))
-where (external_ids->>'tmdb_id') is not null;
-
--- 4. Showtimes
-create table if not exists public.showtimes (
-    id uuid primary key default gen_random_uuid(),
-    created_at timestamptz default now() not null,
-    updated_at timestamptz default now() not null,
-    venue_id uuid references public.venues(id) on delete cascade not null,
-    event_id uuid references public.events(id) on delete restrict not null,
-    start_time timestamptz not null,
-    end_time timestamptz,
-    price numeric(8, 2),
-    capacity integer,
-    tickets_sold integer default 0,
-    attributes jsonb default '{}'::jsonb,
-    booking_url text not null,
-    image_url text,
-    status event_status default 'published'::event_status not null
-);
-
--- 5. Analytics (Outbound Clicks)
-create table if not exists public.outbound_clicks (
-    id uuid primary key default gen_random_uuid(),
-    clicked_at timestamptz default now() not null,
-    user_id uuid references auth.users(id) on delete set null,
-    showtime_id uuid references public.showtimes(id) on delete set null
-);
-
--- 6. Organizer Invites
-create table if not exists public.organizer_invites (
-    id uuid primary key default gen_random_uuid(),
-    created_at timestamptz default now() not null,
-    venue_id uuid references public.venues(id) on delete cascade not null,
-    invited_by uuid references public.profiles(id) on delete set null,
-    email text not null,
-    role text default 'editor' not null, -- 'owner', 'editor', 'viewer'
-    token text not null unique,
-    accepted_at timestamptz,
-    expires_at timestamptz default (now() + interval '7 days')
-);
-
----------------------------------------------------------
--- INDEXES FOR PERFORMANCE
----------------------------------------------------------
-create index if not exists idx_venues_location on public.venues using gist(location);
-create index if not exists idx_showtimes_lookup on public.showtimes(venue_id, start_time, status);
-create index if not exists idx_events_category on public.events(category);
-create index if not exists idx_showtimes_attributes on public.showtimes using gin(attributes);
-create index if not exists idx_organizer_invites_venue on public.organizer_invites(venue_id);
-create index if not exists idx_organizer_invites_token on public.organizer_invites(token);
-create index if not exists idx_organizer_invites_email on public.organizer_invites(email);
-
----------------------------------------------------------
--- VIEW: ACTIVE LISTINGS
----------------------------------------------------------
-create or replace view public.v_listings as
-select 
-  s.id as showtime_id,
-  s.start_time,
-  s.end_time,
-  s.price,
-  s.attributes as showtime_attributes,
-  s.booking_url,
-  e.id as event_id,
-  e.category,
-  e.title as event_title,
-  e.description as event_description,
-  e.image_url,
-  e.duration_minutes,
-  e.metadata as event_metadata,
-  e.is_verified as event_is_verified,
-  v.id as venue_id,
-  v.name as venue_name,
-  v.venue_type,
-  v.address as venue_address,
-  st_x(v.location::geometry) as longitude,
-  st_y(v.location::geometry) as latitude
-from public.showtimes s
-join public.events e on s.event_id = e.id
-join public.venues v on s.venue_id = v.id
-where s.start_time >= now() 
-  and s.status = 'published'
-  and v.is_active = true
-order by s.start_time asc;
-
----------------------------------------------------------
--- ROW LEVEL SECURITY (RLS) POLICIES
----------------------------------------------------------
-alter table public.profiles enable row level security;
-alter table public.venues enable row level security;
-alter table public.events enable row level security;
-alter table public.showtimes enable row level security;
-alter table public.outbound_clicks enable row level security;
-alter table public.organizer_invites enable row level security;
-
--- PROFILES
-drop policy if exists "Users can view own profile" on public.profiles;
-create policy "Users can view own profile" 
-  on public.profiles for select using (auth.uid() = id or public.is_admin());
-
-drop policy if exists "Users can update own profile" on public.profiles;
-create policy "Users can update own profile" 
-  on public.profiles for update using (auth.uid() = id or public.is_admin());
-
-drop policy if exists "Service role can insert profiles" on public.profiles;
-create policy "Service role can insert profiles"
-  on public.profiles for insert with check (true);
-
--- VENUES
-drop policy if exists "Anyone can read active venues" on public.venues;
-create policy "Anyone can read active venues" 
-  on public.venues for select using (is_active = true or auth.uid() = owner_id or public.is_admin());
-
-drop policy if exists "Partners can manage their own venues" on public.venues;
-create policy "Partners can manage their own venues" 
-  on public.venues for all using (auth.uid() = owner_id and public.is_partner());
-
-drop policy if exists "Admins have full access to venues" on public.venues;
-create policy "Admins have full access to venues" 
-  on public.venues for all using (public.is_admin());
-
--- EVENTS (Shared Catalog)
-drop policy if exists "Anyone can read events" on public.events;
-create policy "Anyone can read events" 
-  on public.events for select using (true);
-
-drop policy if exists "Partners can insert events" on public.events;
-create policy "Partners can insert events" 
-  on public.events for insert with check (public.is_partner());
-
-drop policy if exists "Partners can update events" on public.events;
-create policy "Partners can update events" 
-  on public.events for update using (public.is_partner());
-
-drop policy if exists "Admins have full access to events" on public.events;
-create policy "Admins have full access to events" 
-  on public.events for all using (public.is_admin());
-
--- SHOWTIMES
-drop policy if exists "Anyone can read published showtimes" on public.showtimes;
-create policy "Anyone can read published showtimes" 
-  on public.showtimes for select using (status = 'published' or public.is_partner() or public.is_admin());
-
-drop policy if exists "Partners can manage showtimes for their venues" on public.showtimes;
-create policy "Partners can manage showtimes for their venues" 
-  on public.showtimes for all using (
-    exists (
-      select 1 from public.venues v 
-      where v.id = showtimes.venue_id 
-      and v.owner_id = auth.uid()
-    )
-  );
-
-drop policy if exists "Admins have full access to showtimes" on public.showtimes;
-create policy "Admins have full access to showtimes" 
-  on public.showtimes for all using (public.is_admin());
-
--- OUTBOUND CLICKS (Analytics)
-drop policy if exists "Users can insert their own clicks" on public.outbound_clicks;
-create policy "Users can insert their own clicks" 
-  on public.outbound_clicks for insert with check (auth.uid() = user_id or user_id is null);
-
-drop policy if exists "Admins and Partners can read clicks" on public.outbound_clicks;
-create policy "Admins and Partners can read clicks" 
-  on public.outbound_clicks for select using (public.is_partner());
-
--- ORGANIZER INVITES
-drop policy if exists "Venue owners can manage invites" on public.organizer_invites;
-create policy "Venue owners can manage invites"
-  on public.organizer_invites for all using (
-    exists (
-      select 1 from public.venues v
-      where v.id = organizer_invites.venue_id
-      and v.owner_id = auth.uid()
-    )
-  );
-
-drop policy if exists "Invited users can view their invite" on public.organizer_invites;
-create policy "Invited users can view their invite"
-  on public.organizer_invites for select using (
-    email = (select email from public.profiles where id = auth.uid())
-    or auth.uid() = invited_by
-  );
-
----------------------------------------------------------
--- FUNCTIONS & TRIGGERS
----------------------------------------------------------
-
--- 1. Automatic updated_at timestamp trigger
-create or replace function public.handle_updated_at()
-returns trigger as $$
+--
+-- Name: accept_organizer_invite(text); Type: FUNCTION; Schema: public; Owner: -
+--
+CREATE FUNCTION public.accept_organizer_invite(invite_token text) RETURNS void
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+declare
+  v_invite record;
+  v_email text := lower(coalesce(auth.jwt() ->> 'email', ''));
+begin
+  if auth.uid() is null then
+    raise exception 'Not authenticated';
+  end if;
+  select * into v_invite from public.organizer_invites
+  where token = invite_token
+    and accepted_at is null
+    and (expires_at is null or expires_at > now())
+    and lower(email) = v_email
+  for update;
+  if v_invite.id is null then
+    raise exception 'Invalid or expired invite token';
+  end if;
+  update public.profiles set role = 'partner'
+  where id = auth.uid() and role = 'user';
+  if v_invite.role = 'owner' then
+    update public.venues set owner_id = auth.uid() where id = v_invite.venue_id;
+  end if;
+  update public.organizer_invites set accepted_at = now() where id = v_invite.id;
+end;
+$$;
+--
+-- Name: check_profile_update(); Type: FUNCTION; Schema: public; Owner: -
+--
+CREATE FUNCTION public.check_profile_update() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+begin
+  -- Direct DB / service-role access (no JWT) and admins are unrestricted.
+  if auth.uid() is null or public.is_admin() then
+    return new;
+  end if;
+  new.email = old.email;
+  new.is_verified = old.is_verified;
+  -- Users may self-upgrade to (unverified) partner; every other role change is reverted.
+  if old.role is distinct from new.role
+     and not (old.role = 'user'::user_role and new.role = 'partner'::user_role) then
+    new.role = old.role;
+  end if;
+  return new;
+end;
+$$;
+--
+-- Name: guard_event_write(); Type: FUNCTION; Schema: public; Owner: -
+--
+CREATE FUNCTION public.guard_event_write() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+begin
+  if auth.uid() is null or public.is_admin() then
+    return new;
+  end if;
+  if tg_op = 'INSERT' then
+    new.is_verified = coalesce(new.is_verified, false)
+                      and (new.external_ids->>'tmdb_id') is not null;
+  else
+    new.is_verified = old.is_verified;
+    new.created_by = old.created_by;
+  end if;
+  return new;
+end;
+$$;
+--
+-- Name: handle_new_user(); Type: FUNCTION; Schema: public; Owner: -
+--
+CREATE FUNCTION public.handle_new_user() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+begin
+  insert into public.profiles (id, email, full_name, role)
+  values (new.id, new.email, new.raw_user_meta_data->>'full_name', 'user'::user_role)
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+--
+-- Name: handle_updated_at(); Type: FUNCTION; Schema: public; Owner: -
+--
+CREATE FUNCTION public.handle_updated_at() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
 begin
   new.updated_at = now();
   return new;
 end;
-$$ language plpgsql;
-
-drop trigger if exists set_venues_updated_at on public.venues;
-create trigger set_venues_updated_at before update on public.venues for each row execute function public.handle_updated_at();
-
-drop trigger if exists set_events_updated_at on public.events;
-create trigger set_events_updated_at before update on public.events for each row execute function public.handle_updated_at();
-
-drop trigger if exists set_showtimes_updated_at on public.showtimes;
-create trigger set_showtimes_updated_at before update on public.showtimes for each row execute function public.handle_updated_at();
-
-drop trigger if exists set_profiles_updated_at on public.profiles;
-create trigger set_profiles_updated_at before update on public.profiles for each row execute function public.handle_updated_at();
-
--- 2. Auto-create profile on signup
-create or replace function public.handle_new_user()
-returns trigger as $$
-begin
-  insert into public.profiles (id, email, full_name, role)
-  values (
-    new.id, 
-    new.email, 
-    new.raw_user_meta_data->>'full_name',
-    coalesce((new.raw_user_meta_data->>'role')::user_role, 'user'::user_role)
+$$;
+--
+-- Name: is_admin(); Type: FUNCTION; Schema: public; Owner: -
+--
+CREATE FUNCTION public.is_admin() RETURNS boolean
+    LANGUAGE sql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+  select exists (
+    select 1 from public.profiles 
+    where id = auth.uid() and role = 'admin'
   );
-  return new;
-end;
-$$ language plpgsql security definer set search_path = public;
-
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
-
--- 3. Profile update protection trigger function
-create or replace function public.check_profile_update()
-returns trigger as $$
-begin
-  -- If update is made directly in DB (auth.uid() is null) or by an admin, allow it
-  if auth.uid() is null or public.is_admin() then
-    return new;
-  end if;
-
-  -- Otherwise, enforce restrictions for standard clients:
-  -- 1. Enforce that is_verified can only be changed by admins
-  if (old.is_verified is distinct from new.is_verified) then
-    new.is_verified = old.is_verified;
-  end if;
-
-  -- 2. Enforce role changes
-  if (old.role is distinct from new.role) then
-    -- Allow standard users to upgrade themselves to partner (which starts as unverified)
-    if (old.role = 'user'::user_role and new.role = 'partner'::user_role) then
-      null; -- Allowed
-    else
-      new.role = old.role;
-    end if;
-  end if;
-
-  return new;
-end;
-$$ language plpgsql security definer set search_path = public;
-
-drop trigger if exists enforce_profile_update_restrictions on public.profiles;
-create trigger enforce_profile_update_restrictions
-  before update on public.profiles
-  for each row execute function public.check_profile_update();
-
--- 3. Accept organizer invite RPC function
-create or replace function public.accept_organizer_invite(invite_token text)
-returns void as $$
-declare
-  v_invite record;
-begin
-  select * into v_invite from public.organizer_invites
-  where token = invite_token and accepted_at is null and (expires_at is null or expires_at > now());
-
-  if v_invite.id is null then
-    raise exception 'Invalid or expired invite token';
-  end if;
-
-  -- Mark profile role as partner
-  update public.profiles set role = 'partner' where id = auth.uid();
-
-  -- Update venue ownership if role is owner
-  if v_invite.role = 'owner' then
-    update public.venues set owner_id = auth.uid() where id = v_invite.venue_id;
-  end if;
-
-  -- Mark invite accepted
-  update public.organizer_invites set accepted_at = now() where id = v_invite.id;
-end;
-$$ language plpgsql security definer set search_path = public;
-
--- Create or replace trigger function to protect role and is_verified column updates
-CREATE OR REPLACE FUNCTION public.check_profile_update()
-RETURNS trigger AS $$
-BEGIN
-  -- If update is made directly in DB (auth.uid() is null) or by an admin, allow it
-  IF auth.uid() IS NULL OR public.is_admin() THEN
-    RETURN NEW;
-  END IF;
-
-  -- Otherwise, enforce restrictions for standard clients:
-  -- 1. Enforce that is_verified can only be changed by admins
-  IF (OLD.is_verified IS DISTINCT FROM NEW.is_verified) THEN
-    NEW.is_verified = OLD.is_verified;
-  END IF;
-
-  -- 2. Enforce role changes
-  IF (OLD.role IS DISTINCT FROM NEW.role) THEN
-    -- Allow standard users to upgrade themselves to partner (which starts as unverified)
-    IF (OLD.role = 'user'::user_role AND NEW.role = 'partner'::user_role) THEN
-      NULL; -- Allowed
-    ELSE
-      NEW.role = OLD.role;
-    END IF;
-  END IF;
-
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
-
--- 1. Add column
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_verified boolean DEFAULT false NOT NULL;
-
--- 2. Mark existing partners as verified (to preserve access)
-UPDATE public.profiles SET is_verified = true WHERE role = 'partner';
-
--- 3. Update is_partner() helper
-CREATE OR REPLACE FUNCTION public.is_partner()
-RETURNS boolean AS $$
+$$;
+--
+-- Name: is_partner(); Type: FUNCTION; Schema: public; Owner: -
+--
+CREATE FUNCTION public.is_partner() RETURNS boolean
+    LANGUAGE sql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.profiles 
     WHERE id = auth.uid() 
       AND (role = 'admin' OR (role = 'partner' AND is_verified = true))
   );
-$$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
+$$;
+--
+-- Name: sync_profile_email(); Type: FUNCTION; Schema: public; Owner: -
+--
+CREATE FUNCTION public.sync_profile_email() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+begin
+  update public.profiles set email = new.email where id = new.id;
+  return new;
+end;
+$$;
+SET default_tablespace = '';
+SET default_table_access_method = heap;
+--
+-- Name: events; Type: TABLE; Schema: public; Owner: -
+--
+CREATE TABLE public.events (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    category text NOT NULL,
+    title text NOT NULL,
+    description text,
+    image_url text,
+    duration_minutes integer,
+    external_ids jsonb DEFAULT '{}'::jsonb,
+    metadata jsonb DEFAULT '{}'::jsonb,
+    status public.event_status DEFAULT 'published'::public.event_status,
+    is_verified boolean DEFAULT false NOT NULL,
+    created_by uuid DEFAULT auth.uid()
+);
+--
+-- Name: ingestion_sources; Type: TABLE; Schema: public; Owner: -
+--
+CREATE TABLE public.ingestion_sources (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    name text NOT NULL,
+    url text NOT NULL,
+    kind text NOT NULL,
+    city text DEFAULT 'Berlin'::text NOT NULL,
+    is_enabled boolean DEFAULT true NOT NULL,
+    last_run_at timestamp with time zone,
+    last_status text,
+    CONSTRAINT ingestion_sources_kind_check CHECK ((kind = ANY (ARRAY['rss'::text, 'html'::text])))
+);
+--
+-- Name: organizer_invites; Type: TABLE; Schema: public; Owner: -
+--
+CREATE TABLE public.organizer_invites (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    venue_id uuid NOT NULL,
+    invited_by uuid,
+    email text NOT NULL,
+    role text DEFAULT 'editor'::text NOT NULL,
+    token text DEFAULT replace(((gen_random_uuid())::text || (gen_random_uuid())::text), '-'::text, ''::text) NOT NULL,
+    accepted_at timestamp with time zone,
+    expires_at timestamp with time zone DEFAULT (now() + '7 days'::interval)
+);
+--
+-- Name: outbound_clicks; Type: TABLE; Schema: public; Owner: -
+--
+CREATE TABLE public.outbound_clicks (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    clicked_at timestamp with time zone DEFAULT now() NOT NULL,
+    user_id uuid,
+    showtime_id uuid
+);
+--
+-- Name: profiles; Type: TABLE; Schema: public; Owner: -
+--
+CREATE TABLE public.profiles (
+    id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    email text NOT NULL,
+    full_name text,
+    role public.user_role DEFAULT 'user'::public.user_role NOT NULL,
+    favorite_venue_ids uuid[] DEFAULT '{}'::uuid[],
+    preferred_categories text[] DEFAULT '{}'::text[],
+    is_verified boolean DEFAULT false NOT NULL
+);
+--
+-- Name: showtimes; Type: TABLE; Schema: public; Owner: -
+--
+CREATE TABLE public.showtimes (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    venue_id uuid NOT NULL,
+    event_id uuid NOT NULL,
+    start_time timestamp with time zone NOT NULL,
+    price numeric(8,2),
+    attributes jsonb DEFAULT '{}'::jsonb,
+    booking_url text NOT NULL,
+    status public.event_status DEFAULT 'published'::public.event_status NOT NULL,
+    end_time timestamp with time zone,
+    capacity integer,
+    tickets_sold integer DEFAULT 0,
+    image_url text
+);
+--
+-- Name: tickets; Type: TABLE; Schema: public; Owner: -
+--
+CREATE TABLE public.tickets (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    user_id uuid NOT NULL,
+    showtime_id uuid,
+    event_title text NOT NULL,
+    image_url text,
+    venue_name text NOT NULL,
+    venue_address text,
+    starts_at timestamp with time zone NOT NULL,
+    ticket_code text NOT NULL,
+    seat text,
+    holder_name text,
+    status text DEFAULT 'valid'::text NOT NULL,
+    issued_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT tickets_status_check CHECK ((status = ANY (ARRAY['valid'::text, 'used'::text, 'cancelled'::text, 'refunded'::text])))
+);
+--
+-- Name: venues; Type: TABLE; Schema: public; Owner: -
+--
+CREATE TABLE public.venues (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    owner_id uuid,
+    name text NOT NULL,
+    venue_type text NOT NULL,
+    address text,
+    location public.geography(Point,4326),
+    website_url text,
+    image_url text,
+    is_active boolean DEFAULT true,
+    partner_notes text
+);
+--
+-- Name: v_listings; Type: VIEW; Schema: public; Owner: -
+--
+CREATE VIEW public.v_listings AS
+ SELECT s.id AS showtime_id,
+    s.start_time,
+    s.end_time,
+    s.price,
+    s.attributes AS showtime_attributes,
+    s.booking_url,
+    e.id AS event_id,
+    e.category,
+    e.title AS event_title,
+    e.description AS event_description,
+    e.image_url,
+    e.duration_minutes,
+    e.metadata AS event_metadata,
+    e.is_verified AS event_is_verified,
+    v.id AS venue_id,
+    v.name AS venue_name,
+    v.venue_type,
+    v.address AS venue_address,
+    public.st_x((v.location)::public.geometry) AS longitude,
+    public.st_y((v.location)::public.geometry) AS latitude
+   FROM ((public.showtimes s
+     JOIN public.events e ON ((s.event_id = e.id)))
+     JOIN public.venues v ON ((s.venue_id = v.id)))
+  WHERE ((s.start_time >= now()) AND (s.status = 'published'::public.event_status) AND (v.is_active = true))
+  ORDER BY s.start_time;
+--
+-- Name: events events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.events
+    ADD CONSTRAINT events_pkey PRIMARY KEY (id);
+--
+-- Name: ingestion_sources ingestion_sources_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.ingestion_sources
+    ADD CONSTRAINT ingestion_sources_pkey PRIMARY KEY (id);
+--
+-- Name: ingestion_sources ingestion_sources_url_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.ingestion_sources
+    ADD CONSTRAINT ingestion_sources_url_key UNIQUE (url);
+--
+-- Name: organizer_invites organizer_invites_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.organizer_invites
+    ADD CONSTRAINT organizer_invites_pkey PRIMARY KEY (id);
+--
+-- Name: organizer_invites organizer_invites_token_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.organizer_invites
+    ADD CONSTRAINT organizer_invites_token_key UNIQUE (token);
+--
+-- Name: outbound_clicks outbound_clicks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.outbound_clicks
+    ADD CONSTRAINT outbound_clicks_pkey PRIMARY KEY (id);
+--
+-- Name: profiles profiles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.profiles
+    ADD CONSTRAINT profiles_pkey PRIMARY KEY (id);
+--
+-- Name: showtimes showtimes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.showtimes
+    ADD CONSTRAINT showtimes_pkey PRIMARY KEY (id);
+--
+-- Name: tickets tickets_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.tickets
+    ADD CONSTRAINT tickets_pkey PRIMARY KEY (id);
+--
+-- Name: tickets tickets_ticket_code_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.tickets
+    ADD CONSTRAINT tickets_ticket_code_key UNIQUE (ticket_code);
+--
+-- Name: venues venues_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.venues
+    ADD CONSTRAINT venues_pkey PRIMARY KEY (id);
+--
+-- Name: idx_events_category; Type: INDEX; Schema: public; Owner: -
+--
+CREATE INDEX idx_events_category ON public.events USING btree (category);
+--
+-- Name: idx_organizer_invites_email; Type: INDEX; Schema: public; Owner: -
+--
+CREATE INDEX idx_organizer_invites_email ON public.organizer_invites USING btree (email);
+--
+-- Name: idx_organizer_invites_token; Type: INDEX; Schema: public; Owner: -
+--
+CREATE INDEX idx_organizer_invites_token ON public.organizer_invites USING btree (token);
+--
+-- Name: idx_organizer_invites_venue; Type: INDEX; Schema: public; Owner: -
+--
+CREATE INDEX idx_organizer_invites_venue ON public.organizer_invites USING btree (venue_id);
+--
+-- Name: idx_showtimes_attributes; Type: INDEX; Schema: public; Owner: -
+--
+CREATE INDEX idx_showtimes_attributes ON public.showtimes USING gin (attributes);
+--
+-- Name: idx_showtimes_lookup; Type: INDEX; Schema: public; Owner: -
+--
+CREATE INDEX idx_showtimes_lookup ON public.showtimes USING btree (venue_id, start_time, status);
+--
+-- Name: idx_unique_ingest_event; Type: INDEX; Schema: public; Owner: -
+--
+CREATE UNIQUE INDEX idx_unique_ingest_event ON public.events USING btree (((external_ids ->> 'ingest_key'::text))) WHERE ((external_ids ->> 'ingest_key'::text) IS NOT NULL);
+--
+-- Name: idx_unique_tmdb_event; Type: INDEX; Schema: public; Owner: -
+--
+CREATE UNIQUE INDEX idx_unique_tmdb_event ON public.events USING btree (((external_ids ->> 'tmdb_id'::text))) WHERE ((external_ids ->> 'tmdb_id'::text) IS NOT NULL);
+--
+-- Name: idx_venues_location; Type: INDEX; Schema: public; Owner: -
+--
+CREATE INDEX idx_venues_location ON public.venues USING gist (location);
+--
+-- Name: tickets_user_starts_at_idx; Type: INDEX; Schema: public; Owner: -
+--
+CREATE INDEX tickets_user_starts_at_idx ON public.tickets USING btree (user_id, starts_at);
+--
+-- Name: profiles enforce_profile_update_restrictions; Type: TRIGGER; Schema: public; Owner: -
+--
+CREATE TRIGGER enforce_profile_update_restrictions BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.check_profile_update();
+--
+-- Name: events guard_event_write; Type: TRIGGER; Schema: public; Owner: -
+--
+CREATE TRIGGER guard_event_write BEFORE INSERT OR UPDATE ON public.events FOR EACH ROW EXECUTE FUNCTION public.guard_event_write();
+--
+-- Name: events set_events_updated_at; Type: TRIGGER; Schema: public; Owner: -
+--
+CREATE TRIGGER set_events_updated_at BEFORE UPDATE ON public.events FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+--
+-- Name: profiles set_profiles_updated_at; Type: TRIGGER; Schema: public; Owner: -
+--
+CREATE TRIGGER set_profiles_updated_at BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+--
+-- Name: showtimes set_showtimes_updated_at; Type: TRIGGER; Schema: public; Owner: -
+--
+CREATE TRIGGER set_showtimes_updated_at BEFORE UPDATE ON public.showtimes FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+--
+-- Name: venues set_venues_updated_at; Type: TRIGGER; Schema: public; Owner: -
+--
+CREATE TRIGGER set_venues_updated_at BEFORE UPDATE ON public.venues FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+--
+-- Name: events events_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.events
+    ADD CONSTRAINT events_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.profiles(id) ON DELETE SET NULL;
+--
+-- Name: organizer_invites organizer_invites_invited_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.organizer_invites
+    ADD CONSTRAINT organizer_invites_invited_by_fkey FOREIGN KEY (invited_by) REFERENCES public.profiles(id) ON DELETE SET NULL;
+--
+-- Name: organizer_invites organizer_invites_venue_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.organizer_invites
+    ADD CONSTRAINT organizer_invites_venue_id_fkey FOREIGN KEY (venue_id) REFERENCES public.venues(id) ON DELETE CASCADE;
+--
+-- Name: outbound_clicks outbound_clicks_showtime_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.outbound_clicks
+    ADD CONSTRAINT outbound_clicks_showtime_id_fkey FOREIGN KEY (showtime_id) REFERENCES public.showtimes(id) ON DELETE SET NULL;
+--
+-- Name: outbound_clicks outbound_clicks_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.outbound_clicks
+    ADD CONSTRAINT outbound_clicks_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+--
+-- Name: profiles profiles_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.profiles
+    ADD CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
+--
+-- Name: showtimes showtimes_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.showtimes
+    ADD CONSTRAINT showtimes_event_id_fkey FOREIGN KEY (event_id) REFERENCES public.events(id) ON DELETE RESTRICT;
+--
+-- Name: showtimes showtimes_venue_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.showtimes
+    ADD CONSTRAINT showtimes_venue_id_fkey FOREIGN KEY (venue_id) REFERENCES public.venues(id) ON DELETE CASCADE;
+--
+-- Name: tickets tickets_showtime_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.tickets
+    ADD CONSTRAINT tickets_showtime_id_fkey FOREIGN KEY (showtime_id) REFERENCES public.showtimes(id) ON DELETE SET NULL;
+--
+-- Name: tickets tickets_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.tickets
+    ADD CONSTRAINT tickets_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+--
+-- Name: venues venues_owner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+ALTER TABLE ONLY public.venues
+    ADD CONSTRAINT venues_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES public.profiles(id) ON DELETE RESTRICT;
+--
+-- Name: events Admins have full access to events; Type: POLICY; Schema: public; Owner: -
+--
+CREATE POLICY "Admins have full access to events" ON public.events USING ((EXISTS ( SELECT 1
+   FROM public.profiles
+  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin'::public.user_role)))));
+--
+-- Name: showtimes Admins have full access to showtimes; Type: POLICY; Schema: public; Owner: -
+--
+CREATE POLICY "Admins have full access to showtimes" ON public.showtimes USING ((EXISTS ( SELECT 1
+   FROM public.profiles
+  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin'::public.user_role)))));
+--
+-- Name: venues Admins have full access to venues; Type: POLICY; Schema: public; Owner: -
+--
+CREATE POLICY "Admins have full access to venues" ON public.venues USING ((EXISTS ( SELECT 1
+   FROM public.profiles
+  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin'::public.user_role)))));
+--
+-- Name: ingestion_sources Admins manage ingestion sources; Type: POLICY; Schema: public; Owner: -
+--
+CREATE POLICY "Admins manage ingestion sources" ON public.ingestion_sources USING (public.is_admin()) WITH CHECK (public.is_admin());
+--
+-- Name: venues Anyone can read active venues; Type: POLICY; Schema: public; Owner: -
+--
+CREATE POLICY "Anyone can read active venues" ON public.venues FOR SELECT USING ((is_active = true));
+--
+-- Name: events Anyone can read events; Type: POLICY; Schema: public; Owner: -
+--
+CREATE POLICY "Anyone can read events" ON public.events FOR SELECT USING (true);
+--
+-- Name: showtimes Anyone can read published showtimes; Type: POLICY; Schema: public; Owner: -
+--
+CREATE POLICY "Anyone can read published showtimes" ON public.showtimes FOR SELECT USING ((status = 'published'::public.event_status));
+--
+-- Name: organizer_invites Invited users can view their invite; Type: POLICY; Schema: public; Owner: -
+--
+CREATE POLICY "Invited users can view their invite" ON public.organizer_invites FOR SELECT USING (((lower(email) = lower(COALESCE((auth.jwt() ->> 'email'::text), ''::text))) OR (auth.uid() = invited_by)));
+--
+-- Name: events Partners can insert events; Type: POLICY; Schema: public; Owner: -
+--
+CREATE POLICY "Partners can insert events" ON public.events FOR INSERT WITH CHECK ((public.is_partner() AND (created_by = auth.uid())));
+--
+-- Name: showtimes Partners can manage showtimes for their venues; Type: POLICY; Schema: public; Owner: -
+--
+CREATE POLICY "Partners can manage showtimes for their venues" ON public.showtimes USING ((public.is_partner() AND (EXISTS ( SELECT 1
+   FROM public.venues v
+  WHERE ((v.id = showtimes.venue_id) AND (v.owner_id = auth.uid())))))) WITH CHECK ((public.is_partner() AND (EXISTS ( SELECT 1
+   FROM public.venues v
+  WHERE ((v.id = showtimes.venue_id) AND (v.owner_id = auth.uid()))))));
+--
+-- Name: venues Partners can manage their own venues; Type: POLICY; Schema: public; Owner: -
+--
+CREATE POLICY "Partners can manage their own venues" ON public.venues USING (((auth.uid() = owner_id) AND public.is_partner())) WITH CHECK (((auth.uid() = owner_id) AND public.is_partner()));
+--
+-- Name: events Partners can update events; Type: POLICY; Schema: public; Owner: -
+--
+CREATE POLICY "Partners can update events" ON public.events FOR UPDATE USING ((public.is_partner() AND (created_by = auth.uid()))) WITH CHECK ((public.is_partner() AND (created_by = auth.uid())));
+--
+-- Name: outbound_clicks Partners read clicks on their venues; Type: POLICY; Schema: public; Owner: -
+--
+CREATE POLICY "Partners read clicks on their venues" ON public.outbound_clicks FOR SELECT USING ((public.is_admin() OR (public.is_partner() AND (EXISTS ( SELECT 1
+   FROM (public.showtimes s
+     JOIN public.venues v ON ((v.id = s.venue_id)))
+  WHERE ((s.id = outbound_clicks.showtime_id) AND (v.owner_id = auth.uid())))))));
+--
+-- Name: outbound_clicks Users can insert their own clicks; Type: POLICY; Schema: public; Owner: -
+--
+CREATE POLICY "Users can insert their own clicks" ON public.outbound_clicks FOR INSERT WITH CHECK (((auth.uid() = user_id) OR (user_id IS NULL)));
+--
+-- Name: profiles Users can update own profile; Type: POLICY; Schema: public; Owner: -
+--
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (((auth.uid() = id) OR public.is_admin()));
+--
+-- Name: profiles Users can view own profile; Type: POLICY; Schema: public; Owner: -
+--
+CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING (((auth.uid() = id) OR public.is_admin()));
+--
+-- Name: organizer_invites Venue owners can manage invites; Type: POLICY; Schema: public; Owner: -
+--
+CREATE POLICY "Venue owners can manage invites" ON public.organizer_invites USING ((public.is_partner() AND (EXISTS ( SELECT 1
+   FROM public.venues v
+  WHERE ((v.id = organizer_invites.venue_id) AND (v.owner_id = auth.uid())))))) WITH CHECK ((public.is_partner() AND (EXISTS ( SELECT 1
+   FROM public.venues v
+  WHERE ((v.id = organizer_invites.venue_id) AND (v.owner_id = auth.uid()))))));
+--
+-- Name: events; Type: ROW SECURITY; Schema: public; Owner: -
+--
+ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
+--
+-- Name: ingestion_sources; Type: ROW SECURITY; Schema: public; Owner: -
+--
+ALTER TABLE public.ingestion_sources ENABLE ROW LEVEL SECURITY;
+--
+-- Name: organizer_invites; Type: ROW SECURITY; Schema: public; Owner: -
+--
+ALTER TABLE public.organizer_invites ENABLE ROW LEVEL SECURITY;
+--
+-- Name: outbound_clicks; Type: ROW SECURITY; Schema: public; Owner: -
+--
+ALTER TABLE public.outbound_clicks ENABLE ROW LEVEL SECURITY;
+--
+-- Name: profiles; Type: ROW SECURITY; Schema: public; Owner: -
+--
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+--
+-- Name: showtimes; Type: ROW SECURITY; Schema: public; Owner: -
+--
+ALTER TABLE public.showtimes ENABLE ROW LEVEL SECURITY;
+--
+-- Name: tickets; Type: ROW SECURITY; Schema: public; Owner: -
+--
+ALTER TABLE public.tickets ENABLE ROW LEVEL SECURITY;
+--
+-- Name: tickets tickets: admins manage; Type: POLICY; Schema: public; Owner: -
+--
+CREATE POLICY "tickets: admins manage" ON public.tickets TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
+--
+-- Name: tickets tickets: users read own; Type: POLICY; Schema: public; Owner: -
+--
+CREATE POLICY "tickets: users read own" ON public.tickets FOR SELECT TO authenticated USING ((user_id = auth.uid()));
+--
+-- Name: venues; Type: ROW SECURITY; Schema: public; Owner: -
+--
+ALTER TABLE public.venues ENABLE ROW LEVEL SECURITY;
+--
+--
+\unrestrict NlsT1beFUKOqVC3bRywdSygzd700WBoht1n6avj3QR28ufi6NRsn2Yx0i4RKVEu
+-- The signup trigger lives on auth.users (outside `public`), so pg_dump of `public` omits it.
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created after insert on auth.users
+  for each row execute function public.handle_new_user();
 
--- 4. Create profile update protection trigger function
-CREATE OR REPLACE FUNCTION public.check_profile_update()
-RETURNS trigger AS $$
-BEGIN
-  -- Enforce that is_verified can only be changed by admins
-  IF (OLD.is_verified IS DISTINCT FROM NEW.is_verified) THEN
-    IF NOT public.is_admin() THEN
-      NEW.is_verified = OLD.is_verified;
-    END IF;
-  END IF;
+-- Keep profiles.email in step with Supabase Auth (clients cannot edit it directly).
+drop trigger if exists on_auth_user_email_changed on auth.users;
+create trigger on_auth_user_email_changed
+  after update of email on auth.users
+  for each row when (old.email is distinct from new.email)
+  execute function public.sync_profile_email();
 
-  -- Enforce role changes
-  IF (OLD.role IS DISTINCT FROM NEW.role) THEN
-    -- Allow standard users to upgrade to partner (starts as unverified)
-    IF (OLD.role = 'user'::user_role AND NEW.role = 'partner'::user_role) THEN
-      NULL; -- Allowed
-    -- Otherwise, only admins can change roles
-    ELSIF NOT public.is_admin() THEN
-      NEW.role = OLD.role;
-    END IF;
-  END IF;
-
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
-
--- 5. Bind trigger
-DROP TRIGGER IF EXISTS enforce_profile_update_restrictions ON public.profiles;
-CREATE TRIGGER enforce_profile_update_restrictions
-  BEFORE UPDATE ON public.profiles
-  FOR EACH ROW EXECUTE FUNCTION public.check_profile_update();
+-- Privileges are not part of the dump but are security-relevant: invites are accepted by
+-- signed-in users only (S12). Supabase's default grants would otherwise re-expose it to anon.
+revoke execute on function public.accept_organizer_invite(text) from public, anon;
+grant execute on function public.accept_organizer_invite(text) to authenticated;
