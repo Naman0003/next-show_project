@@ -400,12 +400,33 @@ function httpUrl(v: unknown): string | null {
   }
 }
 
+/** Case, punctuation and spacing don't make two titles different. */
+export function normalizeTitle(title: string): string {
+  return title.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+}
+
 /** Deterministic dedupe key stored in `events.external_ids.ingest_key`. */
 export async function ingestKey(sourceUrl: string, title: string, startIso: string): Promise<string> {
-  const normTitle = title.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  const normTitle = normalizeTitle(title);
   const bytes = new TextEncoder().encode(`${sourceUrl}|${normTitle}|${startIso}`);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * The AI sometimes reads a different start time for the same event on a later run
+ * (e.g. 20:00 vs 20:30), which gives a new ingest key. Treat a showtime at the same
+ * venue with the same title and a start within NEAR_DUPLICATE_MS as the same event.
+ */
+// shortcut: a venue with two same-titled shows under 45 min apart would merge them; widen or narrow if that happens.
+export const NEAR_DUPLICATE_MS = 45 * 60 * 1000;
+
+export function isNearDuplicate(
+  candidate: { title: string; start_time: string },
+  existing: { title: string; start_time: string },
+): boolean {
+  const gap = Math.abs(new Date(candidate.start_time).getTime() - new Date(existing.start_time).getTime());
+  return gap <= NEAR_DUPLICATE_MS && normalizeTitle(candidate.title) === normalizeTitle(existing.title);
 }
 
 /** `venues.venue_type` only allows cinema/club/theatre. */

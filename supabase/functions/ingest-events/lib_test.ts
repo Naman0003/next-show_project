@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { displayableImageUrl, extractJsonLdEvents, htmlToText, ingestKey, parseCoords, parseFeed, robotsAllows, validateEvent, venueTypeFor } from "./lib.ts";
+import { displayableImageUrl, extractJsonLdEvents, htmlToText, ingestKey, isNearDuplicate, parseCoords, parseFeed, robotsAllows, validateEvent, venueTypeFor } from "./lib.ts";
 
 const NOW = new Date("2026-10-27T12:00:00Z");
 
@@ -140,4 +140,14 @@ test("displayableImageUrl swaps AllEvents AVIF for WebP and leaves others alone"
   assert.equal(displayableImageUrl("https://other.cdn/x.avif"), "https://other.cdn/x.avif");
   assert.equal(displayableImageUrl("https://cdn-ip.allevents.in/a.jpg"), "https://cdn-ip.allevents.in/a.jpg");
   assert.equal(displayableImageUrl(null), null);
+});
+
+test("isNearDuplicate: same title at a slightly different time is the same event", () => {
+  // Production case: "SLAYANCE" was read as 20:00 on one run and 20:30 on the next.
+  const first = { title: "SLAYANCE", start_time: "2026-11-05T19:00:00Z" };
+  assert.equal(isNearDuplicate({ title: "Slayance!", start_time: "2026-11-05T19:30:00Z" }, first), true);
+  assert.equal(isNearDuplicate({ title: "SLAYANCE", start_time: "2026-11-05T19:45:00Z" }, first), true);
+  // A second show later the same night, or a different show, is not.
+  assert.equal(isNearDuplicate({ title: "SLAYANCE", start_time: "2026-11-05T21:00:00Z" }, first), false);
+  assert.equal(isNearDuplicate({ title: "Comedy Night", start_time: "2026-11-05T19:00:00Z" }, first), false);
 });

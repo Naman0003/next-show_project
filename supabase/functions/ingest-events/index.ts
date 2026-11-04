@@ -17,6 +17,8 @@ import {
   extractJsonLdEvents,
   htmlToText,
   ingestKey,
+  isNearDuplicate,
+  NEAR_DUPLICATE_MS,
   parseFeed,
   robotsAllows,
   type SourceKind,
@@ -249,6 +251,18 @@ async function insertEvent(
   if (existing) return "duplicate";
 
   const venueId = await findOrCreateVenue(db, event);
+
+  // Same title at the same venue a few minutes apart: the AI read another time for an
+  // event we already list (from any source, partner listings included). Keep the first.
+  const startMs = new Date(event.start_time).getTime();
+  const { data: nearby } = await db.from("showtimes").select("start_time, events!inner(title)")
+    .eq("venue_id", venueId)
+    .gte("start_time", new Date(startMs - NEAR_DUPLICATE_MS).toISOString())
+    .lte("start_time", new Date(startMs + NEAR_DUPLICATE_MS).toISOString());
+  const rows = (nearby ?? []) as unknown as { start_time: string; events: { title: string } }[];
+  if (rows.some((s) => isNearDuplicate(event, { title: s.events.title, start_time: s.start_time }))) {
+    return "duplicate";
+  }
 
   const { data: inserted, error: eventError } = await db.from("events").insert({
     category: event.category,
