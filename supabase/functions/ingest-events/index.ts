@@ -21,6 +21,7 @@ import {
   NEAR_DUPLICATE_MS,
   parseFeed,
   robotsAllows,
+  safeEqual,
   type SourceKind,
   validateEvent,
   type ValidEvent,
@@ -67,7 +68,7 @@ interface SourceReport {
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
-  if (!INGEST_SECRET || req.headers.get("x-ingest-secret") !== INGEST_SECRET) {
+  if (!INGEST_SECRET || !safeEqual(req.headers.get("x-ingest-secret") ?? "", INGEST_SECRET)) {
     return json({ error: "unauthorized" }, 401);
   }
   if (!useClaude && !GEMINI_API_KEY) {
@@ -86,7 +87,10 @@ Deno.serve(async (req) => {
   let query = db.from("ingestion_sources").select("id, name, url, kind, city").eq("is_enabled", true);
   if (body.source_id) query = query.eq("id", body.source_id);
   const { data: sources, error } = await query;
-  if (error) return json({ error: error.message }, 500);
+  if (error) {
+    console.error("ingestion_sources query failed", error.message);
+    return json({ error: "sources_query_failed" }, 500);
+  }
 
   // Sources run in parallel: each LLM call can take a minute+, and the
   // function's wall-clock limit (~150s) would cut off a sequential run.

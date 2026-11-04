@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { buildPrompt, displayableImageUrl, extractJsonLdEvents, htmlToText, ingestKey, isNearDuplicate, parseCoords, parseFeed, robotsAllows, validateEvent, venueTypeFor } from "./lib.ts";
+import { buildPrompt, displayableImageUrl, extractJsonLdEvents, htmlToText, ingestKey, isNearDuplicate, parseCoords, parseFeed, robotsAllows, safeEqual, validateEvent, venueTypeFor } from "./lib.ts";
 
 const NOW = new Date("2026-10-27T12:00:00Z");
 
@@ -162,4 +162,11 @@ test("validateEvent keeps only https links", () => {
   const e = validateEvent({ ...validRaw, registration_url: "http://example.org/jazz", image_url: "http://img.example/a.jpg" }, NOW)!;
   assert.equal(e.registration_url, null);
   assert.equal(e.image_url, null);
+});
+
+test("safeEqual matches only identical secrets", () => {
+  assert.equal(safeEqual("abc123", "abc123"), true);
+  assert.equal(safeEqual("abc123", "abc124"), false);
+  assert.equal(safeEqual("abc", "abc123"), false);
+  assert.equal(safeEqual("", "abc"), false);
 });
