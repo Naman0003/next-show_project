@@ -1101,8 +1101,13 @@ class _RecentlyViewedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = listing.imageUrl ??
-        'https://picsum.photos/seed/${listing.eventId}/300/400';
+    final imageUrl = listing.imageUrl;
+    final placeholder = Container(
+      color: AppColors.surfaceSecondary,
+      child: const Center(
+        child: Icon(Icons.music_note, color: AppColors.textMuted),
+      ),
+    );
     final dateStr = DateFormat('d. MMM').format(listing.startTime.toLocal());
 
     return TapScaleContainer(
@@ -1121,17 +1126,14 @@ class _RecentlyViewedCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Image.network(
-                  imageUrl,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (ctx, err, stack) => Container(
-                    color: AppColors.surfaceSecondary,
-                    child: const Center(
-                      child: Icon(Icons.music_note, color: AppColors.textMuted),
-                    ),
-                  ),
-                ),
+                child: imageUrl == null
+                    ? SizedBox(width: double.infinity, child: placeholder)
+                    : Image.network(
+                        imageUrl,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (ctx, err, stack) => placeholder,
+                      ),
               ),
               Padding(
                 padding: const EdgeInsets.all(8),

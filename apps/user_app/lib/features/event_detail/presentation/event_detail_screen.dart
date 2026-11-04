@@ -205,8 +205,13 @@ class _HeroBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final heroHeight = (screenHeight * 0.44).clamp(320.0, 460.0);
-    final imageUrl = listing.imageUrl ??
-        'https://picsum.photos/seed/${listing.eventId}/900/1400';
+    final imageUrl = listing.imageUrl;
+    final placeholder = Container(
+      color: AppColors.surfaceSecondary,
+      child: const Center(
+        child: Icon(Icons.music_note, color: AppColors.textMuted, size: 56),
+      ),
+    );
 
     return SizedBox(
       height: heroHeight,
@@ -217,20 +222,13 @@ class _HeroBanner extends StatelessWidget {
           // Hero Poster Image with matching Hero tag
           Hero(
             tag: 'event-img-${listing.eventId}',
-            child: Image.network(
-              imageUrl,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                color: AppColors.surfaceSecondary,
-                child: const Center(
-                  child: Icon(
-                    Icons.music_note,
-                    color: AppColors.textMuted,
-                    size: 56,
+            child: imageUrl == null
+                ? placeholder
+                : Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => placeholder,
                   ),
-                ),
-              ),
-            ),
           ),
 
           // Top gradient scrim for floating buttons

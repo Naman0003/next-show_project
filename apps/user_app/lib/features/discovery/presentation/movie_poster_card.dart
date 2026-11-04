@@ -19,8 +19,11 @@ class MoviePosterCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final rating = listing.showtimeAttributes['imdb_rating'] as double?;
     final genre = listing.showtimeAttributes['genre'] as String?;
-    final imageUrl = listing.imageUrl ??
-        'https://picsum.photos/seed/${listing.eventId}/800/1200';
+    final imageUrl = listing.imageUrl;
+    final placeholder = Container(
+      color: CinemaColors.surfaceElevated,
+      child: const Icon(Icons.movie, color: CinemaColors.textMuted, size: 32),
+    );
 
     return NSPressScale(
       child: GestureDetector(
@@ -38,15 +41,15 @@ class MoviePosterCard extends StatelessWidget {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      Image.network(
-                        imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          color: CinemaColors.surfaceElevated,
-                          child: const Icon(Icons.movie,
-                              color: CinemaColors.textMuted, size: 32),
+                      if (imageUrl == null)
+                        placeholder
+                      else
+                        Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              placeholder,
                         ),
-                      ),
                       if (rating != null)
                         Positioned(
                           left: 8,
