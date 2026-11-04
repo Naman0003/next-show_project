@@ -1,4 +1,4 @@
--- Security regression tests (S1-S4, S6, S9-S12, S23, A3, account deletion).
+-- Security regression tests (S1-S4, S6, S9 incl. click rate limit, S10-S12, S23, A3, account deletion).
 -- Run on a THROWAWAY database only (see supabase/tests/README.md). Everything rolls back.
 -- Prints one row per check; any `FAIL` row means a vulnerability or a broken legit flow.
 
@@ -338,6 +338,49 @@ do $$ declare c1 text; c2 text; begin
   exception when others then c2 := sqlstate; end;
   perform t.chk('S6 http and javascript: booking links are rejected (got ' || c1 || '/' || c2 || ')',
     c1 = '23514' and c2 = '23514');
+end $$;
+
+---------------------------------------------------------------- S9: rate-limited click recording
+do $$
+declare
+  st constant uuid := 'bbbbbbbb-0000-0000-0000-000000000001';
+  before_n int; guest_n int; c_direct text; c_read text;
+  r_first boolean; r_21st boolean; r_other_ip boolean; r_bad boolean; r_user boolean;
+begin
+  perform t.become('super');
+  select count(*) into before_n from public.outbound_clicks where showtime_id = st and user_id is null;
+
+  perform t.become('anon');
+  begin insert into public.outbound_clicks (showtime_id) values (st); c_direct := 'ok';
+    exception when others then c_direct := sqlstate; end;
+  perform set_config('request.headers', '{"cf-connecting-ip":"203.0.113.7"}', true);
+  r_first := public.record_click(st);
+  for i in 2..20 loop perform public.record_click(st); end loop;
+  r_21st := public.record_click(st);
+  perform set_config('request.headers', '{"cf-connecting-ip":"198.51.100.9"}', true);
+  r_other_ip := public.record_click(st);
+  r_bad := public.record_click('00000000-0000-0000-0000-000000000000');
+  begin perform count(*) from public.click_rate_limits; c_read := 'ok';
+    exception when others then c_read := sqlstate; end;
+
+  perform t.become('victim');
+  perform set_config('request.headers', '{"cf-connecting-ip":"203.0.113.7"}', true);
+  r_user := public.record_click(st);   -- same IP as the throttled guest, but counted per account
+
+  perform t.become('super');
+  perform set_config('request.headers', '', true);
+  select count(*) - before_n into guest_n from public.outbound_clicks where showtime_id = st and user_id is null;
+
+  perform t.chk('S9 clients cannot insert clicks directly (got ' || c_direct || ')', c_direct = '42501');
+  perform t.chk('S9 a guest click is recorded through record_click', r_first);
+  perform t.chk('S9 the 21st click from one IP in 10 minutes is refused (guest rows added: ' || guest_n || ')',
+    r_21st = false and guest_n = 21);
+  perform t.chk('S9 another IP has its own limit', r_other_ip);
+  perform t.chk('S9 a click on a missing showtime is refused', r_bad = false);
+  perform t.chk('S9 clients cannot read the rate-limit table (got ' || c_read || ')', c_read = '42501');
+  perform t.chk('S9 a signed-in user is limited per account and recorded with their id',
+    r_user and exists (select 1 from public.outbound_clicks
+      where showtime_id = st and user_id = (select id from t.ids where name = 'victim')));
 end $$;
 
 select t.become('super');

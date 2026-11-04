@@ -464,15 +464,13 @@ class NextShowSupabaseClient {
   // ANALYTICS
   // ============================================================
 
-  /// Record an outbound click (non-blocking)
-  static Future<void> recordClick({
-    required String showtimeId,
-    String? userId,
-  }) async {
-    await client.from('outbound_clicks').insert({
-      'showtime_id': showtimeId,
-      'user_id': userId ?? currentUser?.id,
-    });
+  /// Record an outbound click (non-blocking). Goes through the rate-limited
+  /// `record_click` function; the user comes from the session. Returns false
+  /// when the click was not counted (rate limit, or the showtime isn't listed).
+  static Future<bool> recordClick({required String showtimeId}) async {
+    final counted =
+        await client.rpc('record_click', params: {'p_showtime_id': showtimeId});
+    return counted == true;
   }
 
   /// Fetch click analytics for a venue (partner/admin)

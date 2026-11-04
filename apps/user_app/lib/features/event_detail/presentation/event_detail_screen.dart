@@ -1152,7 +1152,7 @@ class _BottomActionBar extends StatelessWidget {
                     // Referral count for venues; never block or fail the booking on it.
                     unawaited(NextShowSupabaseClient.recordClick(
                             showtimeId: listing.showtimeId)
-                        .catchError((_) {}));
+                        .catchError((_) => false));
                     BookingWebViewRoute(
                       url: listing.bookingUrl,
                       eventTitle: listing.eventTitle,
