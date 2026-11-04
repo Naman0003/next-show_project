@@ -6,8 +6,19 @@ import 'package:webview_flutter/webview_flutter.dart';
 /// Appends NextShow's own tracking params on top of whatever the partner's
 /// booking URL already carries, so we can attribute clicks without touching
 /// their query string.
-Uri _withUtmParams(String destinationUrl) {
-  final uri = Uri.parse(destinationUrl);
+/// Booking URLs come from partners and crawled pages, so only `https` pages
+/// with a host may load. Everything else (`javascript:`, `data:`, `file:`,
+/// `intent:`, plain `http:`) is refused. Returns null when [url] is unsafe.
+@visibleForTesting
+Uri? safeBookingUri(String url) {
+  final uri = Uri.tryParse(url.trim());
+  if (uri == null || uri.scheme != 'https' || uri.host.isEmpty) return null;
+  return uri;
+}
+
+Uri? _withUtmParams(String destinationUrl) {
+  final uri = safeBookingUri(destinationUrl);
+  if (uri == null) return null;
   return uri.replace(queryParameters: {
     ...uri.queryParameters,
     'utm_source': 'nextshow',
@@ -31,7 +42,7 @@ class BookingWebViewScreen extends StatefulWidget {
 }
 
 class _BookingWebViewScreenState extends State<BookingWebViewScreen> {
-  late final Uri _trackedUri = _withUtmParams(widget.destinationUrl);
+  late final Uri? _trackedUri = _withUtmParams(widget.destinationUrl);
   late final WebViewController _controller;
 
   bool _isLoading = true;
@@ -40,10 +51,18 @@ class _BookingWebViewScreenState extends State<BookingWebViewScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = WebViewController()
+    final uri = _trackedUri;
+    _controller = WebViewController();
+    if (uri == null) return; // unsafe link: build() shows an error, nothing loads
+    _controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
+          // Keep the page on https even after redirects and link taps.
+          onNavigationRequest: (request) =>
+              !request.isMainFrame || safeBookingUri(request.url) != null
+                  ? NavigationDecision.navigate
+                  : NavigationDecision.prevent,
           onPageStarted: (_) => setState(() {
             _isLoading = true;
             _loadFailed = false;
@@ -62,15 +81,31 @@ class _BookingWebViewScreenState extends State<BookingWebViewScreen> {
           },
         ),
       )
-      ..loadRequest(_trackedUri);
+      ..loadRequest(uri);
   }
 
   Future<void> _openExternally() async {
-    await launchUrl(_trackedUri, mode: LaunchMode.externalApplication);
+    final uri = _trackedUri;
+    if (uri != null) await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_trackedUri == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(widget.eventTitle ?? 'Book tickets')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Text(
+              "This booking link isn't secure, so we won't open it.",
+              style: NSTextStyles.headlineSmall,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.eventTitle ?? 'Book tickets'),
