@@ -267,10 +267,10 @@ class NextShowSupabaseClient {
     var query = client.from('showtimes').select().eq('venue_id', venueId);
 
     if (from != null) {
-      query = query.gte('start_time', from.toIso8601String());
+      query = query.gte('start_time', from.toUtc().toIso8601String());
     }
     if (to != null) {
-      query = query.lte('start_time', to.toIso8601String());
+      query = query.lte('start_time', to.toUtc().toIso8601String());
     }
     if (status != null) {
       query = query.eq('status', status.name);
@@ -308,14 +308,14 @@ class NextShowSupabaseClient {
     dynamic query = client.from('v_listings').select();
 
     // Only future showtimes
-    final now = DateTime.now().toIso8601String();
+    final now = DateTime.now().toUtc().toIso8601String();
     query = query.gte('start_time', now);
 
     if (from != null) {
-      query = query.gte('start_time', from.toIso8601String());
+      query = query.gte('start_time', from.toUtc().toIso8601String());
     }
     if (to != null) {
-      query = query.lte('start_time', to.toIso8601String());
+      query = query.lte('start_time', to.toUtc().toIso8601String());
     }
     if (category != null) {
       query = query.eq('category', category.name);
@@ -334,8 +334,8 @@ class NextShowSupabaseClient {
         'user_lat': userLat,
         'user_lng': userLng,
         'radius_km': radiusKm,
-        'from_time': from?.toIso8601String() ?? now,
-        'to_time': to?.toIso8601String(),
+        'from_time': from?.toUtc().toIso8601String() ?? now,
+        'to_time': to?.toUtc().toIso8601String(),
         'category_filter': category?.name,
         'venue_type_filter': venueType?.name,
         'limit_count': limit ?? 100,
@@ -363,14 +363,14 @@ class NextShowSupabaseClient {
     final data = <String, dynamic>{
       'venue_id': venueId,
       'event_id': eventId,
-      'start_time': startTime.toIso8601String(),
+      'start_time': startTime.toUtc().toIso8601String(),
       'price': price,
       'attributes': attributes ?? {},
       'booking_url': bookingUrl,
       'status': status?.name ?? 'published',
     };
 
-    if (endTime != null) data['end_time'] = endTime.toIso8601String();
+    if (endTime != null) data['end_time'] = endTime.toUtc().toIso8601String();
     if (capacity != null) data['capacity'] = capacity;
     if (imageUrl != null) data['image_url'] = imageUrl;
 
@@ -391,8 +391,8 @@ class NextShowSupabaseClient {
     EventStatus? status,
   }) async {
     final updates = <String, dynamic>{};
-    if (startTime != null) updates['start_time'] = startTime.toIso8601String();
-    if (endTime != null) updates['end_time'] = endTime.toIso8601String();
+    if (startTime != null) updates['start_time'] = startTime.toUtc().toIso8601String();
+    if (endTime != null) updates['end_time'] = endTime.toUtc().toIso8601String();
     if (price != null) updates['price'] = price;
     if (capacity != null) updates['capacity'] = capacity;
     if (attributes != null) updates['attributes'] = attributes;
@@ -476,10 +476,10 @@ class NextShowSupabaseClient {
         .eq('showtimes.venue_id', venueId);
 
     if (from != null) {
-      query = query.gte('clicked_at', from.toIso8601String());
+      query = query.gte('clicked_at', from.toUtc().toIso8601String());
     }
     if (to != null) {
-      query = query.lte('clicked_at', to.toIso8601String());
+      query = query.lte('clicked_at', to.toUtc().toIso8601String());
     }
 
     final response = await query.order('clicked_at', ascending: false);
