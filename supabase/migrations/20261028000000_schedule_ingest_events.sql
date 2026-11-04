@@ -8,7 +8,6 @@
 
 create extension if not exists pg_cron;
 create extension if not exists pg_net with schema extensions;
-
 -- cron.schedule upserts by job name, so re-running this is safe.
 select cron.schedule(
   'ingest-events-every-6h',

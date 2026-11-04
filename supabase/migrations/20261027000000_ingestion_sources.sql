@@ -16,15 +16,12 @@ create table if not exists public.ingestion_sources (
     last_run_at timestamptz,
     last_status text
 );
-
 alter table public.ingestion_sources enable row level security;
-
 drop policy if exists "Admins manage ingestion sources" on public.ingestion_sources;
 create policy "Admins manage ingestion sources"
   on public.ingestion_sources for all
   using (public.is_admin())
   with check (public.is_admin());
-
 ---------------------------------------------------------
 -- Dedupe: each ingested event carries a deterministic
 -- external_ids.ingest_key (sha256 of source|title|start),
