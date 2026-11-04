@@ -451,3 +451,27 @@ export function safeEqual(a: string, b: string): boolean {
   for (let i = 0; i < Math.max(x.length, y.length); i++) diff |= (x[i] ?? 0) ^ (y[i] ?? 0);
   return diff === 0;
 }
+
+/** A JSON-LD start within this of a stored showtime with the same title counts as stored. */
+export const KNOWN_EVENT_MS = 2 * 60 * 60 * 1000;
+
+/**
+ * Drops JSON-LD events this source already stored, so the AI call (capped at
+ * MAX_EVENTS_PER_PROMPT) is spent on new ones. Events without a timed startDate
+ * are kept: the dedupe in insertEvent still catches them.
+ */
+export function dropKnownEvents(
+  structured: Record<string, unknown>[],
+  known: { title: string; start_time: string }[],
+): Record<string, unknown>[] {
+  return structured.filter((e) => {
+    if (typeof e.name !== "string" || typeof e.startDate !== "string") return true;
+    if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(e.startDate)) return true;
+    const start = new Date(e.startDate).getTime();
+    if (Number.isNaN(start)) return true;
+    const title = normalizeTitle(e.name);
+    return !known.some((k) =>
+      normalizeTitle(k.title) === title && Math.abs(new Date(k.start_time).getTime() - start) <= KNOWN_EVENT_MS
+    );
+  });
+}

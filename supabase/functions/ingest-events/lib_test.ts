@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { buildPrompt, displayableImageUrl, extractJsonLdEvents, htmlToText, ingestKey, isNearDuplicate, parseCoords, parseFeed, robotsAllows, safeEqual, validateEvent, venueTypeFor } from "./lib.ts";
+import { buildPrompt, displayableImageUrl, dropKnownEvents, extractJsonLdEvents, htmlToText, ingestKey, isNearDuplicate, parseCoords, parseFeed, robotsAllows, safeEqual, validateEvent, venueTypeFor } from "./lib.ts";
 
 const NOW = new Date("2026-10-27T12:00:00Z");
 
@@ -169,4 +169,15 @@ test("safeEqual matches only identical secrets", () => {
   assert.equal(safeEqual("abc123", "abc124"), false);
   assert.equal(safeEqual("abc", "abc123"), false);
   assert.equal(safeEqual("", "abc"), false);
+});
+
+test("dropKnownEvents skips stored events and keeps new or untimed ones", () => {
+  const known = [{ title: "SLAYANCE", start_time: "2026-11-05T19:00:00Z" }];
+  const kept = dropKnownEvents([
+    { name: "Slayance", startDate: "2026-11-05T20:30:00+01:00" }, // stored, AI read 30 min off
+    { name: "SLAYANCE", startDate: "2026-11-12T20:00:00+01:00" }, // next week: new
+    { name: "Comedy Night", startDate: "2026-11-05T20:00:00+01:00" }, // other show: new
+    { name: "SLAYANCE", startDate: "2026-11-05" }, // no time: keep, dedupe decides later
+  ], known);
+  assert.deepEqual(kept.map((e) => e.startDate), ["2026-11-12T20:00:00+01:00", "2026-11-05T20:00:00+01:00", "2026-11-05"]);
 });

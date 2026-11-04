@@ -13,6 +13,7 @@ import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.4
 import {
   buildPrompt,
   CLAUDE_OUTPUT_SCHEMA,
+  dropKnownEvents,
   GEMINI_RESPONSE_SCHEMA,
   extractJsonLdEvents,
   htmlToText,
@@ -128,7 +129,18 @@ async function processSource(db: SupabaseClient, source: Source, dryRun: boolean
   if (!res.ok) return emptyReport(source, `error: fetch ${res.status}`);
   const raw = await res.text();
 
-  const content = source.kind === "rss" ? rssContent(raw) : htmlContent(raw);
+  let content: string;
+  if (source.kind === "rss") {
+    content = rssContent(raw);
+  } else {
+    const structured = extractJsonLdEvents(raw);
+    const fresh = structured.length ? dropKnownEvents(structured, await knownEvents(db, source)) : structured;
+    if (structured.length && !fresh.length) return emptyReport(source, "ok: nothing new");
+    if (fresh.length < structured.length) {
+      console.log(`[${source.name}] skipping ${structured.length - fresh.length} already-stored events`);
+    }
+    content = htmlContent(raw, fresh);
+  }
   if (!content) return emptyReport(source, "ok: no content");
 
   const now = new Date();
@@ -168,11 +180,23 @@ function rssContent(xml: string): string {
  * adds a short text excerpt, since JSON-LD often has dates without times.
  * Falls back to plain page text when there's no structured data.
  */
-function htmlContent(html: string): string {
-  const structured = extractJsonLdEvents(html);
+function htmlContent(html: string, structured: Record<string, unknown>[]): string {
   if (structured.length === 0) return htmlToText(html, MAX_CONTENT_CHARS);
   return `Structured events (schema.org JSON-LD):\n${JSON.stringify(structured).slice(0, MAX_CONTENT_CHARS)}\n\n` +
     `Page text excerpt (use for start times missing above):\n${htmlToText(html, JSON_LD_TEXT_EXCERPT_CHARS)}`;
+}
+
+/** Upcoming showtimes this source already stored, for dropKnownEvents. */
+async function knownEvents(db: SupabaseClient, source: Source): Promise<{ title: string; start_time: string }[]> {
+  const { data, error } = await db.from("events").select("title, showtimes!inner(start_time)")
+    .eq("external_ids->>source_url", source.url)
+    .gte("showtimes.start_time", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+  if (error) {
+    console.warn(`[${source.name}] known events lookup failed, sending all`, error.message);
+    return [];
+  }
+  return ((data ?? []) as unknown as { title: string; showtimes: { start_time: string }[] }[])
+    .flatMap((e) => e.showtimes.map((s) => ({ title: e.title, start_time: s.start_time })));
 }
 
 async function extractWithClaude(prompt: string): Promise<unknown[]> {
