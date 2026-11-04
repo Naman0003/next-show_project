@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { displayableImageUrl, extractJsonLdEvents, htmlToText, ingestKey, isNearDuplicate, parseCoords, parseFeed, robotsAllows, validateEvent, venueTypeFor } from "./lib.ts";
+import { buildPrompt, displayableImageUrl, extractJsonLdEvents, htmlToText, ingestKey, isNearDuplicate, parseCoords, parseFeed, robotsAllows, validateEvent, venueTypeFor } from "./lib.ts";
 
 const NOW = new Date("2026-10-27T12:00:00Z");
 
@@ -150,4 +150,10 @@ test("isNearDuplicate: same title at a slightly different time is the same event
   // A second show later the same night, or a different show, is not.
   assert.equal(isNearDuplicate({ title: "SLAYANCE", start_time: "2026-11-05T21:00:00Z" }, first), false);
   assert.equal(isNearDuplicate({ title: "Comedy Night", start_time: "2026-11-05T19:00:00Z" }, first), false);
+});
+
+test("prompt asks for the event's own page as fallback link, never the listing page", () => {
+  const p = buildPrompt({ sourceName: "S", sourceUrl: "https://s.de/list", city: "Berlin", now: NOW, content: "x" });
+  assert.match(p, /event's own page/);
+  assert.match(p, /Never the listing page/);
 });

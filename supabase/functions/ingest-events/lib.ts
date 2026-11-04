@@ -292,6 +292,7 @@ Rules:
 - breaking_headline: a punchy headline of at most 70 characters.
 - description: 1–3 sentences, in the source's language.
 - venue_lat/venue_lng: copy the venue's coordinates from the content (e.g. JSON-LD geo) when present; otherwise null. Never estimate them.
+- registration_url: the event's ticket or registration link; if there is none, the event's own page (e.g. its JSON-LD "url"). Never the listing page this content came from.
 - URLs must be absolute and copied from the content; never invent URLs, prices, or venues. Use null when unknown.
 - start_time: ISO 8601 with UTC offset, e.g. 2026-10-28T19:30:00+01:00.
 - Return at most ${MAX_EVENTS_PER_PROMPT} events, earliest start first.
