@@ -21,5 +21,10 @@ shared/lib/api_keys.dart
 .dart_tool/
 
 # Local working notes (not shared)
-audit_fixes.md
+fixes.md
 pilot_brainstorm.md
+
+# Build output and generated plugin lists (leak local paths)
+**/android/build/
+.flutter-plugins
+.flutter-plugins-dependencies
