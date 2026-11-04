@@ -8,7 +8,6 @@ import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../widgets/tap_scale_container.dart';
-import '../../discovery/presentation/theme/cinema_tokens.dart';
 import '../../home/application/home_providers.dart';
 import '../application/feed_providers.dart';
 
