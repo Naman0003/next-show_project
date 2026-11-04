@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/di/core_providers.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
@@ -246,6 +247,64 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  /// Required by the App Store and Google Play: in-app account deletion. The
+  /// server schedules it (14-day grace period); this clears what the device keeps.
+  Future<void> _deleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surfaceWhite,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Delete account?',
+            style: TextStyle(fontWeight: FontWeight.w800)),
+        content: const Text(
+            'Your NextShow account will be deactivated now and permanently deleted '
+            'after 14 days, along with your tickets and saved events. Sign in again '
+            'within 14 days to restore it. We will email you a day before.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel',
+                style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete',
+                style: TextStyle(
+                    color: AppColors.heartRed, fontWeight: FontWeight.w800)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const PopScope(
+        canPop: false,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+    );
+    String message;
+    try {
+      final scheduledFor = await AuthService.deleteAccount();
+      await ref.read(watchlistBoxProvider).clear();
+      await ref.read(listingCacheBoxProvider).clear();
+      ref.invalidate(watchlistControllerProvider);
+      ref.invalidate(recentlyViewedProvider);
+      message = 'Your account is deactivated and will be permanently deleted on '
+          '${DateFormat('d MMMM y').format(scheduledFor)}. Sign in before then to restore it.';
+    } catch (e) {
+      message = AuthService.deleteAccountErrorMessage(e);
+    }
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pop(); // progress dialog
+    setState(() {});
+    messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -612,6 +671,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         setState(() {});
                       }
                     },
+                  ),
+                  const Divider(
+                      height: 1, indent: 56, color: AppColors.borderLight),
+                  _SettingsTile(
+                    icon: Icons.delete_forever_outlined,
+                    title: 'Delete Account',
+                    titleColor: AppColors.heartRed,
+                    iconColor: AppColors.heartRed,
+                    showChevron: false,
+                    onTap: _deleteAccount,
                   ),
                 ],
               ],

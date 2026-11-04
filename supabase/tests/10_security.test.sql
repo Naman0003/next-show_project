@@ -239,6 +239,57 @@ exception when others then
   perform t.chk('S23 verified partner can still publish showtimes (error: ' || sqlerrm || ')', false);
 end $$;
 
+---------------------------------------------------------------- account deletion grace period
+select t.become('super');
+insert into public.account_deletions (user_id, email)
+select id, email from t.ids where name in ('victim', 'orphan');
+select t.chk('deletion is scheduled 14 days out by default',
+  (select bool_and(scheduled_for between now() + interval '13 days 23 hours' and now() + interval '14 days 1 hour')
+   from public.account_deletions));
+
+select t.become('victim');
+select t.chk('user sees their own pending deletion', (select count(*) = 1 from public.account_deletions));
+select t.become('attacker');
+select t.chk('user cannot see anyone else''s pending deletion', (select count(*) = 0 from public.account_deletions));
+
+do $$ declare c1 text; c2 text; c3 text; c4 text; begin
+  perform t.become('victim');
+  begin insert into public.account_deletions (user_id, email) values ((select id from t.ids where name = 'admin'), 'x@x.com');
+    c1 := 'ok'; exception when others then c1 := sqlstate; end;
+  begin update public.account_deletions set scheduled_for = now() + interval '365 days'; c2 := 'ok';
+    exception when others then c2 := sqlstate; end;
+  begin delete from public.account_deletions; c3 := 'ok'; exception when others then c3 := sqlstate; end;
+  perform t.become('anon');
+  begin perform count(*) from public.account_deletions; c4 := 'ok'; exception when others then c4 := sqlstate; end;
+  perform t.become('super');
+  perform t.chk('clients cannot insert, update or delete pending deletions directly (got ' || c1 || '/' || c2 || '/' || c3 || ')',
+    c1 = '42501' and c2 = '42501' and c3 = '42501');
+  perform t.chk('anon cannot read pending deletions (got ' || c4 || ')', c4 = '42501');
+end $$;
+
+do $$ declare r_attacker boolean; r_anon text; r_victim boolean; left_after int; begin
+  perform t.become('attacker');
+  r_attacker := public.restore_account();
+  perform t.become('anon');
+  begin perform public.restore_account(); r_anon := 'ok'; exception when others then r_anon := sqlstate; end;
+  perform t.become('super');
+  perform t.chk('restore_account does nothing for a user without a pending deletion',
+    r_attacker = false and (select count(*) = 2 from public.account_deletions));
+  perform t.chk('anon cannot call restore_account (got ' || r_anon || ')', r_anon = '42501');
+
+  perform t.become('victim');
+  r_victim := public.restore_account();
+  perform t.become('super');
+  select count(*) into left_after from public.account_deletions;
+  perform t.chk('a user can restore their own account, and only their own',
+    r_victim = true and left_after = 1
+    and not exists (select 1 from public.account_deletions where email = 'victim@x.com'));
+end $$;
+
+delete from auth.users where id = (select id from t.ids where name = 'orphan');
+select t.chk('hard-deleting the auth user removes its pending-deletion row',
+  (select count(*) = 0 from public.account_deletions));
+
 select t.become('super');
 
 select case when ok then 'PASS' else 'FAIL' end as result, name from t.results order by n;
