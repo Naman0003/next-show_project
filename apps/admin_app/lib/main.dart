@@ -3,7 +3,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared/api_keys.dart';
 import 'package:supabase_client/supabase_client.dart';
 import 'package:ui_kit/ui_kit.dart';
-import 'screens/auth/login_screen.dart';
 import 'screens/admin_dashboard_screen.dart';
 
 Future<void> main() async {
@@ -164,7 +163,8 @@ class _AuthGateState extends State<AuthGate> {
           );
         }
 
-        return const LoginScreen();
+        // No Google here: the admin app registers no login-callback scheme.
+        return const SplitAuthScreen(title: 'Next Show Admin', showGoogle: false, showClose: false);
       },
     );
   }

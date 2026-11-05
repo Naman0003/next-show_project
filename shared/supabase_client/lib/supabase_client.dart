@@ -1,21 +1,29 @@
 library supabase_client;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:core_models/core_models.dart';
 
 /// Initializes Supabase and provides typed query helpers
 class NextShowSupabaseClient {
   static SupabaseClient? _client;
+  static String? _authCallbackScheme;
 
   /// Initialize Supabase (call from main.dart before runApp).
   /// [sessionStorage] replaces the default SharedPreferences session store.
+  /// [authCallbackScheme] is the app's own URL scheme (e.g. `nextshow`): emailed links and
+  /// Google sign-in return to `<scheme>://login-callback`, which the app registers in
+  /// AndroidManifest.xml / Info.plist and which must be in Supabase's Redirect URLs.
+  /// Without it they fall back to the project's Site URL.
   static Future<void> initialize({
     required String url,
     required String anonKey,
     LocalStorage? sessionStorage,
+    String? authCallbackScheme,
   }) async {
+    _authCallbackScheme = authCallbackScheme;
     // PKCE (the 2.x default, pinned here): an auth code caught by another app that
-    // registered nextshow:// is useless without the verifier kept in this app (N2).
+    // registered the same scheme is useless without the verifier kept in this app (N2).
     await Supabase.initialize(
       url: url,
       anonKey: anonKey,
@@ -35,23 +43,46 @@ class NextShowSupabaseClient {
     return _client!;
   }
 
-  /// Auth helpers
-  static User? get currentUser => client.auth.currentUser;
+  // ============================================================
+  // AUTH (shared by every app)
+  // ============================================================
+
+  /// Deep link that brings the user back into this app after an emailed link or Google
+  /// consent; null on web and when no scheme was given.
+  static String? get authRedirectUrl =>
+      kIsWeb || _authCallbackScheme == null ? null : '$_authCallbackScheme://login-callback';
+
+  /// Null before [initialize] (e.g. in widget tests) instead of throwing.
+  static User? get currentUser => _client?.auth.currentUser;
   static bool get isSignedIn => currentUser != null;
   static Stream<AuthState> get onAuthStateChange => client.auth.onAuthStateChange;
 
+  /// Basic email shape check: enough to catch typos before hitting the network.
+  static bool isValidEmail(String value) => RegExp(r'^[^@s]+@[^@s]+.[^@s]+$').hasMatch(value);
+
+  /// Emails a one-time code, creating the account if it's new: sign-in and sign-up are the
+  /// same call. The "Magic Link" and "Confirm signup" email templates must include
+  /// `{{ .Token }}` for the code to appear. Throws [AuthException].
   static Future<void> signInWithOtp({required String email}) {
-    return client.auth.signInWithOtp(email: email, shouldCreateUser: true);
+    return client.auth.signInWithOtp(email: email, shouldCreateUser: true, emailRedirectTo: authRedirectUrl);
   }
 
+  /// Verifies the code sent to [email]. Throws [AuthException].
   static Future<void> verifyOtp({required String email, required String code}) {
     return client.auth.verifyOTP(email: email, token: code, type: OtpType.email);
   }
 
-  static Future<void> signInWithGoogle({String? redirectTo}) {
+  /// Opens Google's consent screen. On mobile it runs in the system browser: the in-app
+  /// Safari sheet doesn't reliably hand the deep link back and never closes itself.
+  /// supabase_flutter exchanges the returning link for a session.
+  static Future<void> signInWithGoogle() {
     return client.auth.signInWithOAuth(
       OAuthProvider.google,
-      redirectTo: redirectTo,
+      redirectTo: kIsWeb ? Uri.base.origin : authRedirectUrl,
+      authScreenLaunchMode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
+      // Always show the account chooser, so the browser's signed-in Google account
+      // isn't reused silently for a different email than the user meant.
+      queryParams: const {'prompt': 'select_account'},
     );
   }
 

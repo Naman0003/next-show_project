@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:supabase_client/supabase_client.dart';
 import 'package:intl/intl.dart';
 
 import '../core/theme/app_colors.dart';
@@ -26,7 +27,7 @@ class _AccountRestoreGateState extends State<AccountRestoreGate> {
     super.initState();
     try {
       // Fires for sign-ins and for the session restored at app start.
-      _sub = AuthService.onAuthStateChange.listen((_) => _check());
+      _sub = NextShowSupabaseClient.onAuthStateChange.listen((_) => _check());
     } catch (_) {
       // Supabase not initialised (widget tests): nothing to watch.
     }
@@ -40,7 +41,7 @@ class _AccountRestoreGateState extends State<AccountRestoreGate> {
   }
 
   Future<void> _check() async {
-    if (_asking || !AuthService.isSignedIn) return;
+    if (_asking || !NextShowSupabaseClient.isSignedIn) return;
     DateTime? pending;
     try {
       pending = await AuthService.pendingDeletion();
@@ -87,11 +88,11 @@ class _AccountRestoreGateState extends State<AccountRestoreGate> {
         await AuthService.restoreAccount();
         message = 'Welcome back! Your account has been restored.';
       } else {
-        await AuthService.signOut();
+        await NextShowSupabaseClient.signOut();
       }
     } catch (_) {
       message = "Couldn't restore your account. Please try again.";
-      await AuthService.signOut().catchError((_) {});
+      await NextShowSupabaseClient.signOut().catchError((_) {});
     }
     _asking = false;
     if (message != null && mounted) {

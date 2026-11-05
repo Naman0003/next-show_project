@@ -2,17 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_client/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart'
     show AuthChangeEvent, AuthException;
-
-import '../../../services/auth_service.dart';
-import '../../../theme/app_theme.dart';
 
 /// Returns true once the user is authenticated, false if they backed out.
 /// Screens that need identity (the concierge, the profile) await this before
 /// continuing.
 Future<bool> ensureSignedIn(BuildContext context) async {
-  if (AuthService.isSignedIn) return true;
+  if (NextShowSupabaseClient.isSignedIn) return true;
   final result = await Navigator.of(context, rootNavigator: true).push<bool>(
     MaterialPageRoute(
       fullscreenDialog: true,
@@ -24,11 +23,30 @@ Future<bool> ensureSignedIn(BuildContext context) async {
 
 /// Passwordless auth: email -> one-time code -> signed in. Sign-in and
 /// sign-up are the same flow — Supabase creates the account on first verify.
+/// Shared by the user, organizer and admin apps so sign-in looks the same
+/// everywhere; it brings its own colours and fonts (the user app's) for that.
 ///
 /// A solid brand panel and a white form panel share the screen along its long
 /// axis (side-by-side on wide layouts, stacked on phones), split by a curve.
+///
+/// Pushed (user app): pops with true once signed in. Used as an app's root
+/// screen (organizer, admin): stays put and the app's auth gate swaps it out.
 class SplitAuthScreen extends StatefulWidget {
-  const SplitAuthScreen({super.key});
+  const SplitAuthScreen({
+    super.key,
+    this.title = 'Welcome to Next Show',
+    this.showGoogle = true,
+    this.showClose = true,
+  });
+
+  /// Headline on the brand panel.
+  final String title;
+
+  /// "Continue with Google": needs the app's login-callback scheme registered.
+  final bool showGoogle;
+
+  /// The close (X) button; hide it when this is the app's first screen.
+  final bool showClose;
 
   @override
   State<SplitAuthScreen> createState() => _SplitAuthScreenState();
@@ -43,13 +61,14 @@ class _SplitAuthScreenState extends State<SplitAuthScreen> {
     super.initState();
     try {
       // Covers both a verified code and the Google OAuth return.
-      _authSub = AuthService.onAuthStateChange.listen((state) {
+      _authSub = NextShowSupabaseClient.onAuthStateChange.listen((state) {
         if (state.event == AuthChangeEvent.signedIn &&
-            AuthService.isSignedIn &&
+            NextShowSupabaseClient.isSignedIn &&
             mounted &&
             !_popped) {
           _popped = true;
-          Navigator.of(context).pop(true);
+          // maybePop: never pops an app's root route (organizer/admin use this as home).
+          Navigator.of(context).maybePop(true);
         }
       });
     } catch (_) {
@@ -70,7 +89,9 @@ class _SplitAuthScreenState extends State<SplitAuthScreen> {
     final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
     final topInset = MediaQuery.paddingOf(context).top;
 
-    return Scaffold(
+    return Theme(
+      data: _authTheme(Theme.of(context)),
+      child: Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
         children: [
@@ -79,11 +100,11 @@ class _SplitAuthScreenState extends State<SplitAuthScreen> {
               final wide = box.maxWidth >= 700;
               final form = SafeArea(
                 top: wide,
-                child: const SingleChildScrollView(
+                child: SingleChildScrollView(
                   padding: EdgeInsets.fromLTRB(24, 16, 24, 24),
                   child: Align(
                     alignment: Alignment.topCenter,
-                    child: _OtpForm(),
+                    child: _OtpForm(showGoogle: widget.showGoogle),
                   ),
                 ),
               );
@@ -95,9 +116,9 @@ class _SplitAuthScreenState extends State<SplitAuthScreen> {
                       width: box.maxWidth * 0.5,
                       child: ClipPath(
                         clipper: _PanelClipper(wide: true),
-                        child: const ColoredBox(
-                          color: AppColors.royalBlue,
-                          child: _PanelContent(compact: false),
+                        child: ColoredBox(
+                          color: _AuthColors.royalBlue,
+                          child: _PanelContent(compact: false, title: widget.title),
                         ),
                       ),
                     ),
@@ -118,8 +139,8 @@ class _SplitAuthScreenState extends State<SplitAuthScreen> {
                     child: ClipPath(
                       clipper: _PanelClipper(wide: false),
                       child: ColoredBox(
-                        color: AppColors.royalBlue,
-                        child: _PanelContent(compact: keyboardOpen),
+                        color: _AuthColors.royalBlue,
+                        child: _PanelContent(compact: keyboardOpen, title: widget.title),
                       ),
                     ),
                   ),
@@ -130,18 +151,46 @@ class _SplitAuthScreenState extends State<SplitAuthScreen> {
           ),
 
           // --- Close affordance. ---
-          Positioned(
-            top: MediaQuery.paddingOf(context).top + 4,
-            left: 4,
-            child: IconButton(
-              icon: const Icon(Icons.close_rounded, color: Colors.white),
-              onPressed: () => Navigator.of(context).maybePop(false),
+          if (widget.showClose)
+            Positioned(
+              top: MediaQuery.paddingOf(context).top + 4,
+              left: 4,
+              child: IconButton(
+                icon: const Icon(Icons.close_rounded, color: Colors.white),
+                onPressed: () => Navigator.of(context).maybePop(false),
+              ),
             ),
-          ),
         ],
       ),
+    ),
     );
   }
+}
+
+/// The user app's colours, so the screen is identical in every app.
+abstract final class _AuthColors {
+  static const royalBlue = Color(0xFF2563EB);
+  static const textPrimary = Color(0xFF111827);
+  static const textSecondary = Color(0xFF6B7280);
+  static const border = Color(0xFFE5E7EB);
+  static const error = Color(0xFFEF4444);
+  static const ink = Color(0xFF121212);
+}
+
+/// The user app's theme (Plus Jakarta Sans, near-black primary) for the parts this screen uses.
+ThemeData _authTheme(ThemeData app) {
+  final base = ThemeData.light();
+  TextStyle f(FontWeight w, Color c) => GoogleFonts.plusJakartaSans(fontWeight: w, color: c);
+  return app.copyWith(
+    textTheme: GoogleFonts.plusJakartaSansTextTheme(base.textTheme).copyWith(
+      headlineMedium: f(FontWeight.w700, _AuthColors.textPrimary),
+      headlineSmall: f(FontWeight.w700, _AuthColors.textPrimary),
+      bodyMedium: f(FontWeight.w500, _AuthColors.textPrimary),
+      bodySmall: f(FontWeight.w500, _AuthColors.textSecondary),
+      labelLarge: f(FontWeight.w700, _AuthColors.textPrimary),
+    ),
+    colorScheme: base.colorScheme.copyWith(primary: _AuthColors.ink, error: _AuthColors.error),
+  );
 }
 
 const double _kCurveDepth = 44;
@@ -186,7 +235,9 @@ class _PanelClipper extends CustomClipper<Path> {
 }
 
 class _PanelContent extends StatelessWidget {
-  const _PanelContent({required this.compact});
+  const _PanelContent({required this.compact, required this.title});
+
+  final String title;
 
   /// Title only — used while the keyboard has shrunk the banner.
   final bool compact;
@@ -206,7 +257,7 @@ class _PanelContent extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Welcome to Next Show',
+                    title,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineMedium!.copyWith(
                           color: Colors.white,
@@ -240,7 +291,9 @@ class _PanelContent extends StatelessWidget {
 /* ------------------------------------------------------------------ */
 
 class _OtpForm extends StatefulWidget {
-  const _OtpForm();
+  const _OtpForm({required this.showGoogle});
+
+  final bool showGoogle;
 
   @override
   State<_OtpForm> createState() => _OtpFormState();
@@ -297,7 +350,7 @@ class _OtpFormState extends State<_OtpForm> {
 
   Future<void> _sendCode() async {
     final email = _email.text.trim();
-    if (!AuthService.isValidEmail(email)) {
+    if (!NextShowSupabaseClient.isValidEmail(email)) {
       setState(() => _error = 'Enter a valid email address.');
       return;
     }
@@ -307,7 +360,7 @@ class _OtpFormState extends State<_OtpForm> {
       _notice = null;
     });
     try {
-      await AuthService.sendOtp(email);
+      await NextShowSupabaseClient.signInWithOtp(email: email);
       if (!mounted) return;
       final resend = _sentTo == email;
       setState(() {
@@ -338,7 +391,7 @@ class _OtpFormState extends State<_OtpForm> {
     });
     try {
       // On success the screen pops via the auth-state listener.
-      await AuthService.verifyOtp(email: _sentTo!, code: code);
+      await NextShowSupabaseClient.verifyOtp(email: _sentTo!, code: code);
     } on AuthException catch (e) {
       if (mounted) setState(() => _error = _messageFor(e));
     } catch (_) {
@@ -365,7 +418,7 @@ class _OtpFormState extends State<_OtpForm> {
       _error = null;
     });
     try {
-      await AuthService.signInWithGoogle();
+      await NextShowSupabaseClient.signInWithGoogle();
     } on AuthException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
@@ -398,7 +451,7 @@ class _OtpFormState extends State<_OtpForm> {
             Text(
               'We sent a code to $_sentTo',
               textAlign: TextAlign.center,
-              style: text.bodyMedium!.copyWith(color: AppColors.textSecondary),
+              style: text.bodyMedium!.copyWith(color: _AuthColors.textSecondary),
             ),
           ],
           const SizedBox(height: 18),
@@ -435,7 +488,7 @@ class _OtpFormState extends State<_OtpForm> {
             Text(
               _error!,
               textAlign: TextAlign.center,
-              style: text.bodySmall!.copyWith(color: AppColors.error),
+              style: text.bodySmall!.copyWith(color: _AuthColors.error),
             ),
           ],
           if (_notice != null) ...[
@@ -443,7 +496,7 @@ class _OtpFormState extends State<_OtpForm> {
             Text(
               _notice!,
               textAlign: TextAlign.center,
-              style: text.bodySmall!.copyWith(color: AppColors.textSecondary),
+              style: text.bodySmall!.copyWith(color: _AuthColors.textSecondary),
             ),
           ],
           const SizedBox(height: 16),
@@ -464,7 +517,7 @@ class _OtpFormState extends State<_OtpForm> {
               onPressed: _working ? null : _changeEmail,
               child: const Text('Use a different email'),
             ),
-          ] else
+          ] else if (widget.showGoogle)
             _GoogleButton(loading: _googleWorking, onPressed: _google),
         ],
       ),
@@ -512,7 +565,7 @@ class _AuthField extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: AppColors.textSecondary),
+          Icon(icon, size: 18, color: _AuthColors.textSecondary),
           const SizedBox(width: 12),
           Expanded(
             child: TextField(
@@ -524,7 +577,7 @@ class _AuthField extends StatelessWidget {
               autocorrect: false,
               textInputAction: textInputAction,
               onSubmitted: onSubmitted,
-              cursorColor: AppColors.royalBlue,
+              cursorColor: _AuthColors.royalBlue,
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium!
@@ -537,7 +590,7 @@ class _AuthField extends StatelessWidget {
                 hintStyle: Theme.of(context)
                     .textTheme
                     .bodyMedium!
-                    .copyWith(color: AppColors.textSecondary),
+                    .copyWith(color: _AuthColors.textSecondary),
               ),
             ),
           ),
@@ -565,9 +618,9 @@ class _PrimaryButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: loading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.royalBlue,
+          backgroundColor: _AuthColors.royalBlue,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: AppColors.royalBlue.withValues(alpha: 0.6),
+          disabledBackgroundColor: _AuthColors.royalBlue.withValues(alpha: 0.6),
           disabledForegroundColor: Colors.white,
           elevation: 0,
           shape:
@@ -606,8 +659,8 @@ class _GoogleButton extends StatelessWidget {
       child: OutlinedButton.icon(
         onPressed: loading ? null : onPressed,
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.textPrimary,
-          side: const BorderSide(color: AppColors.border),
+          foregroundColor: _AuthColors.textPrimary,
+          side: const BorderSide(color: _AuthColors.border),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         ),
@@ -618,7 +671,7 @@ class _GoogleButton extends StatelessWidget {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : const Icon(Icons.g_mobiledata_rounded,
-                size: 26, color: AppColors.royalBlue),
+                size: 26, color: _AuthColors.royalBlue),
         label: const Text('Continue with Google'),
       ),
     );

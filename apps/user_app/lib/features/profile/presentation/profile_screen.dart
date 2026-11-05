@@ -1,4 +1,5 @@
 import 'package:core_models/core_models.dart' hide EventCategory;
+import 'package:supabase_client/supabase_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,7 +12,7 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../models/event_model.dart';
 import '../../../services/auth_service.dart';
 import '../../../widgets/tap_scale_container.dart';
-import '../../auth/presentation/split_auth_screen.dart';
+import 'package:ui_kit/ui_kit.dart' show ensureSignedIn;
 import '../../home/application/home_providers.dart';
 import '../../watchlist/application/watchlist_controller.dart';
 import '../application/recently_viewed_provider.dart';
@@ -312,8 +313,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final recentlyViewed = ref.watch(recentlyViewedProvider);
     final watchlist = ref.watch(watchlistControllerProvider);
     final selectedCity = ref.watch(selectedCityProvider);
-    final isSignedIn = AuthService.isSignedIn;
-    final currentUser = AuthService.currentUser;
+    final isSignedIn = NextShowSupabaseClient.isSignedIn;
+    final currentUser = NextShowSupabaseClient.currentUser;
 
     return Scaffold(
       backgroundColor: AppColors.lightCanvas,
@@ -667,7 +668,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       );
 
                       if (confirm == true) {
-                        await AuthService.signOut();
+                        await NextShowSupabaseClient.signOut();
                         setState(() {});
                       }
                     },

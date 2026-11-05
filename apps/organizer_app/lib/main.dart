@@ -3,7 +3,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared/api_keys.dart';
 import 'package:supabase_client/supabase_client.dart';
 import 'package:ui_kit/ui_kit.dart';
-import 'screens/auth/login_screen.dart';
 import 'screens/auth/profile_setup_screen.dart';
 import 'screens/dashboard_screen.dart';
 
@@ -14,6 +13,8 @@ Future<void> main() async {
   await NextShowSupabaseClient.initialize(
     url: ApiKeys.supabaseUrl,
     anonKey: ApiKeys.supabaseAnonKey,
+    // Emailed links and Google sign-in come back to nextshow-organizer://login-callback.
+    authCallbackScheme: 'nextshow-organizer',
   );
 
   runApp(const OrganizerApp());
@@ -71,16 +72,13 @@ class _AuthGateState extends State<AuthGate> {
 
   Future<_ProfileResult> _checkProfile(String userId) async {
     try {
-      debugPrint('>>> [ROLE_CHECK] Checking profile for userId: $userId');
       final response = await NextShowSupabaseClient.client
           .from('profiles')
           .select('role, is_verified, full_name')
           .eq('id', userId)
           .maybeSingle();
 
-      debugPrint('>>> [ROLE_CHECK] Supabase response: $response');
       if (response == null) {
-        debugPrint('>>> [ROLE_CHECK] No profile found for userId: $userId');
         return const _ProfileResult(PartnerVerificationState.notPartner);
       }
 
@@ -88,13 +86,11 @@ class _AuthGateState extends State<AuthGate> {
       final isVerified = response['is_verified'] as bool? ?? false;
       final fullName = response['full_name'] as String?;
       final needsSetup = fullName == null || fullName.trim().isEmpty;
-      debugPrint('>>> [ROLE_CHECK] role="$roleStr", isVerified=$isVerified, fullName=$fullName');
 
       // Auto-upgrade: anyone signing in on the organizer app is a partner by intent.
       // If still 'user', silently upgrade to 'partner' (unverified) so they
       // appear in the admin app's Pending queue immediately.
       if (roleStr == 'user') {
-        debugPrint('>>> [ROLE_CHECK] Auto-upgrading role to partner...');
         await _upgradeRoleToPartner(userId);
         return _ProfileResult(PartnerVerificationState.pending, needsProfileSetup: needsSetup);
       }
@@ -111,9 +107,7 @@ class _AuthGateState extends State<AuthGate> {
       }
 
       return _ProfileResult(state, needsProfileSetup: needsSetup);
-    } catch (e, st) {
-      debugPrint('>>> [ROLE_CHECK] Exception while checking profile: $e');
-      debugPrint('>>> [ROLE_CHECK] StackTrace: $st');
+    } catch (_) {
       return const _ProfileResult(PartnerVerificationState.notPartner);
     }
   }
@@ -223,7 +217,7 @@ class _AuthGateState extends State<AuthGate> {
           );
         }
 
-        return const LoginScreen();
+        return const SplitAuthScreen(title: 'Next Show for Organizers', showClose: false);
       },
     );
   }

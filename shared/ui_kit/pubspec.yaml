@@ -13,6 +13,9 @@ dependencies:
   core_models:
     path: ../core_models
   google_fonts: ^8.2.1
+  supabase_flutter: ^2.8.0
+  supabase_client:
+    path: ../supabase_client
 
 dev_dependencies:
   flutter_test:

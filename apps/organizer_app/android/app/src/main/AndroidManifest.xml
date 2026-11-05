@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Release builds need this; the debug manifest only covers debug builds. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="organizer_app"
         android:name="${applicationName}"
@@ -22,6 +24,16 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- Only supabase_flutter (app_links) handles incoming links; keep Flutter's router out. -->
+            <meta-data android:name="flutter_deeplinking_enabled" android:value="false" />
+            <!-- Supabase auth redirect (emailed link, Google). Own scheme so the user app
+                 (nextshow://) never receives the organizer's callback. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="nextshow-organizer" android:host="login-callback" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

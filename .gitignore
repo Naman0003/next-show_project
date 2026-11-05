@@ -28,3 +28,4 @@ pilot_brainstorm.md
 **/android/build/
 .flutter-plugins
 .flutter-plugins-dependencies
+shared/*/build/

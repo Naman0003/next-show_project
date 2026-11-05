@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:user_app/features/auth/presentation/split_auth_screen.dart';
-import 'package:user_app/theme/app_theme.dart';
+import 'package:ui_kit/ui_kit.dart';
 
 Future<void> _pumpScreen(WidgetTester tester) async {
   tester.view.physicalSize = const Size(390, 844);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
-    MaterialApp(theme: AppTheme.light, home: const SplitAuthScreen()),
+    const MaterialApp(home: SplitAuthScreen()),
   );
   await tester.pumpAndSettle();
 }
@@ -50,5 +49,19 @@ void main() {
     addTearDown(() => WidgetController.hitTestWarningShouldBeFatal = false);
     await tester.tap(find.byType(TextField));
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('organizer/admin options: own title, no Google, no close button', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const MaterialApp(
+      home: SplitAuthScreen(title: 'Next Show Admin', showGoogle: false, showClose: false),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Next Show Admin'), findsOneWidget);
+    expect(find.text('Continue with Google'), findsNothing);
+    expect(find.byIcon(Icons.close_rounded), findsNothing);
   });
 }

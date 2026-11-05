@@ -25,6 +25,7 @@ Future<void> ensureAppReady() => _ready ??= Future.wait([
       NextShowSupabaseClient.initialize(
         url: ApiKeys.supabaseUrl,
         anonKey: ApiKeys.supabaseAnonKey,
+        authCallbackScheme: 'nextshow',
         // Web keeps the default store: browser "secure storage" holds its key in the same localStorage.
         sessionStorage:
             kIsWeb ? null : SecureSessionStorage.forUrl(ApiKeys.supabaseUrl),

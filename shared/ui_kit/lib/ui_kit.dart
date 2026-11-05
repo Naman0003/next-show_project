@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:core_models/core_models.dart';
 
+export 'src/split_auth_screen.dart';
+
 /// NextShow brand colors
 class NSColors {
   NSColors._();
