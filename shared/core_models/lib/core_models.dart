@@ -113,6 +113,9 @@ class Event with _$Event {
     @Default({}) Map<String, dynamic> metadata,
     @Default(EventStatus.published) EventStatus status,
     @Default(true) bool isVerified,
+    // Who runs the event: the partner's name, or for crawled events the source's
+    // organizer, else "Fetched from the internet". Set by the database, never the client.
+    String? organizerName,
   }) = _Event;
 
   factory Event.fromJson(Map<String, dynamic> json) => _$EventFromJson(json);
@@ -199,6 +202,7 @@ class Listing with _$Listing {
     required double longitude,
     required double latitude,
     String? venueImageUrl,
+    String? organizerName,
   }) = _Listing;
 
   factory Listing.fromJson(Map<String, dynamic> json) => _$ListingFromJson(json);

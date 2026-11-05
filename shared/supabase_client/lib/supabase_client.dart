@@ -223,9 +223,15 @@ class NextShowSupabaseClient {
     EventStatus? status,
     String? searchQuery,
     int? limit,
-    String? ownerId, // Not directly on events, but could filter via venues
+    /// Only events this user created (events.created_by). Everyone can read every
+    /// event, so without it the organizer app would list all public events.
+    String? createdBy,
   }) async {
     dynamic query = client.from('events').select();
+
+    if (createdBy != null) {
+      query = query.eq('created_by', createdBy);
+    }
 
     if (category != null) {
       query = query.eq('category', category.name);
@@ -638,6 +644,7 @@ class NextShowSupabaseClient {
         orElse: () => EventStatus.published,
       ),
       isVerified: json['is_verified'] as bool? ?? true,
+      organizerName: json['organizer_name'] as String?,
     );
   }
 
@@ -682,6 +689,7 @@ class NextShowSupabaseClient {
       imageUrl: json['image_url'] as String?,
       durationMinutes: json['duration_minutes'] as int?,
       eventMetadata: Map<String, dynamic>.from(json['event_metadata'] ?? json['metadata'] ?? {}),
+      organizerName: json['organizer_name'] as String?,
       eventStatus: json['status'] != null
           ? EventStatus.values.firstWhere(
               (e) => e.name == json['status'],

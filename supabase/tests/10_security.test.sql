@@ -247,16 +247,57 @@ do $$ declare code text; begin
   perform t.chk('S23 unverified partner cannot publish a showtime (got ' || code || ')', code = '42501');
 end $$;
 
-do $$ declare ok boolean; begin
+do $$ declare own_event uuid; begin
   perform t.become('partner_a');
+  insert into public.events (category, title) values ('comedy', 'Partner A night') returning id into own_event;
   insert into public.showtimes (venue_id, event_id, start_time, booking_url)
-    values ('aaaaaaaa-0000-0000-0000-000000000001', '3e000000-0000-0000-0000-000000000001',
+    values ('aaaaaaaa-0000-0000-0000-000000000001', own_event,
             now() + interval '3 days', 'https://example.com/ok');
   perform t.become('super');
   perform t.chk('S23 verified partner can still publish showtimes at their venue', true);
 exception when others then
   perform t.become('super');
   perform t.chk('S23 verified partner can still publish showtimes (error: ' || sqlerrm || ')', false);
+end $$;
+
+do $$ declare c_crawled text; c_other text; begin
+  perform t.become('partner_a');
+  begin   -- 3e000000-…-0001 was created without an owner, like a crawled event
+    insert into public.showtimes (venue_id, event_id, start_time, booking_url)
+      values ('aaaaaaaa-0000-0000-0000-000000000001', '3e000000-0000-0000-0000-000000000001',
+              now() + interval '3 days', 'https://example.com/x');
+    c_crawled := 'ok';
+  exception when others then c_crawled := sqlstate; end;
+  perform t.become('partner_b');
+  begin   -- partner A's event at partner B's own venue
+    insert into public.showtimes (venue_id, event_id, start_time, booking_url)
+      select 'aaaaaaaa-0000-0000-0000-000000000002', id, now() + interval '3 days', 'https://example.com/y'
+      from public.events where title = 'Partner A night';
+    c_other := 'ok';
+  exception when others then c_other := sqlstate; end;
+  perform t.become('super');
+  perform t.chk('Showtimes: a partner cannot use a crawled event (got ' || c_crawled || ')', c_crawled = '42501');
+  perform t.chk('Showtimes: a partner cannot use another partner''s event (got ' || c_other || ')', c_other = '42501');
+end $$;
+
+do $$ declare own_name text; spoof_name text; crawled_named text; crawled_unnamed text; begin
+  perform t.become('super');
+  update public.profiles set full_name = 'Kino Eins' where id = (select id from t.ids where name = 'partner_b');
+  perform t.become('partner_b');
+  insert into public.events (category, title, organizer_name) values ('movie', 'B film', 'Berghain')
+    returning organizer_name into own_name;
+  update public.events set organizer_name = 'Berghain' where title = 'B film';
+  perform t.become('super');
+  select organizer_name into spoof_name from public.events where title = 'B film';
+  insert into public.events (category, title, metadata) values ('music', 'Crawled gig', '{"organizer":"Comedy Café Berlin"}')
+    returning organizer_name into crawled_named;
+  insert into public.events (category, title) values ('music', 'Crawled anon') returning organizer_name into crawled_unnamed;
+  perform t.chk('Organizer: a partner event gets the partner''s name, not what the app sent (got ' || own_name || ')',
+    own_name = 'Kino Eins');
+  perform t.chk('Organizer: a partner cannot rename it later (got ' || spoof_name || ')', spoof_name = 'Kino Eins');
+  perform t.chk('Organizer: a crawled event keeps the source''s organizer', crawled_named = 'Comedy Café Berlin');
+  perform t.chk('Organizer: a crawled event without one says Fetched from the internet',
+    crawled_unnamed = 'Fetched from the internet');
 end $$;
 
 ---------------------------------------------------------------- account deletion grace period

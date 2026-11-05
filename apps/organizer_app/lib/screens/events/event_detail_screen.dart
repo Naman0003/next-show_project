@@ -97,6 +97,10 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(event.title, style: NSTextStyles.headlineSmall),
+                          if (event.organizerName != null) ...[
+                            const SizedBox(height: 4),
+                            Text('Organized by ${event.organizerName}', style: NSTextStyles.bodySmall),
+                          ],
                           const SizedBox(height: 6),
                           Row(
                             children: [

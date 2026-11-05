@@ -115,6 +115,20 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           ),
                         ),
 
+                        // Who runs it: the partner, or for crawled events the
+                        // source's organizer / "Fetched from the internet".
+                        if (listing.organizerName != null) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            'Organized by ${listing.organizerName}',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+
                         // Optional Tagline
                         if (listing.showtimeAttributes['tagline'] != null) ...[
                           const SizedBox(height: 6),

@@ -42,7 +42,7 @@ class _ShowtimeListScreenState extends State<ShowtimeListScreen> {
   Future<void> _loadVenuesAndEvents() async {
     try {
       final venues = await OrganizerRepository.fetchMyVenues();
-      final events = await OrganizerRepository.fetchEvents();
+      final events = await OrganizerRepository.fetchEvents(mineOnly: false);
       final eventsMap = <String, Event>{
         for (final e in events) e.id: e,
       };
@@ -146,7 +146,7 @@ class _ShowtimeListScreenState extends State<ShowtimeListScreen> {
     if (unknownEventIds.isEmpty) return;
 
     try {
-      final events = await OrganizerRepository.fetchEvents();
+      final events = await OrganizerRepository.fetchEvents(mineOnly: false);
       if (mounted) {
         setState(() {
           for (final e in events) {

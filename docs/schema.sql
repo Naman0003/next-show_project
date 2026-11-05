@@ -102,9 +102,25 @@ CREATE FUNCTION public.guard_event_write() RETURNS trigger
     SET search_path TO 'public'
     AS $$
 begin
+  if tg_op = 'INSERT' then
+    if auth.uid() is not null then
+      -- shortcut: the name is copied at creation; renaming a profile later doesn't update old events.
+      new.organizer_name = (select coalesce(nullif(trim(p.full_name), ''), p.email)
+                            from public.profiles p where p.id = auth.uid());
+    elsif new.created_by is null then
+      new.organizer_name = coalesce(nullif(trim(new.organizer_name), ''),
+                                    nullif(trim(new.metadata->>'organizer'), ''),
+                                    'Fetched from the internet');
+    end if;
+  elsif auth.uid() is not null and not public.is_admin() then
+    new.organizer_name = old.organizer_name;
+  end if;
+
+  -- Service role (edge functions, auth.uid() is null) and admins write the rest freely.
   if auth.uid() is null or public.is_admin() then
     return new;
   end if;
+
   if tg_op = 'INSERT' then
     new.is_verified = false;
   else
@@ -203,7 +219,8 @@ CREATE TABLE public.events (
     metadata jsonb DEFAULT '{}'::jsonb,
     status public.event_status DEFAULT 'published'::public.event_status,
     is_verified boolean DEFAULT false NOT NULL,
-    created_by uuid DEFAULT auth.uid()
+    created_by uuid DEFAULT auth.uid(),
+    organizer_name text
 );
 --
 -- Name: ingestion_sources; Type: TABLE; Schema: public; Owner: -
@@ -336,7 +353,8 @@ CREATE VIEW public.v_listings with (security_invoker = on) as
     v.venue_type,
     v.address AS venue_address,
     public.st_x((v.location)::public.geometry) AS longitude,
-    public.st_y((v.location)::public.geometry) AS latitude
+    public.st_y((v.location)::public.geometry) AS latitude,
+    e.organizer_name
    FROM ((public.showtimes s
      JOIN public.events e ON ((s.event_id = e.id)))
      JOIN public.venues v ON ((s.venue_id = v.id)))
@@ -564,11 +582,13 @@ CREATE POLICY "Partners can insert events" ON public.events FOR INSERT WITH CHEC
 --
 -- Name: showtimes Partners can manage showtimes for their venues; Type: POLICY; Schema: public; Owner: -
 --
-CREATE POLICY "Partners can manage showtimes for their venues" ON public.showtimes USING ((public.is_partner() AND (EXISTS ( SELECT 1
-   FROM public.venues v
-  WHERE ((v.id = showtimes.venue_id) AND (v.owner_id = auth.uid())))))) WITH CHECK ((public.is_partner() AND (EXISTS ( SELECT 1
-   FROM public.venues v
-  WHERE ((v.id = showtimes.venue_id) AND (v.owner_id = auth.uid()))))));
+create policy "Partners can manage showtimes for their venues"
+  on public.showtimes to authenticated
+  using (public.is_partner() and exists (
+    select 1 from public.venues v where v.id = showtimes.venue_id and v.owner_id = auth.uid()))
+  with check (public.is_partner()
+    and exists (select 1 from public.venues v where v.id = showtimes.venue_id and v.owner_id = auth.uid())
+    and exists (select 1 from public.events e where e.id = showtimes.event_id and e.created_by = auth.uid()));
 --
 -- Name: venues Partners can manage their own venues; Type: POLICY; Schema: public; Owner: -
 --
@@ -710,7 +730,6 @@ grant execute on function public.restore_account() to authenticated;
 -- would make every anon read of showtimes or v_listings fail. These four only ever match a
 -- verified partner (is_partner()), so scoping them to signed-in users changes nothing else.
 alter policy "Partners can manage their own venues" on public.venues to authenticated;
-alter policy "Partners can manage showtimes for their venues" on public.showtimes to authenticated;
 alter policy "Partners read clicks on their venues" on public.outbound_clicks to authenticated;
 alter policy "Venue owners can manage invites" on public.organizer_invites to authenticated;
 

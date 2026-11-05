@@ -73,7 +73,7 @@ class Event {
       venueName: l.venueName,
       city: (meta['city'] as String?) ?? 'Berlin',
       isFree: meta['is_free'] == true || l.price == 0,
-      organizer: (meta['organizer'] as String?) ?? l.venueName,
+      organizer: l.organizerName ?? (meta['organizer'] as String?) ?? l.venueName,
       listing: l,
     );
   }

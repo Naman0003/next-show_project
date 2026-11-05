@@ -767,7 +767,10 @@ mixin _$Event {
       throw _privateConstructorUsedError; // Static metadata (genres, directors, release year, etc.)
   Map<String, dynamic> get metadata => throw _privateConstructorUsedError;
   EventStatus get status => throw _privateConstructorUsedError;
-  bool get isVerified => throw _privateConstructorUsedError;
+  bool get isVerified =>
+      throw _privateConstructorUsedError; // Who runs the event: the partner's name, or for crawled events the source's
+// organizer, else "Fetched from the internet". Set by the database, never the client.
+  String? get organizerName => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -791,7 +794,8 @@ abstract class $EventCopyWith<$Res> {
       Map<String, dynamic> externalIds,
       Map<String, dynamic> metadata,
       EventStatus status,
-      bool isVerified});
+      bool isVerified,
+      String? organizerName});
 }
 
 /// @nodoc
@@ -819,6 +823,7 @@ class _$EventCopyWithImpl<$Res, $Val extends Event>
     Object? metadata = null,
     Object? status = null,
     Object? isVerified = null,
+    Object? organizerName = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -869,6 +874,10 @@ class _$EventCopyWithImpl<$Res, $Val extends Event>
           ? _value.isVerified
           : isVerified // ignore: cast_nullable_to_non_nullable
               as bool,
+      organizerName: freezed == organizerName
+          ? _value.organizerName
+          : organizerName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -892,7 +901,8 @@ abstract class _$$EventImplCopyWith<$Res> implements $EventCopyWith<$Res> {
       Map<String, dynamic> externalIds,
       Map<String, dynamic> metadata,
       EventStatus status,
-      bool isVerified});
+      bool isVerified,
+      String? organizerName});
 }
 
 /// @nodoc
@@ -918,6 +928,7 @@ class __$$EventImplCopyWithImpl<$Res>
     Object? metadata = null,
     Object? status = null,
     Object? isVerified = null,
+    Object? organizerName = freezed,
   }) {
     return _then(_$EventImpl(
       id: null == id
@@ -968,6 +979,10 @@ class __$$EventImplCopyWithImpl<$Res>
           ? _value.isVerified
           : isVerified // ignore: cast_nullable_to_non_nullable
               as bool,
+      organizerName: freezed == organizerName
+          ? _value.organizerName
+          : organizerName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -987,7 +1002,8 @@ class _$EventImpl implements _Event {
       final Map<String, dynamic> externalIds = const {},
       final Map<String, dynamic> metadata = const {},
       this.status = EventStatus.published,
-      this.isVerified = true})
+      this.isVerified = true,
+      this.organizerName})
       : _externalIds = externalIds,
         _metadata = metadata;
 
@@ -1038,10 +1054,14 @@ class _$EventImpl implements _Event {
   @override
   @JsonKey()
   final bool isVerified;
+// Who runs the event: the partner's name, or for crawled events the source's
+// organizer, else "Fetched from the internet". Set by the database, never the client.
+  @override
+  final String? organizerName;
 
   @override
   String toString() {
-    return 'Event(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, category: $category, title: $title, description: $description, imageUrl: $imageUrl, durationMinutes: $durationMinutes, externalIds: $externalIds, metadata: $metadata, status: $status, isVerified: $isVerified)';
+    return 'Event(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, category: $category, title: $title, description: $description, imageUrl: $imageUrl, durationMinutes: $durationMinutes, externalIds: $externalIds, metadata: $metadata, status: $status, isVerified: $isVerified, organizerName: $organizerName)';
   }
 
   @override
@@ -1068,7 +1088,9 @@ class _$EventImpl implements _Event {
             const DeepCollectionEquality().equals(other._metadata, _metadata) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.isVerified, isVerified) ||
-                other.isVerified == isVerified));
+                other.isVerified == isVerified) &&
+            (identical(other.organizerName, organizerName) ||
+                other.organizerName == organizerName));
   }
 
   @JsonKey(ignore: true)
@@ -1086,7 +1108,8 @@ class _$EventImpl implements _Event {
       const DeepCollectionEquality().hash(_externalIds),
       const DeepCollectionEquality().hash(_metadata),
       status,
-      isVerified);
+      isVerified,
+      organizerName);
 
   @JsonKey(ignore: true)
   @override
@@ -1115,7 +1138,8 @@ abstract class _Event implements Event {
       final Map<String, dynamic> externalIds,
       final Map<String, dynamic> metadata,
       final EventStatus status,
-      final bool isVerified}) = _$EventImpl;
+      final bool isVerified,
+      final String? organizerName}) = _$EventImpl;
 
   factory _Event.fromJson(Map<String, dynamic> json) = _$EventImpl.fromJson;
 
@@ -1143,6 +1167,9 @@ abstract class _Event implements Event {
   EventStatus get status;
   @override
   bool get isVerified;
+  @override // Who runs the event: the partner's name, or for crawled events the source's
+// organizer, else "Fetched from the internet". Set by the database, never the client.
+  String? get organizerName;
   @override
   @JsonKey(ignore: true)
   _$$EventImplCopyWith<_$EventImpl> get copyWith =>
@@ -2117,6 +2144,7 @@ mixin _$Listing {
   double get longitude => throw _privateConstructorUsedError;
   double get latitude => throw _privateConstructorUsedError;
   String? get venueImageUrl => throw _privateConstructorUsedError;
+  String? get organizerName => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -2150,7 +2178,8 @@ abstract class $ListingCopyWith<$Res> {
       String? venueAddress,
       double longitude,
       double latitude,
-      String? venueImageUrl});
+      String? venueImageUrl,
+      String? organizerName});
 }
 
 /// @nodoc
@@ -2188,6 +2217,7 @@ class _$ListingCopyWithImpl<$Res, $Val extends Listing>
     Object? longitude = null,
     Object? latitude = null,
     Object? venueImageUrl = freezed,
+    Object? organizerName = freezed,
   }) {
     return _then(_value.copyWith(
       showtimeId: null == showtimeId
@@ -2278,6 +2308,10 @@ class _$ListingCopyWithImpl<$Res, $Val extends Listing>
           ? _value.venueImageUrl
           : venueImageUrl // ignore: cast_nullable_to_non_nullable
               as String?,
+      organizerName: freezed == organizerName
+          ? _value.organizerName
+          : organizerName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -2311,7 +2345,8 @@ abstract class _$$ListingImplCopyWith<$Res> implements $ListingCopyWith<$Res> {
       String? venueAddress,
       double longitude,
       double latitude,
-      String? venueImageUrl});
+      String? venueImageUrl,
+      String? organizerName});
 }
 
 /// @nodoc
@@ -2347,6 +2382,7 @@ class __$$ListingImplCopyWithImpl<$Res>
     Object? longitude = null,
     Object? latitude = null,
     Object? venueImageUrl = freezed,
+    Object? organizerName = freezed,
   }) {
     return _then(_$ListingImpl(
       showtimeId: null == showtimeId
@@ -2437,6 +2473,10 @@ class __$$ListingImplCopyWithImpl<$Res>
           ? _value.venueImageUrl
           : venueImageUrl // ignore: cast_nullable_to_non_nullable
               as String?,
+      organizerName: freezed == organizerName
+          ? _value.organizerName
+          : organizerName // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -2466,7 +2506,8 @@ class _$ListingImpl implements _Listing {
       this.venueAddress,
       required this.longitude,
       required this.latitude,
-      this.venueImageUrl})
+      this.venueImageUrl,
+      this.organizerName})
       : _showtimeAttributes = showtimeAttributes,
         _eventMetadata = eventMetadata;
 
@@ -2530,10 +2571,12 @@ class _$ListingImpl implements _Listing {
   final double latitude;
   @override
   final String? venueImageUrl;
+  @override
+  final String? organizerName;
 
   @override
   String toString() {
-    return 'Listing(showtimeId: $showtimeId, startTime: $startTime, endTime: $endTime, price: $price, showtimeAttributes: $showtimeAttributes, bookingUrl: $bookingUrl, showtimeImageUrl: $showtimeImageUrl, eventId: $eventId, category: $category, eventTitle: $eventTitle, eventDescription: $eventDescription, imageUrl: $imageUrl, durationMinutes: $durationMinutes, eventMetadata: $eventMetadata, eventStatus: $eventStatus, venueId: $venueId, venueName: $venueName, venueType: $venueType, venueAddress: $venueAddress, longitude: $longitude, latitude: $latitude, venueImageUrl: $venueImageUrl)';
+    return 'Listing(showtimeId: $showtimeId, startTime: $startTime, endTime: $endTime, price: $price, showtimeAttributes: $showtimeAttributes, bookingUrl: $bookingUrl, showtimeImageUrl: $showtimeImageUrl, eventId: $eventId, category: $category, eventTitle: $eventTitle, eventDescription: $eventDescription, imageUrl: $imageUrl, durationMinutes: $durationMinutes, eventMetadata: $eventMetadata, eventStatus: $eventStatus, venueId: $venueId, venueName: $venueName, venueType: $venueType, venueAddress: $venueAddress, longitude: $longitude, latitude: $latitude, venueImageUrl: $venueImageUrl, organizerName: $organizerName)';
   }
 
   @override
@@ -2580,7 +2623,9 @@ class _$ListingImpl implements _Listing {
             (identical(other.latitude, latitude) ||
                 other.latitude == latitude) &&
             (identical(other.venueImageUrl, venueImageUrl) ||
-                other.venueImageUrl == venueImageUrl));
+                other.venueImageUrl == venueImageUrl) &&
+            (identical(other.organizerName, organizerName) ||
+                other.organizerName == organizerName));
   }
 
   @JsonKey(ignore: true)
@@ -2608,7 +2653,8 @@ class _$ListingImpl implements _Listing {
         venueAddress,
         longitude,
         latitude,
-        venueImageUrl
+        venueImageUrl,
+        organizerName
       ]);
 
   @JsonKey(ignore: true)
@@ -2648,7 +2694,8 @@ abstract class _Listing implements Listing {
       final String? venueAddress,
       required final double longitude,
       required final double latitude,
-      final String? venueImageUrl}) = _$ListingImpl;
+      final String? venueImageUrl,
+      final String? organizerName}) = _$ListingImpl;
 
   factory _Listing.fromJson(Map<String, dynamic> json) = _$ListingImpl.fromJson;
 
@@ -2696,6 +2743,8 @@ abstract class _Listing implements Listing {
   double get latitude;
   @override
   String? get venueImageUrl;
+  @override
+  String? get organizerName;
   @override
   @JsonKey(ignore: true)
   _$$ListingImplCopyWith<_$ListingImpl> get copyWith =>

@@ -246,6 +246,10 @@ class _EventCard extends StatelessWidget {
                       '$catLabel ${event.durationMinutes != null ? '• ${event.durationMinutes} min' : ''}',
                       style: NSTextStyles.bodySmall.copyWith(color: NSColors.skyBlue, fontWeight: FontWeight.bold),
                     ),
+                    if (event.organizerName != null) ...[
+                      const SizedBox(height: 2),
+                      Text('Organized by ${event.organizerName}', style: NSTextStyles.bodySmall),
+                    ],
                     if (event.description != null) ...[
                       const SizedBox(height: 6),
                       Text(

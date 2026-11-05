@@ -98,6 +98,7 @@ _$EventImpl _$$EventImplFromJson(Map<String, dynamic> json) => _$EventImpl(
       status: $enumDecodeNullable(_$EventStatusEnumMap, json['status']) ??
           EventStatus.published,
       isVerified: json['isVerified'] as bool? ?? true,
+      organizerName: json['organizerName'] as String?,
     );
 
 Map<String, dynamic> _$$EventImplToJson(_$EventImpl instance) =>
@@ -114,6 +115,7 @@ Map<String, dynamic> _$$EventImplToJson(_$EventImpl instance) =>
       'metadata': instance.metadata,
       'status': _$EventStatusEnumMap[instance.status]!,
       'isVerified': instance.isVerified,
+      'organizerName': instance.organizerName,
     };
 
 const _$EventCategoryEnumMap = {
@@ -244,6 +246,7 @@ _$ListingImpl _$$ListingImplFromJson(Map<String, dynamic> json) =>
       longitude: (json['longitude'] as num).toDouble(),
       latitude: (json['latitude'] as num).toDouble(),
       venueImageUrl: json['venueImageUrl'] as String?,
+      organizerName: json['organizerName'] as String?,
     );
 
 Map<String, dynamic> _$$ListingImplToJson(_$ListingImpl instance) =>
@@ -270,6 +273,7 @@ Map<String, dynamic> _$$ListingImplToJson(_$ListingImpl instance) =>
       'longitude': instance.longitude,
       'latitude': instance.latitude,
       'venueImageUrl': instance.venueImageUrl,
+      'organizerName': instance.organizerName,
     };
 
 _$SeatImpl _$$SeatImplFromJson(Map<String, dynamic> json) => _$SeatImpl(

@@ -34,7 +34,7 @@ class OrganizerRepository {
     final venueCount = venues.length;
 
     // 2. Total events
-    final events = await NextShowSupabaseClient.fetchEvents();
+    final events = await NextShowSupabaseClient.fetchEvents(createdBy: userId);
     final eventCount = events.length;
 
     // 3. Upcoming showtimes across partner's venues
@@ -126,16 +126,21 @@ class OrganizerRepository {
     );
   }
 
-  /// Events list
+  /// The signed-in partner's own events. [mineOnly] false returns every event
+  /// (only for looking up titles of showtimes at my venues).
   static Future<List<Event>> fetchEvents({
     EventCategory? category,
     EventStatus? status,
     String? searchQuery,
-  }) {
+    bool mineOnly = true,
+  }) async {
+    final userId = NextShowSupabaseClient.currentUser?.id;
+    if (mineOnly && userId == null) return [];
     return NextShowSupabaseClient.fetchEvents(
       category: category,
       status: status,
       searchQuery: searchQuery,
+      createdBy: mineOnly ? userId : null,
     );
   }
 
