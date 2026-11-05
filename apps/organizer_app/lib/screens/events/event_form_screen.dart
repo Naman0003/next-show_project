@@ -126,6 +126,20 @@ class _EventFormScreenState extends State<EventFormScreen> {
     }
   }
 
+  /// Saving never fails because of TMDB: an unverified event just waits for admin review.
+  Future<void> _verifyWithTmdb(String eventId) async {
+    try {
+      await TmdbService.verifyEvent(eventId);
+    } catch (e) {
+      debugPrint('>>> [TMDB] verify failed for $eventId: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Saved, but TMDB verification failed. An admin will review the event.'),
+        ));
+      }
+    }
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -162,7 +176,10 @@ class _EventFormScreenState extends State<EventFormScreen> {
           'release_year': _selectedTmdbDetails!.releaseYear,
       };
 
-      final isVerified = !_isCustomIndieMovie;
+      // The database never takes is_verified from the app; TMDB-picked movies are verified
+      // on the server below (tmdb edge function), custom ones wait for an admin.
+      const isVerified = false;
+      final verifyWithTmdb = _isLockedFromTmdb && tmdbId.isNotEmpty;
 
       if (widget.event == null) {
         final createdEvent = await OrganizerRepository.createEvent(
@@ -176,6 +193,7 @@ class _EventFormScreenState extends State<EventFormScreen> {
           status: _selectedStatus,
           isVerified: isVerified,
         );
+        if (verifyWithTmdb) await _verifyWithTmdb(createdEvent.id);
 
         if (mounted) {
           Navigator.pop(context, true);
@@ -198,6 +216,7 @@ class _EventFormScreenState extends State<EventFormScreen> {
           status: _selectedStatus,
           isVerified: isVerified,
         );
+        if (verifyWithTmdb) await _verifyWithTmdb(widget.event!.id);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

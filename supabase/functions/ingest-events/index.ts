@@ -363,7 +363,6 @@ async function findOrCreateVenue(db: SupabaseClient, event: ValidEvent): Promise
     venue_type: venueTypeFor(event.category),
     address: event.venue_address,
     location: point ? ewkt(point) : null,
-    partner_notes: "Auto-created by ingest-events; unverified.",
     is_active: true,
   }).select("id").single();
   if (error) throw new Error(`venues insert: ${error.message}`);

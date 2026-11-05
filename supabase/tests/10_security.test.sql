@@ -164,10 +164,30 @@ do $$ declare a boolean; b boolean; begin
     values ('movie', 'TMDB film', true, '{"tmdb_id":"603"}') returning is_verified into b;
   perform t.become('super');
   perform t.chk('S3 partner cannot insert a pre-verified custom event', a = false);
-  perform t.chk('S3 TMDB-sourced event keeps verified flag (organizer flow)', b = true);
+  perform t.chk('S3 a tmdb_id alone no longer self-verifies; only the tmdb function can', b = false);
 exception when others then
   perform t.become('super');
   perform t.chk('S3 event insert flows (error: ' || sqlerrm || ')', false);
+end $$;
+
+do $$ declare ev uuid; after_verify boolean; after_status boolean; after_title boolean; begin
+  perform t.become('partner_a');
+  insert into public.events (category, title, external_ids) values ('movie', 'The Matrix Reloaded', '{"tmdb_id":"604"}')
+    returning id into ev;
+  perform t.become('super');                          -- what the tmdb function does (service role)
+  update public.events set is_verified = true where id = ev;
+  select is_verified into after_verify from public.events where id = ev;
+  perform t.become('partner_a');
+  update public.events set status = 'cancelled' where id = ev;
+  perform t.become('super');
+  select is_verified into after_status from public.events where id = ev;
+  perform t.become('partner_a');
+  update public.events set title = 'Totally different film' where id = ev;
+  perform t.become('super');
+  select is_verified into after_title from public.events where id = ev;
+  perform t.chk('S3 the server can verify an event', after_verify);
+  perform t.chk('S3 a partner change outside the TMDB fields keeps it verified', after_status);
+  perform t.chk('S3 changing a TMDB field (title) drops the verified flag', after_title = false);
 end $$;
 
 ---------------------------------------------------------------- tickets / anon reads (live table, sanity)
@@ -321,8 +341,9 @@ do $$ declare titles text[]; c1 text; c2 text; c3 text; begin
     titles = array['Live now', 'Long show']);
   perform t.chk('S11 a cancelled event is hidden even when its showtime is published',
     not ('Cancelled event' = any(coalesce(titles, '{}'))));
+  -- partner_notes: 42501 while the column exists, 42703 once it moved to venue_notes.
   perform t.chk('S10 anon cannot read venues.owner_id or partner_notes (got ' || c1 || '/' || c2 || ')',
-    c1 = '42501' and c2 = '42501');
+    c1 = '42501' and c2 in ('42501', '42703'));
   perform t.chk('S10 anon can still read public venue columns (got ' || c3 || ')', c3 = 'ok');
 end $$;
 
@@ -381,6 +402,37 @@ begin
   perform t.chk('S9 a signed-in user is limited per account and recorded with their id',
     r_user and exists (select 1 from public.outbound_clicks
       where showtime_id = st and user_id = (select id from t.ids where name = 'victim')));
+end $$;
+
+---------------------------------------------------------------- S10: venue notes are owner/admin only
+do $$
+declare
+  va constant uuid := 'aaaaaaaa-0000-0000-0000-000000000001';   -- partner_a's venue
+  own_n int; b_n int; user_n int; admin_n int; c_b_insert text; c_anon text; has_col boolean;
+begin
+  perform t.become('partner_a');
+  insert into public.venue_notes (venue_id, notes) values (va, 'Back door code 1234');
+  select count(*) into own_n from public.venue_notes;
+  perform t.become('partner_b');
+  select count(*) into b_n from public.venue_notes;
+  begin insert into public.venue_notes (venue_id, notes) values (va, 'hijack'); c_b_insert := 'ok';
+    exception when others then c_b_insert := sqlstate; end;
+  perform t.become('attacker');
+  select count(*) into user_n from public.venue_notes;
+  perform t.become('anon');
+  begin perform count(*) from public.venue_notes; c_anon := 'ok'; exception when others then c_anon := sqlstate; end;
+  perform t.become('admin');
+  select count(*) into admin_n from public.venue_notes;
+  perform t.become('super');
+  select exists (select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'venues' and column_name = 'partner_notes') into has_col;
+
+  perform t.chk('S10 a venue owner can write and read their notes', own_n = 1);
+  perform t.chk('S10 another partner and a plain user see no notes', b_n = 0 and user_n = 0);
+  perform t.chk('S10 another partner cannot write notes for my venue (got ' || c_b_insert || ')', c_b_insert = '42501');
+  perform t.chk('S10 anon cannot read venue notes (got ' || c_anon || ')', c_anon = '42501');
+  perform t.chk('S10 admins read all notes', admin_n = 1);
+  perform t.chk('S10 venues.partner_notes is gone', not has_col);
 end $$;
 
 select t.become('super');

@@ -106,11 +106,19 @@ begin
     return new;
   end if;
   if tg_op = 'INSERT' then
-    new.is_verified = coalesce(new.is_verified, false)
-                      and (new.external_ids->>'tmdb_id') is not null;
+    new.is_verified = false;
   else
-    new.is_verified = old.is_verified;
     new.created_by = old.created_by;
+    if new.title is distinct from old.title
+       or new.description is distinct from old.description
+       or new.image_url is distinct from old.image_url
+       or new.duration_minutes is distinct from old.duration_minutes
+       or new.category is distinct from old.category
+       or new.external_ids is distinct from old.external_ids then
+      new.is_verified = false;
+    else
+      new.is_verified = old.is_verified;
+    end if;
   end if;
   return new;
 end;
@@ -303,8 +311,7 @@ CREATE TABLE public.venues (
     location public.geography(Point,4326),
     website_url text,
     image_url text,
-    is_active boolean DEFAULT true,
-    partner_notes text
+    is_active boolean DEFAULT true
 );
 --
 -- Name: v_listings; Type: VIEW; Schema: public; Owner: -
@@ -774,3 +781,22 @@ grant execute on function public.record_click(uuid) to anon, authenticated;
 
 -- No direct inserts from clients.
 revoke insert on table public.outbound_clicks from anon, authenticated;
+
+-- From 20261108000000_organizer_event_verification_venue_notes.sql (S10)
+create table if not exists public.venue_notes (
+    venue_id uuid primary key references public.venues(id) on delete cascade,
+    notes text not null,
+    updated_at timestamptz not null default now()
+);
+
+alter table public.venue_notes enable row level security;
+revoke all on table public.venue_notes from anon;
+grant select, insert, update, delete on table public.venue_notes to authenticated;
+
+drop policy if exists "Venue owners and admins manage notes" on public.venue_notes;
+create policy "Venue owners and admins manage notes"
+  on public.venue_notes for all to authenticated
+  using (public.is_admin() or (public.is_partner() and exists (
+    select 1 from public.venues v where v.id = venue_notes.venue_id and v.owner_id = auth.uid())))
+  with check (public.is_admin() or (public.is_partner() and exists (
+    select 1 from public.venues v where v.id = venue_notes.venue_id and v.owner_id = auth.uid())));

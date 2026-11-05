@@ -63,13 +63,17 @@ class NextShowSupabaseClient {
   // VENUES
   // ============================================================
 
+  /// Venue columns plus its private notes. Notes live in venue_notes, which RLS shows only to
+  /// the venue's owner and admins, so everyone else gets venue_notes = null.
+  static const _venueSelect = '*, venue_notes(notes)';
+
   /// Fetch all active venues
   static Future<List<Venue>> fetchVenues({
     VenueType? type,
     bool? isActive,
     String? ownerId,
   }) async {
-    var query = client.from('venues').select();
+    var query = client.from('venues').select(_venueSelect);
 
     if (type != null) {
       query = query.eq('venue_type', type.name);
@@ -89,12 +93,25 @@ class NextShowSupabaseClient {
   static Future<Venue?> fetchVenue(String id) async {
     final response = await client
         .from('venues')
-        .select()
+        .select(_venueSelect)
         .eq('id', id)
         .maybeSingle();
 
     if (response == null) return null;
     return _venueFromJson(response);
+  }
+
+  /// Saves a venue's private notes; an empty string removes them.
+  static Future<void> _saveVenueNotes(String venueId, String notes) async {
+    if (notes.trim().isEmpty) {
+      await client.from('venue_notes').delete().eq('venue_id', venueId);
+    } else {
+      await client.from('venue_notes').upsert({
+        'venue_id': venueId,
+        'notes': notes,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      });
+    }
   }
 
   /// Create a new venue (partner only)
@@ -117,7 +134,6 @@ class NextShowSupabaseClient {
       'address': address,
       'website_url': websiteUrl,
       'image_url': imageUrl,
-      'partner_notes': partnerNotes,
       'owner_id': userId,
       'is_active': true,
     };
@@ -126,8 +142,12 @@ class NextShowSupabaseClient {
       data['location'] = 'POINT($longitude $latitude)';
     }
 
-    final response = await client.from('venues').insert(data).select().single();
-    return _venueFromJson(response);
+    final response = await client.from('venues').insert(data).select('id').single();
+    final id = response['id'] as String;
+    if (partnerNotes != null && partnerNotes.trim().isNotEmpty) {
+      await _saveVenueNotes(id, partnerNotes);
+    }
+    return (await fetchVenue(id))!;
   }
 
   /// Update a venue (partner/admin only)
@@ -150,17 +170,16 @@ class NextShowSupabaseClient {
     }
     if (websiteUrl != null) updates['website_url'] = websiteUrl;
     if (imageUrl != null) updates['image_url'] = imageUrl;
-    if (partnerNotes != null) updates['partner_notes'] = partnerNotes;
     if (isActive != null) updates['is_active'] = isActive;
 
-    final response = await client
-        .from('venues')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
+    if (updates.isNotEmpty) {
+      await client.from('venues').update(updates).eq('id', id);
+    }
+    if (partnerNotes != null) await _saveVenueNotes(id, partnerNotes);
 
-    return _venueFromJson(response);
+    final venue = await fetchVenue(id);
+    if (venue == null) throw StateError('Venue $id not found or not yours');
+    return venue;
   }
 
   // ============================================================
@@ -538,6 +557,15 @@ class NextShowSupabaseClient {
   // JSON PARSING HELPERS
   // ============================================================
 
+  /// `venue_notes(notes)` embeds as an object (one-to-one), or as a list on
+  /// older PostgREST versions; null when the caller may not see the notes.
+  static String? _notesFrom(Object? embedded) {
+    final row = embedded is List
+        ? (embedded.isEmpty ? null : embedded.first)
+        : embedded;
+    return row is Map ? row['notes'] as String? : null;
+  }
+
   static Venue _venueFromJson(Map<String, dynamic> json) {
     return Venue(
       id: json['id'] as String,
@@ -554,7 +582,7 @@ class NextShowSupabaseClient {
       longitude: _extractLng(json['location']),
       websiteUrl: json['website_url'] as String?,
       imageUrl: json['image_url'] as String?,
-      partnerNotes: json['partner_notes'] as String?,
+      partnerNotes: _notesFrom(json['venue_notes']),
       isActive: json['is_active'] as bool? ?? true,
     );
   }

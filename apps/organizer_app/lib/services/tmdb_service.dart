@@ -1,8 +1,6 @@
 // lib/services/tmdb_service.dart
-import 'dart:convert';
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:shared/api_keys.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TmdbMovieSearchResult {
   final int id;
@@ -69,128 +67,54 @@ class TmdbMovieDetails {
   });
 }
 
+/// TMDB through the `tmdb` edge function: the API key stays on the server (S5), and only
+/// the server can mark an event verified (S3). Verified partners and admins only.
 class TmdbService {
-  static const List<String> _baseUrls = [
-    'https://api.themoviedb.org/3',
-    'https://api.tmdb.org/3',
-  ];
-
-  static Dio _createDio(String baseUrl) {
-    return Dio(
-      BaseOptions(
-        baseUrl: baseUrl,
-        connectTimeout: const Duration(seconds: 4),
-        receiveTimeout: const Duration(seconds: 4),
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
-          'Accept': 'application/json',
-        },
-      ),
-    );
+  static Future<Map<String, dynamic>> _call(Map<String, dynamic> body) async {
+    final res = await Supabase.instance.client.functions.invoke('tmdb', body: body);
+    return Map<String, dynamic>.from(res.data as Map);
   }
 
-  /// Search TMDB for movies matching a query string using Dio with host failover
+  /// Search TMDB for movies matching a query string.
   static Future<List<TmdbMovieSearchResult>> searchMovies(String query) async {
     final cleanQuery = query.trim();
     if (cleanQuery.isEmpty) return [];
-
-    for (final baseUrl in _baseUrls) {
-      try {
-        debugPrint('>>> [TMDB] Trying TMDB host: $baseUrl for "$cleanQuery"');
-        final dio = _createDio(baseUrl);
-
-        final response = await dio.get(
-          '/search/movie',
-          queryParameters: {
-            'api_key': ApiKeys.tmdb,
-            'query': cleanQuery,
-            'include_adult': false,
-            'language': 'en-US',
-          },
-        );
-
-        if (response.statusCode == 200 && response.data != null) {
-          final data = response.data is String ? jsonDecode(response.data as String) : response.data;
-          final results = data['results'] as List? ?? [];
-          if (results.isNotEmpty) {
-            debugPrint('>>> [TMDB] Live search returned ${results.length} movies');
-            return results.map((json) => TmdbMovieSearchResult.fromJson(json as Map<String, dynamic>)).toList();
-          }
-        }
-      } catch (e) {
-        debugPrint('>>> [TMDB] Host $baseUrl exception: $e');
-      }
+    try {
+      final data = await _call({'action': 'search', 'query': cleanQuery});
+      return (data['results'] as List? ?? [])
+          .map((json) => TmdbMovieSearchResult.fromJson(Map<String, dynamic>.from(json as Map)))
+          .toList();
+    } catch (e) {
+      debugPrint('>>> [TMDB] search failed: $e');
+      return [];
     }
-
-    return [];
   }
 
-  /// Fetch full movie details including runtime, director, and genres
+  /// Full movie details including runtime, director and genres.
   static Future<TmdbMovieDetails?> fetchMovieDetails(int tmdbId) async {
-    for (final baseUrl in _baseUrls) {
-      try {
-        final dio = _createDio(baseUrl);
-        final response = await dio.get(
-          '/movie/$tmdbId',
-          queryParameters: {
-            'api_key': ApiKeys.tmdb,
-            'append_to_response': 'credits',
-          },
-        );
-
-        if (response.statusCode == 200 && response.data != null) {
-          final data = response.data is String ? jsonDecode(response.data as String) : response.data;
-
-          final runtime = data['runtime'] as int?;
-          final overview = data['overview'] as String?;
-          final title = data['title'] as String? ?? 'Untitled';
-          final posterPath = data['poster_path'] as String?;
-          final posterUrl = posterPath != null && posterPath.isNotEmpty
-              ? 'https://image.tmdb.org/t/p/w500$posterPath'
-              : null;
-          final releaseDate = data['release_date'] as String?;
-          final releaseYear = releaseDate != null && releaseDate.length >= 4 ? releaseDate.substring(0, 4) : null;
-
-          final genresList = (data['genres'] as List? ?? [])
-              .map((g) => g['name'] as String? ?? '')
-              .where((g) => g.isNotEmpty)
-              .toList();
-
-          String? director;
-          final credits = data['credits'] as Map<String, dynamic>?;
-          if (credits != null) {
-            final crew = credits['crew'] as List? ?? [];
-            final dirObj = crew.firstWhere(
-              (c) => c['job'] == 'Director',
-              orElse: () => null,
-            );
-            if (dirObj != null) {
-              director = dirObj['name'] as String?;
-            }
-          }
-
-          return TmdbMovieDetails(
-            id: tmdbId,
-            title: title,
-            overview: overview,
-            posterUrl: posterUrl,
-            runtime: runtime,
-            director: director,
-            genres: genresList,
-            releaseYear: releaseYear,
-          );
-        }
-      } catch (e) {
-        debugPrint('>>> [TMDB] fetchMovieDetails exception ($e)');
-      }
+    try {
+      final data = await _call({'action': 'details', 'id': tmdbId});
+      final d = Map<String, dynamic>.from(data['details'] as Map);
+      return TmdbMovieDetails(
+        id: d['id'] as int,
+        title: d['title'] as String? ?? 'Untitled',
+        overview: d['overview'] as String?,
+        posterUrl: d['poster_url'] as String?,
+        runtime: d['runtime'] as int?,
+        director: d['director'] as String?,
+        genres: (d['genres'] as List? ?? []).cast<String>(),
+        releaseYear: d['release_year'] as String?,
+      );
+    } catch (e) {
+      debugPrint('>>> [TMDB] details failed ($tmdbId): $e');
+      return null;
     }
-
-    return null;
   }
 
-  /// Backward-compatible runtime fetcher
-  static Future<int?> fetchMovieRuntime(int tmdbId) async {
-    final details = await fetchMovieDetails(tmdbId);
-    return details?.runtime;
+  /// Asks the server to check the event's tmdb_id against TMDB and mark it verified.
+  /// The server also overwrites title, synopsis, poster and runtime with TMDB's values.
+  /// Throws when verification fails, so the caller can tell the partner.
+  static Future<void> verifyEvent(String eventId) async {
+    await _call({'action': 'verify', 'event_id': eventId});
   }
 }
