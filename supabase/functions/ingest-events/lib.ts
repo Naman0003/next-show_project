@@ -357,7 +357,8 @@ export function validateEvent(raw: unknown, now: Date): ValidEvent | null {
 
 function str(v: unknown, max: number): string | null {
   if (typeof v !== "string") return null;
-  const t = v.trim();
+  // JSON-LD text is often still HTML-escaped ("Kiez &amp; Glow"), and the AI copies it.
+  const t = decodeEntities(v).trim();
   return t ? t.slice(0, max) : null;
 }
 

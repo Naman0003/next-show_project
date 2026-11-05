@@ -181,3 +181,10 @@ test("dropKnownEvents skips stored events and keeps new or untimed ones", () => 
   ], known);
   assert.deepEqual(kept.map((e) => e.startDate), ["2026-11-12T20:00:00+01:00", "2026-11-05T20:00:00+01:00", "2026-11-05"]);
 });
+
+test("validateEvent decodes HTML entities in text fields", () => {
+  const e = validateEvent({ ...validRaw, title: "Kiez &amp; Glow: Winter Market", venue_name: "Caf&eacute; &#8211; Bar", description: "Love &amp; Dating" }, NOW)!;
+  assert.equal(e.title, "Kiez & Glow: Winter Market");
+  assert.equal(e.description, "Love & Dating");
+  assert.equal(e.venue_name, "Caf&eacute; – Bar"); // unknown named entity left as is, numeric decoded
+});

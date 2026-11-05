@@ -21,16 +21,14 @@ final allEventsProvider = Provider.autoDispose<AsyncValue<List<Event>>>((ref) {
 
 final filteredEventsProvider =
     Provider.autoDispose<AsyncValue<List<Event>>>((ref) {
+  // City is already filtered in the feed query (feedListingsProvider).
   final allEventsAsync = ref.watch(allEventsProvider);
-  final city = ref.watch(selectedCityProvider);
   final category = ref.watch(selectedCategoryProvider);
   final selectedDate = ref.watch(selectedDateProvider);
   final query = ref.watch(searchQueryProvider).trim().toLowerCase();
 
   return allEventsAsync.whenData((events) {
     return events.where((event) {
-      final matchesCity = city == 'All Cities' ||
-          event.city.toLowerCase() == city.toLowerCase();
       final matchesCategory =
           category == EventCategory.all || event.category == category;
       final matchesQuery = query.isEmpty ||
@@ -45,7 +43,7 @@ final filteredEventsProvider =
             event.startDate.day == selectedDate.day;
       }
 
-      return matchesCity && matchesCategory && matchesQuery && matchesDate;
+      return matchesCategory && matchesQuery && matchesDate;
     }).toList();
   });
 });

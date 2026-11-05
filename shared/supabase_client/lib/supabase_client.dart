@@ -305,22 +305,29 @@ class NextShowSupabaseClient {
     return (response as List).map((json) => _showtimeFromJson(json)).toList();
   }
 
-  /// Fetch active listings (joined view) - main query for user app
+  /// Fetch active listings (joined view) - main query for user app.
+  /// v_listings already hides shows that are over and keeps ones in progress,
+  /// so leave [from] null to include shows happening now.
+  /// [city] matches `event_metadata->>city` case-insensitively;
+  /// [cityIncludesUntagged] also keeps listings that have no city.
   static Future<List<Listing>> fetchActiveListings({
     DateTime? from,
     DateTime? to,
     EventCategory? category,
     VenueType? venueType,
-    double? userLat,
-    double? userLng,
-    double? radiusKm,
+    String? city,
+    bool cityIncludesUntagged = false,
     int? limit,
   }) async {
     dynamic query = client.from('v_listings').select();
 
-    // v_listings already hides shows that are over and keeps ones in progress.
-    final now = DateTime.now().toUtc().toIso8601String();
-
+    if (city != null) {
+      // Drop characters that are syntax in PostgREST filters; cities come from the app's fixed list.
+      final pattern = city.replaceAll(RegExp(r'[%_,()]'), '');
+      query = cityIncludesUntagged
+          ? query.or('event_metadata->>city.ilike.$pattern,event_metadata->>city.is.null')
+          : query.ilike('event_metadata->>city', pattern);
+    }
     if (from != null) {
       query = query.gte('start_time', from.toUtc().toIso8601String());
     }
@@ -333,27 +340,12 @@ class NextShowSupabaseClient {
     if (venueType != null) {
       query = query.eq('venue_type', venueType.name);
     }
+    query = query.order('start_time', ascending: true);
     if (limit != null) {
       query = query.limit(limit);
     }
 
-    // PostGIS radius filter (if user location provided)
-    if (userLat != null && userLng != null && radiusKm != null) {
-      // Use raw RPC for PostGIS distance query
-      final response = await client.rpc('fetch_listings_nearby', params: {
-        'user_lat': userLat,
-        'user_lng': userLng,
-        'radius_km': radiusKm,
-        'from_time': from?.toUtc().toIso8601String() ?? now,
-        'to_time': to?.toUtc().toIso8601String(),
-        'category_filter': category?.name,
-        'venue_type_filter': venueType?.name,
-        'limit_count': limit ?? 100,
-      });
-      return (response as List).map((json) => _listingFromJson(json)).toList();
-    }
-
-    final response = await query.order('start_time', ascending: true);
+    final response = await query;
     return (response as List).map((json) => _listingFromJson(json)).toList();
   }
 

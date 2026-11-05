@@ -55,7 +55,7 @@ class _EventBreakingCarouselScreenState
 
   @override
   Widget build(BuildContext context) {
-    final eventsAsync = ref.watch(feedForCityProvider);
+    final eventsAsync = ref.watch(feedListingsProvider);
     final selectedCity = ref.watch(selectedCityProvider);
 
     return Scaffold(
